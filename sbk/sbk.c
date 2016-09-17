@@ -35,7 +35,7 @@ void read_key(SBK *s){
 //-----------------------------------------------------------------------------
 // Output key to screen and binary file
 //-----------------------------------------------------------------------------
-void key_output(SBK *s){
+void write_key(SBK *s){
     FILE *fp = fopen(s->outputname, "wb");
     if( !fp ) perror("Error reading file."),exit(1);
 
@@ -190,7 +190,7 @@ void generate_hash(SBK *s){
 //-----------------------------------------------------------------------------
 // Generate 2048 bit RSA key
 //-----------------------------------------------------------------------------
-void generate_key(SBK *s){//char* filename){
+void generate_key(SBK *s){
     int             ret = 0;
     int             bits = 2048;
     unsigned long   e = RSA_F4;
