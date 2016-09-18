@@ -10,6 +10,9 @@
 
 #define SEED_SIZE 16
 #define SBK_SIZE 128
+#define SEED_SIZE_MULTIPLYER 8
+#define PNRG_SIZE 1024
+#define MASK_BITS 0xFF
 
 typedef struct{
     char*           filename;
@@ -19,7 +22,7 @@ typedef struct{
     unsigned char   seed2[SEED_SIZE];
     unsigned char   seed3[SEED_SIZE];
     unsigned char   seed4[SEED_SIZE];
-    unsigned short  sbk[SBK_SIZE];
+    unsigned int    sbk[SBK_SIZE];
 }SBK;
 
 //-----------------------------------------------------------------------------

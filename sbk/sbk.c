@@ -66,59 +66,68 @@ void generate_rands(SBK *s){
     unsigned char *buf_seed4 = s->seed4;
 
     RAND_seed(s->seed1, SEED_SIZE);
-    RAND_bytes(buf_seed1, sizeof(buf_seed1)*2);
+    RAND_bytes(buf_seed1, sizeof(buf_seed1)*SEED_SIZE_MULTIPLYER);
     RAND_seed(s->seed2, SEED_SIZE);
-    RAND_bytes(buf_seed2, sizeof(buf_seed2)*2);
+    RAND_bytes(buf_seed2, sizeof(buf_seed2)*SEED_SIZE_MULTIPLYER);
     RAND_seed(s->seed3, SEED_SIZE);
-    RAND_bytes(buf_seed3, sizeof(buf_seed3)*2);
+    RAND_bytes(buf_seed3, sizeof(buf_seed3)*SEED_SIZE_MULTIPLYER);
     RAND_seed(s->seed4, SEED_SIZE);
-    RAND_bytes(buf_seed4, sizeof(buf_seed4)*2);
+    RAND_bytes(buf_seed4, sizeof(buf_seed4)*SEED_SIZE_MULTIPLYER);
 
     printf("\nRandom Number 1:\t");
-    for (size_t i = 0; i < sizeof(buf_seed1)*2; i++)
+    for (size_t i = 0; i < sizeof(buf_seed1)*SEED_SIZE_MULTIPLYER; i++)
         printf("%02x", buf_seed1[i]);
     printf("\n");
     printf("\nRandom Number 2:\t");
-    for (size_t i = 0; i < sizeof(buf_seed2)*2; i++)
+    for (size_t i = 0; i < sizeof(buf_seed2)*SEED_SIZE_MULTIPLYER; i++)
         printf("%02x", buf_seed2[i]);
     printf("\n");
     printf("\nRandom Number 3:\t");
-    for (size_t i = 0; i < sizeof(buf_seed3)*2; i++)
+    for (size_t i = 0; i < sizeof(buf_seed3)*SEED_SIZE_MULTIPLYER; i++)
         printf("%02x", buf_seed3[i]);
     printf("\n");
     printf("\nRandom Number 4:\t");
-    for (size_t i = 0; i < sizeof(buf_seed4)*2; i++)
+    for (size_t i = 0; i < sizeof(buf_seed4)*SEED_SIZE_MULTIPLYER; i++)
         printf("%02x", buf_seed4[i]);
     printf("\n\n");
 
-
-    printf("Numbers from seed1: ");
-    for(int i = 0; i < SEED_SIZE*2; i++){
-        s->sbk[i] = (unsigned short)buf_seed1[i] % SBK_SIZE;
-        printf("%d,", s->sbk[i]);
+    unsigned char bits[4];
+    int counter = 0;
+    for(int i = 0; i < SBK_SIZE + 1; i++){
+        if (i != 0 && i % 4 == 0) {
+            s->sbk[counter] = abs(*(int *)bits);
+            counter++;
+        }
+        bits[i%4] = buf_seed1[i];
     }
-    printf("\n");
 
-    printf("Numbers from seed2: ");
-    for(int i = 0; i < SEED_SIZE*2; i++){
-        s->sbk[i+32] = (unsigned short)buf_seed2[i] % SBK_SIZE;
-        printf("%d,", s->sbk[i+32]);
+    for(int i = 0; i < SBK_SIZE + 1; i++){
+        if (i != 0 && i % 4 == 0) {
+            s->sbk[counter] = abs(*(int *)bits);
+            counter++;
+        }
+        bits[i%4] = buf_seed2[i];
     }
-    printf("\n");
 
-    printf("Numbers from seed3: ");
-    for(int i = 0; i < SEED_SIZE*2; i++){
-        s->sbk[i+64] = (unsigned short)buf_seed3[i] % SBK_SIZE;
-        printf("%d,", s->sbk[i+64]);
+    for(int i = 0; i < SBK_SIZE + 1; i++){
+        if (i != 0 && i % 4 == 0) {
+            s->sbk[counter] = abs(*(int *)bits);
+            counter++;
+        }
+        bits[i%4] = buf_seed3[i];
     }
-    printf("\n");
 
-    printf("Numbers from seed4: ");
-    for(int i = 0; i < SEED_SIZE*2; i++){
-        s->sbk[i+96] = (unsigned short)buf_seed4[i] % SBK_SIZE;
-        printf("%d,", s->sbk[i+96]);
+    for(int i = 0; i < SBK_SIZE  + 1; i++){
+        if (i != 0 && i % 4 == 0) {
+            s->sbk[counter] = abs(*(int *)bits);
+            counter++;
+        }
+        bits[i%4] = buf_seed4[i];
     }
-    printf("\n");
+
+    for(int i = 0; i < SBK_SIZE; i++){
+        printf("%d: %d\n", i, s->sbk[i]);
+    }
 }
 
 //-----------------------------------------------------------------------------
