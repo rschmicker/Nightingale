@@ -9,10 +9,10 @@
 #include <openssl/rand.h>
 
 #define SEED_SIZE 16
+#define TRANSPOSE_SIZE 32
 #define SBK_SIZE 128
 #define SEED_SIZE_MULTIPLYER 8
 #define PNRG_SIZE 1024
-#define MASK_BITS 0xFF
 
 typedef struct{
     char*           filename;
@@ -22,6 +22,11 @@ typedef struct{
     unsigned char   seed2[SEED_SIZE];
     unsigned char   seed3[SEED_SIZE];
     unsigned char   seed4[SEED_SIZE];
+    unsigned int 	transpose1[TRANSPOSE_SIZE];
+    unsigned int 	transpose2[TRANSPOSE_SIZE];
+    unsigned int 	transpose3[TRANSPOSE_SIZE];
+    unsigned int 	transpose4[TRANSPOSE_SIZE];
+    unsigned int 	transposed[SBK_SIZE];
     unsigned int    sbk[SBK_SIZE];
 }SBK;
 
@@ -39,6 +44,11 @@ void read_key(SBK *s);
 // Output key to screen and binary file
 //-----------------------------------------------------------------------------
 void write_key(SBK *s);
+
+//-----------------------------------------------------------------------------
+// Transpose the 4 arrays of random numbers
+//-----------------------------------------------------------------------------
+void transpose(SBK *s);
 
 //-----------------------------------------------------------------------------
 // Create random ints for shared block key

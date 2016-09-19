@@ -57,6 +57,28 @@ void write_key(SBK *s){
 }
 
 //-----------------------------------------------------------------------------
+// Transpose the 4 arrays of random numbers
+//-----------------------------------------------------------------------------
+void transpose(SBK *s){
+    int counter = 0;
+    for(int i = 0; i < 32; i++){
+        s->transposed[counter] = s->transpose1[i];
+        counter++;
+        s->transposed[counter] = s->transpose2[i];
+        counter++;
+        s->transposed[counter] = s->transpose3[i];
+        counter++;
+        s->transposed[counter] = s->transpose4[i];
+        counter++;
+    }
+
+    printf("\nTransposed Numbers:\n");
+    for(int i = 0; i < SBK_SIZE; i++){
+        printf("%d: %d\n", i, s->transposed[i]);
+    }
+}
+
+//-----------------------------------------------------------------------------
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
 void generate_rands(SBK *s){
@@ -95,38 +117,57 @@ void generate_rands(SBK *s){
     int counter = 0;
     for(int i = 0; i < SBK_SIZE + 1; i++){
         if (i != 0 && i % 4 == 0) {
-            s->sbk[counter] = abs(*(int *)bits);
+            s->transpose1[counter] = abs(*(int *)bits);
             counter++;
         }
         bits[i%4] = buf_seed1[i];
     }
 
+    counter = 0;
     for(int i = 0; i < SBK_SIZE + 1; i++){
         if (i != 0 && i % 4 == 0) {
-            s->sbk[counter] = abs(*(int *)bits);
+            s->transpose2[counter] = abs(*(int *)bits);
             counter++;
         }
         bits[i%4] = buf_seed2[i];
     }
 
+    counter = 0;
     for(int i = 0; i < SBK_SIZE + 1; i++){
         if (i != 0 && i % 4 == 0) {
-            s->sbk[counter] = abs(*(int *)bits);
+            s->transpose3[counter] = abs(*(int *)bits);
             counter++;
         }
         bits[i%4] = buf_seed3[i];
     }
 
+    counter = 0;
     for(int i = 0; i < SBK_SIZE  + 1; i++){
         if (i != 0 && i % 4 == 0) {
-            s->sbk[counter] = abs(*(int *)bits);
+            s->transpose4[counter] = abs(*(int *)bits);
             counter++;
         }
         bits[i%4] = buf_seed4[i];
     }
 
-    for(int i = 0; i < SBK_SIZE; i++){
-        printf("%d: %d\n", i, s->sbk[i]);
+    printf("Numbers for array 1 to transpose:\n");
+    for(int i = 0; i < TRANSPOSE_SIZE; i++){
+        printf("%d: %d\n", i, s->transpose1[i]);
+    }
+
+    printf("Numbers for array 2 to transpose:\n");
+    for(int i = 0; i < TRANSPOSE_SIZE; i++){
+        printf("%d: %d\n", i, s->transpose2[i]);
+    }
+
+    printf("Numbers for array 3 to transpose:\n");
+    for(int i = 0; i < TRANSPOSE_SIZE; i++){
+        printf("%d: %d\n", i, s->transpose3[i]);
+    }
+
+    printf("Numbers for array 4 to transpose:\n");
+    for(int i = 0; i < TRANSPOSE_SIZE; i++){
+        printf("%d: %d\n", i, s->transpose4[i]);
     }
 }
 

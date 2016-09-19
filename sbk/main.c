@@ -9,6 +9,7 @@ int main()
     generate_hash(&s);
     generate_seeds(&s);
     generate_rands(&s);
+    transpose(&s);
     //write_key(&s);
     //read_key(&s);
     return 0;
