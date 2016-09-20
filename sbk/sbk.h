@@ -11,6 +11,7 @@
 #define SEED_SIZE 16
 #define TRANSPOSE_SIZE 32
 #define SBK_SIZE 128
+#define RAND_SIZE 64
 #define SEED_SIZE_MULTIPLYER 8
 #define PNRG_SIZE 1024
 

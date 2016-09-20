@@ -88,34 +88,34 @@ void generate_rands(SBK *s){
     unsigned char *buf_seed4 = s->seed4;
 
     RAND_seed(s->seed1, SEED_SIZE);
-    RAND_bytes(buf_seed1, sizeof(buf_seed1)*SEED_SIZE_MULTIPLYER);
+    RAND_bytes(buf_seed1, RAND_SIZE);
     RAND_seed(s->seed2, SEED_SIZE);
-    RAND_bytes(buf_seed2, sizeof(buf_seed2)*SEED_SIZE_MULTIPLYER);
+    RAND_bytes(buf_seed2, RAND_SIZE);
     RAND_seed(s->seed3, SEED_SIZE);
-    RAND_bytes(buf_seed3, sizeof(buf_seed3)*SEED_SIZE_MULTIPLYER);
+    RAND_bytes(buf_seed3, RAND_SIZE);
     RAND_seed(s->seed4, SEED_SIZE);
-    RAND_bytes(buf_seed4, sizeof(buf_seed4)*SEED_SIZE_MULTIPLYER);
+    RAND_bytes(buf_seed4, RAND_SIZE);
 
     printf("\nRandom Number 1:\t");
-    for (size_t i = 0; i < sizeof(buf_seed1)*SEED_SIZE_MULTIPLYER; i++)
+    for (size_t i = 0; i < RAND_SIZE; i++)
         printf("%02x", buf_seed1[i]);
     printf("\n");
     printf("\nRandom Number 2:\t");
-    for (size_t i = 0; i < sizeof(buf_seed2)*SEED_SIZE_MULTIPLYER; i++)
+    for (size_t i = 0; i < RAND_SIZE; i++)
         printf("%02x", buf_seed2[i]);
     printf("\n");
     printf("\nRandom Number 3:\t");
-    for (size_t i = 0; i < sizeof(buf_seed3)*SEED_SIZE_MULTIPLYER; i++)
+    for (size_t i = 0; i < RAND_SIZE; i++)
         printf("%02x", buf_seed3[i]);
     printf("\n");
     printf("\nRandom Number 4:\t");
-    for (size_t i = 0; i < sizeof(buf_seed4)*SEED_SIZE_MULTIPLYER; i++)
+    for (size_t i = 0; i < RAND_SIZE; i++)
         printf("%02x", buf_seed4[i]);
     printf("\n\n");
 
     unsigned char bits[4];
     int counter = 0;
-    for(int i = 0; i < SBK_SIZE + 1; i++){
+    for(int i = 0; i < PNRG_SIZE + 1; i++){
         if (i != 0 && i % 4 == 0) {
             s->transpose1[counter] = abs(*(int *)bits);
             counter++;
@@ -124,7 +124,7 @@ void generate_rands(SBK *s){
     }
 
     counter = 0;
-    for(int i = 0; i < SBK_SIZE + 1; i++){
+    for(int i = 0; i < PNRG_SIZE + 1; i++){
         if (i != 0 && i % 4 == 0) {
             s->transpose2[counter] = abs(*(int *)bits);
             counter++;
@@ -133,7 +133,7 @@ void generate_rands(SBK *s){
     }
 
     counter = 0;
-    for(int i = 0; i < SBK_SIZE + 1; i++){
+    for(int i = 0; i < PNRG_SIZE + 1; i++){
         if (i != 0 && i % 4 == 0) {
             s->transpose3[counter] = abs(*(int *)bits);
             counter++;
@@ -142,7 +142,7 @@ void generate_rands(SBK *s){
     }
 
     counter = 0;
-    for(int i = 0; i < SBK_SIZE  + 1; i++){
+    for(int i = 0; i < PNRG_SIZE  + 1; i++){
         if (i != 0 && i % 4 == 0) {
             s->transpose4[counter] = abs(*(int *)bits);
             counter++;
