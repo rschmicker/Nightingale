@@ -10,7 +10,8 @@ int main()
     generate_seeds(&s);
     generate_rands(&s);
     transpose(&s);
-    //write_key(&s);
-    //read_key(&s);
+    shuffle(&s);
+    write_key(&s);
+    read_key(&s);
     return 0;
 }

@@ -7,6 +7,7 @@
 #include <openssl/sha.h>
 #include <openssl/pem.h>
 #include <openssl/rand.h>
+ #include <openssl/err.h>
 
 #define SEED_SIZE 16
 #define TRANSPOSE_SIZE 32
@@ -31,6 +32,11 @@ typedef struct{
     unsigned int    sbk[SBK_SIZE];
 }SBK;
 
+typedef struct{
+        unsigned int index;
+        unsigned int value;
+}indexes;
+
 //-----------------------------------------------------------------------------
 // Free resources for RSA key creation
 //-----------------------------------------------------------------------------
@@ -45,6 +51,16 @@ void read_key(SBK *s);
 // Output key to screen and binary file
 //-----------------------------------------------------------------------------
 void write_key(SBK *s);
+
+//-----------------------------------------------------------------------------
+// Compare function for qsort
+//-----------------------------------------------------------------------------
+int cmp(const void * elem1, const void * elem2);
+
+//-----------------------------------------------------------------------------
+// Shuffle the 1 - 128 values using a Knuth shuffle
+//-----------------------------------------------------------------------------
+void shuffle(SBK *s);
 
 //-----------------------------------------------------------------------------
 // Transpose the 4 arrays of random numbers

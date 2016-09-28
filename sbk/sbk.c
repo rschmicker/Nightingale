@@ -16,8 +16,8 @@ void read_key(SBK *s){
     FILE *fp = fopen(s->outputname, "rb");
     if( !fp ) perror("Error reading file."),exit(1);
 
-    unsigned short input[SBK_SIZE];
-    size_t size = sizeof(short);
+    unsigned int input[SBK_SIZE];
+    size_t size = sizeof(unsigned int);
 
     fread(input, size, SBK_SIZE, fp);
 
@@ -39,7 +39,7 @@ void write_key(SBK *s){
     FILE *fp = fopen(s->outputname, "wb");
     if( !fp ) perror("Error reading file."),exit(1);
 
-    size_t size = sizeof(short);
+    size_t size = sizeof(unsigned int);
 
     fwrite(s->sbk, size, SBK_SIZE, fp);
 
@@ -54,6 +54,40 @@ void write_key(SBK *s){
     printf("\n");
 
     fclose(fp);
+}
+
+//-----------------------------------------------------------------------------
+// Compare function for qsort
+//-----------------------------------------------------------------------------
+int cmp(const void * elem1, const void * elem2){
+    indexes * i1, *i2;
+    i1 = (indexes*)elem1;
+    i2 = (indexes*)elem2;
+    return i1->value - i2->value;
+}
+
+//-----------------------------------------------------------------------------
+// Shuffle the 1 - 128 values using a Knuth shuffle
+//-----------------------------------------------------------------------------
+void shuffle(SBK *s){
+
+    indexes knuth_sort[SBK_SIZE];
+
+    for(int i = 0; i < SBK_SIZE; i++){
+        knuth_sort[i].index = i+1;
+        knuth_sort[i].value = s->transposed[i];
+    }
+
+    qsort(knuth_sort, SBK_SIZE, sizeof(indexes), cmp);
+
+    printf("Shuffled Output:\n");
+    for(int i = 0; i < SBK_SIZE; i++){
+        printf("%d: %d\n", knuth_sort[i].index, knuth_sort[i].value);
+    }
+
+    for(int i = 0; i < SBK_SIZE; i++){
+        s->sbk[i] = knuth_sort[i].index;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +108,7 @@ void transpose(SBK *s){
 
     printf("\nTransposed Numbers:\n");
     for(int i = 0; i < SBK_SIZE; i++){
-        printf("%d: %d\n", i, s->transposed[i]);
+        printf("%d: %d\n", i+1, s->transposed[i]);
     }
 }
 
@@ -82,19 +116,36 @@ void transpose(SBK *s){
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
 void generate_rands(SBK *s){
-    unsigned char *buf_seed1 = s->seed1;
+    /*unsigned char *buf_seed1 = s->seed1;
     unsigned char *buf_seed2 = s->seed2;
     unsigned char *buf_seed3 = s->seed3;
-    unsigned char *buf_seed4 = s->seed4;
+    unsigned char *buf_seed4 = s->seed4;*/
 
-    RAND_seed(s->seed1, SEED_SIZE);
+    unsigned char buf_seed1[SBK_SIZE];
+    unsigned char buf_seed2[SBK_SIZE];
+    unsigned char buf_seed3[SBK_SIZE];
+    unsigned char buf_seed4[SBK_SIZE];
+
+    int rc1 = RAND_bytes(buf_seed1, sizeof(buf_seed1));
+    int rc2 = RAND_bytes(buf_seed2, sizeof(buf_seed2));
+    int rc3 = RAND_bytes(buf_seed3, sizeof(buf_seed3));
+    int rc4 = RAND_bytes(buf_seed4, sizeof(buf_seed4));
+
+    /*RAND_seed(s->seed1, SEED_SIZE);
     RAND_bytes(buf_seed1, RAND_SIZE);
     RAND_seed(s->seed2, SEED_SIZE);
     RAND_bytes(buf_seed2, RAND_SIZE);
     RAND_seed(s->seed3, SEED_SIZE);
     RAND_bytes(buf_seed3, RAND_SIZE);
     RAND_seed(s->seed4, SEED_SIZE);
-    RAND_bytes(buf_seed4, RAND_SIZE);
+    RAND_bytes(buf_seed4, RAND_SIZE);*/
+
+
+    if(rc1 != 1 || rc2 != 1 || rc3 != 1 || rc4 != 1) {
+        printf("FAILURE IN RAND GENERATION\n");
+    }
+
+
 
     printf("\nRandom Number 1:\t");
     for (size_t i = 0; i < RAND_SIZE; i++)
