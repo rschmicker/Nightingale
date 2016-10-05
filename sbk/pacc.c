@@ -40,6 +40,10 @@ void fill_ascii_to_pacc_map(PACC *p){
     };
 
     for(int i = 0; i < PACC_SIZE; i++){
+        unsigned char *map1 = &tempChar1[i];
+        unsigned char *map2 = &tempBytes1[i];
+        printf("%s, %s\n", map1, map2);
+        p->np = install((char*)map1, (char*)map2);
         p->arrayChar1[i] = tempChar1[i];
         p->arrayByt1[i] = tempBytes1[i];
     }
@@ -55,8 +59,21 @@ void ascii_hex_to_pacc(PACC *p){
         char* ah = ascii_hex;
         get_hex((int)p->arrayByt1[i], ph);
         get_hex(get_ascii(p->arrayChar1[i]), ah);
-        printf("%c%c -> %c%c\t", ah[0], ah[1], ph[0], ph[1]);
+        printf("%s -> %s\t", ah, ph);
 
+    }
+    printf("\n");
+    printf("==============================================================\n");
+    printf("Dictionary\n");
+    printf("==============================================================\n");
+    int counter = 0;
+    while(p->np->next != NULL){
+        if(counter % 8 == 0 && counter != 0) printf("\n");
+        char* map1 = p->np->name;
+        char* map2 = p->np->defn;
+        printf("%s -> %s\t", map1, map2);
+        counter++;
+        p->np = p->np->next;
     }
     printf("\n");
 }

@@ -116,12 +116,12 @@ void transpose(SBK *s){
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
 void generate_rands(SBK *s){
-    /*unsigned char *buf_seed1 = s->seed1;
+    unsigned char *buf_seed1 = s->seed1;
     unsigned char *buf_seed2 = s->seed2;
     unsigned char *buf_seed3 = s->seed3;
-    unsigned char *buf_seed4 = s->seed4;*/
+    unsigned char *buf_seed4 = s->seed4;
 
-    unsigned char buf_seed1[SBK_SIZE];
+    /*unsigned char buf_seed1[SBK_SIZE];
     unsigned char buf_seed2[SBK_SIZE];
     unsigned char buf_seed3[SBK_SIZE];
     unsigned char buf_seed4[SBK_SIZE];
@@ -129,16 +129,23 @@ void generate_rands(SBK *s){
     int rc1 = RAND_bytes(buf_seed1, sizeof(buf_seed1));
     int rc2 = RAND_bytes(buf_seed2, sizeof(buf_seed2));
     int rc3 = RAND_bytes(buf_seed3, sizeof(buf_seed3));
-    int rc4 = RAND_bytes(buf_seed4, sizeof(buf_seed4));
+    int rc4 = RAND_bytes(buf_seed4, sizeof(buf_seed4));*/
 
-    /*RAND_seed(s->seed1, SEED_SIZE);
+    RAND_seed(s->seed1, SEED_SIZE);
     RAND_bytes(buf_seed1, RAND_SIZE);
+    int rc1 = RAND_status();
+
     RAND_seed(s->seed2, SEED_SIZE);
     RAND_bytes(buf_seed2, RAND_SIZE);
+    int rc2 = RAND_status();
+
     RAND_seed(s->seed3, SEED_SIZE);
     RAND_bytes(buf_seed3, RAND_SIZE);
+    int rc3 = RAND_status();
+
     RAND_seed(s->seed4, SEED_SIZE);
-    RAND_bytes(buf_seed4, RAND_SIZE);*/
+    RAND_bytes(buf_seed4, RAND_SIZE);
+    int rc4 = RAND_status();
 
 
     if(rc1 != 1 || rc2 != 1 || rc3 != 1 || rc4 != 1) {

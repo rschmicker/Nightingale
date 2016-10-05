@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include "dict.h"
 #define PACC_SIZE 64
 
 typedef struct{
+	struct nlist *np;
     unsigned char arrayChar1[PACC_SIZE];
     unsigned char arrayByt1[PACC_SIZE];
 }PACC;
