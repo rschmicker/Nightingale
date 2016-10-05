@@ -55,7 +55,7 @@ void ascii_hex_to_pacc(PACC *p){
         char* ah = ascii_hex;
         get_hex((int)p->arrayByt1[i], ph);
         get_hex(get_ascii(p->arrayChar1[i]), ah);
-        printf("%c%c -> %c%c, ", ah[0], ah[1], ph[0], ph[1]);
+        printf("%c%c -> %c%c\t", ah[0], ah[1], ph[0], ph[1]);
 
     }
     printf("\n");
