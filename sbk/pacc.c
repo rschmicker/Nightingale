@@ -1,7 +1,7 @@
 #include "pacc.h"
 
 void fill_ascii_to_pacc_map(PACC *p){
-    const unsigned char tempChar1[PACC_SIZE] = {
+    const unsigned char Chars1[PACC_SIZE] = {
         '\0', ' ', ',', '.',
         '0', '1', '2', '3',
         '4', '5', '6', '7',
@@ -20,7 +20,7 @@ void fill_ascii_to_pacc_map(PACC *p){
         'w', 'x', 'y', 'z'
     };
 
-    const unsigned char tempBytes1[PACC_SIZE] = {
+    const unsigned char Bytes1[PACC_SIZE] = {
         0x0F, 0x17, 0x1B, 0x1D,
         0x1E, 0x27, 0x2B, 0x2D,
         0x2E, 0x33, 0x35, 0x36,
@@ -40,12 +40,16 @@ void fill_ascii_to_pacc_map(PACC *p){
     };
 
     for(int i = 0; i < PACC_SIZE; i++){
-        unsigned char *map1 = &tempChar1[i];
-        unsigned char *map2 = &tempBytes1[i];
-        printf("%s, %s\n", map1, map2);
-        p->np = install((char*)map1, (char*)map2);
-        p->arrayChar1[i] = tempChar1[i];
-        p->arrayByt1[i] = tempBytes1[i];
+        char map1 = Chars1[i];
+        char map2 = Bytes1[i];
+        printf("%c, %02x\n", map1, map2);
+        // char* temp1 = &map1;
+        // char* temp2 = &map2;
+
+        // printf("%s, %s\n", temp1, temp2);
+        // p->np = install(&Chars1[i], &Bytes1[i]);
+        p->arrayChar1[i] = Chars1[i];
+        p->arrayByt1[i] = Bytes1[i];
     }
 }
 
@@ -66,16 +70,16 @@ void ascii_hex_to_pacc(PACC *p){
     printf("==============================================================\n");
     printf("Dictionary\n");
     printf("==============================================================\n");
-    int counter = 0;
-    while(p->np->next != NULL){
-        if(counter % 8 == 0 && counter != 0) printf("\n");
-        char* map1 = p->np->name;
-        char* map2 = p->np->defn;
-        printf("%s -> %s\t", map1, map2);
-        counter++;
-        p->np = p->np->next;
-    }
-    printf("\n");
+    // int counter = 0;
+    // while(p->np->next != NULL){
+    //     if(counter % 8 == 0 && counter != 0) printf("\n");
+    //     char* map1 = p->np->name;
+    //     char* map2 = p->np->defn;
+    //     printf("%s -> %s\t", map1, map2);
+    //     counter++;
+    //     p->np = p->np->next;
+    // }
+    // printf("\n");
 }
 
 void get_hex(int n, char* hex){
