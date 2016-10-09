@@ -16,7 +16,9 @@ int main()
     // read_key(&s);
 
     PACC p;
-    fill_ascii_to_pacc_map(&p);
-    ascii_hex_to_pacc(&p);
+    encode(&p);
+    print_encoded_map(&p);
+    print_decoded_map(&p);
+
     return 0;
 }

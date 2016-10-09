@@ -1,6 +1,6 @@
 #include "pacc.h"
 
-void fill_ascii_to_pacc_map(PACC *p){
+void encode(PACC *p){
     const unsigned char tempChar1[PACC_SIZE] = {
         '\0', ' ', ',', '.',
         '0', '1', '2', '3',
@@ -45,7 +45,7 @@ void fill_ascii_to_pacc_map(PACC *p){
     }
 }
 
-void ascii_hex_to_pacc(PACC *p){
+void print_encoded_map(PACC *p){
     printf("Hex Encoding Map for Array 1 (ASCII to PACC):\n");
     for(int i = 0; i < PACC_SIZE; i++){
         if(i % 8 == 0 && i != 0) printf("\n");
@@ -56,6 +56,22 @@ void ascii_hex_to_pacc(PACC *p){
         get_hex((int)p->arrayByt1[i], ph);
         get_hex(get_ascii(p->arrayChar1[i]), ah);
         printf("%c%c -> %c%c\t", ah[0], ah[1], ph[0], ph[1]);
+
+    }
+    printf("\n");
+}
+
+void print_decoded_map(PACC *p){
+    printf("Hex Decoding Array 1 (PACC to ASCII):\n");
+    for(int i = 0; i < PACC_SIZE; i++){
+        if(i % 8 == 0 && i != 0) printf("\n");
+        char PACC_hex[2];
+        char ascii_hex[2];
+        char* ph = PACC_hex;
+        char* ah = ascii_hex;
+        get_hex((int)p->arrayByt1[i], ph);
+        get_hex(get_ascii(p->arrayChar1[i]), ah);
+        printf("%c%c -> %c%c\t", ph[0], ph[1], ah[0], ah[1]);
 
     }
     printf("\n");
