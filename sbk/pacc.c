@@ -1,7 +1,12 @@
 #include "pacc.h"
 
+<<<<<<< HEAD
 void encode(PACC *p){
     const unsigned char tempChar1[PACC_SIZE] = {
+=======
+void fill_ascii_to_pacc_map(PACC *p){
+    const unsigned char Chars1[PACC_SIZE] = {
+>>>>>>> 4ceb0b8e9da582d958159d2513fee3b9a84e1fdc
         '\0', ' ', ',', '.',
         '0', '1', '2', '3',
         '4', '5', '6', '7',
@@ -20,7 +25,7 @@ void encode(PACC *p){
         'w', 'x', 'y', 'z'
     };
 
-    const unsigned char tempBytes1[PACC_SIZE] = {
+    const unsigned char Bytes1[PACC_SIZE] = {
         0x0F, 0x17, 0x1B, 0x1D,
         0x1E, 0x27, 0x2B, 0x2D,
         0x2E, 0x33, 0x35, 0x36,
@@ -40,8 +45,9 @@ void encode(PACC *p){
     };
 
     for(int i = 0; i < PACC_SIZE; i++){
-        p->arrayChar1[i] = tempChar1[i];
-        p->arrayByt1[i] = tempBytes1[i];
+        p->map1[i].ascii_hex = Chars1[i];
+        p->map1[i].pacc = Bytes1[i];
+        printf("%c -> %02x\n", p->map1[i].ascii_hex, p->map1[i].pacc);
     }
 }
 
@@ -49,18 +55,19 @@ void print_encoded_map(PACC *p){
     printf("Hex Encoding Map for Array 1 (ASCII to PACC):\n");
     for(int i = 0; i < PACC_SIZE; i++){
         if(i % 8 == 0 && i != 0) printf("\n");
-        char PACC_hex[2];
-        char ascii_hex[2];
-        char* ph = PACC_hex;
-        char* ah = ascii_hex;
-        get_hex((int)p->arrayByt1[i], ph);
-        get_hex(get_ascii(p->arrayChar1[i]), ah);
-        printf("%c%c -> %c%c\t", ah[0], ah[1], ph[0], ph[1]);
+        unsigned char PACC_hex[2];
+        unsigned char ascii_hex[2];
+        unsigned char* ph = PACC_hex;
+        unsigned char* ah = ascii_hex;
+        get_hex((int)p->map1[i].pacc, ph);
+        get_hex(get_ascii(p->map1[i].ascii_hex), ah);
+        printf("%c%c -> %c%c, ", ah[0], ah[1], ph[0], ph[1]);
 
     }
     printf("\n");
 }
 
+<<<<<<< HEAD
 void print_decoded_map(PACC *p){
     printf("Hex Decoding Array 1 (PACC to ASCII):\n");
     for(int i = 0; i < PACC_SIZE; i++){
@@ -79,8 +86,12 @@ void print_decoded_map(PACC *p){
 
 void get_hex(int n, char* hex){
     sprintf(hex, "%02x", n);
+=======
+void get_hex(int n, unsigned char* hex){
+    sprintf((char*)hex, "%02x", n);
+>>>>>>> 4ceb0b8e9da582d958159d2513fee3b9a84e1fdc
 }
 
-int get_ascii(char c){
+int get_ascii(unsigned char c){
     return (int)c;
 }
