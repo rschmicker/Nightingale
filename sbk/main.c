@@ -1,8 +1,14 @@
 #include "sbk.h"
 #include "pacc.h"
 
-int main()
-{
+int main(int argc, char *argv[]){
+    const char* f;
+    if( argc == 2 ) {
+        f = argv[1];
+    }
+    else {
+        printf("Please include file to encrypt.\n");
+    }
     // SBK s;
     // s.filename = "private.pem";
     // s.outputname = "key.sbk";
@@ -19,6 +25,7 @@ int main()
     encode(&p);
     print_encoded_map(&p);
     print_decoded_map(&p);
-
+    encrypt_file(&p, f);
+    decrypt_file(&p);
     return 0;
 }

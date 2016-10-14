@@ -1,12 +1,9 @@
 #include "pacc.h"
 
-<<<<<<< HEAD
+//-----------------------------------------------------------------------------
 void encode(PACC *p){
-    const unsigned char tempChar1[PACC_SIZE] = {
-=======
-void fill_ascii_to_pacc_map(PACC *p){
     const unsigned char Chars1[PACC_SIZE] = {
->>>>>>> 4ceb0b8e9da582d958159d2513fee3b9a84e1fdc
+
         '\0', ' ', ',', '.',
         '0', '1', '2', '3',
         '4', '5', '6', '7',
@@ -51,6 +48,88 @@ void fill_ascii_to_pacc_map(PACC *p){
     }
 }
 
+//-----------------------------------------------------------------------------
+void encrypt_file(PACC *p, const char* file){
+    FILE *f_to_enc, *enc;
+    f_to_enc = fopen(file, "r");
+    enc = fopen(E_FILE, "wb");
+
+    if( !f_to_enc || !enc ) perror("Error reading file."),exit(EXIT_FAILURE);
+
+    int m_size = 0;
+    int alloc_size = 10;
+    char* message = (char*)malloc(alloc_size);
+
+    for(;;){
+        int n = fgetc(f_to_enc);
+        if(n == EOF) break;
+        char c = (char)n;
+        if(m_size > alloc_size){
+            alloc_size += 10;
+            message = (char*)realloc(message,alloc_size);
+        }
+        message[m_size] = c;
+        ++m_size;
+    }
+
+    char enc_message[m_size];
+
+    printf("\nOriginal Message:\n");
+    printf("%s\n", message);
+
+    m_size -= 1;
+
+    printf("Encrypted Message:\n");
+    for(int i = 0; i < m_size; ++i){
+        for(int k = 0; k < PACC_SIZE; ++k){
+            if(message[i] == p->map1[k].ascii_hex){
+                enc_message[i] = p->map1[k].pacc;
+                printf("%c", enc_message[i]);
+            }
+        }
+    }
+    printf("\n\n");
+
+    size_t size = sizeof(char);
+    fwrite(enc_message, size, m_size, enc);
+    p->file_char_length = m_size;
+
+    free(message);
+    fclose(f_to_enc);
+    fclose(enc);
+}
+
+//-----------------------------------------------------------------------------
+void decrypt_file(PACC *p){
+    FILE *dcpt, *enc;
+    enc = fopen(E_FILE, "rb");
+    dcpt = fopen(D_FILE, "w");
+
+    if( !enc || !dcpt ) perror("Error reading file."),exit(EXIT_FAILURE);
+
+    char enc_message[p->file_char_length];
+    char message[p->file_char_length];
+    size_t size = sizeof(char);
+
+    fread(enc_message, size, p->file_char_length, enc);
+
+    printf("Message Decrypted:\n");
+    for(int i = 0; i < p->file_char_length; ++i){
+        for(int k = 0; k < PACC_SIZE; ++k){
+            if((unsigned char)enc_message[i] == p->map1[k].pacc){
+                message[i] = p->map1[k].ascii_hex;
+                printf("%c", message[i]);
+                fputc(message[i], dcpt);
+            }
+        }
+    }
+    printf("\n\n");
+
+    fclose(dcpt);
+    fclose(enc);
+}
+
+//-----------------------------------------------------------------------------
 void print_encoded_map(PACC *p){
     printf("Hex Encoding Map for Array 1 (ASCII to PACC):\n");
     for(int i = 0; i < PACC_SIZE; i++){
@@ -67,31 +146,29 @@ void print_encoded_map(PACC *p){
     printf("\n");
 }
 
-<<<<<<< HEAD
+//-----------------------------------------------------------------------------
 void print_decoded_map(PACC *p){
     printf("Hex Decoding Array 1 (PACC to ASCII):\n");
     for(int i = 0; i < PACC_SIZE; i++){
         if(i % 8 == 0 && i != 0) printf("\n");
-        char PACC_hex[2];
-        char ascii_hex[2];
-        char* ph = PACC_hex;
-        char* ah = ascii_hex;
-        get_hex((int)p->arrayByt1[i], ph);
-        get_hex(get_ascii(p->arrayChar1[i]), ah);
-        printf("%c%c -> %c%c\t", ph[0], ph[1], ah[0], ah[1]);
+        unsigned char PACC_hex[2];
+        unsigned char ascii_hex[2];
+        unsigned char* ph = PACC_hex;
+        unsigned char* ah = ascii_hex;
+        get_hex((int)p->map1[i].pacc, ph);
+        get_hex(get_ascii(p->map1[i].ascii_hex), ah);
+        printf("%c%c -> %c%c, ", ph[0], ph[1], ah[0], ah[1]);
 
     }
     printf("\n");
 }
 
-void get_hex(int n, char* hex){
-    sprintf(hex, "%02x", n);
-=======
+//-----------------------------------------------------------------------------
 void get_hex(int n, unsigned char* hex){
     sprintf((char*)hex, "%02x", n);
->>>>>>> 4ceb0b8e9da582d958159d2513fee3b9a84e1fdc
 }
 
+//-----------------------------------------------------------------------------
 int get_ascii(unsigned char c){
     return (int)c;
 }
