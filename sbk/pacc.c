@@ -42,16 +42,9 @@ void encode(PACC *p){
     };
 
     for(int i = 0; i < PACC_SIZE; ++i){
-        printf("Index: %d\n", (unsigned int)Chars1[i]);
-        p->map1[(int)Chars1[i]] = Bytes1[i];
-
+        p->map1b[(int)Chars1[i]] = Bytes1[i];
+        p->map1c[(int)Bytes1[i]] = Chars1[i];
     }
-
-    // for(int i = 0; i < PACC_SIZE; i++){
-    //     p->map1[i].ascii_hex = Chars1[i];
-    //     p->map1[i].pacc = Bytes1[i];
-    //     printf("%c -> %02x\n", p->map1[i].ascii_hex, p->map1[i].pacc);
-    // }
 }
 
 //-----------------------------------------------------------------------------
@@ -64,7 +57,7 @@ void encrypt_file(PACC *p, const char* file){
 
     int m_size = 0;
     int alloc_size = 10;
-    char* message = (char*)malloc(alloc_size);
+    unsigned char* message = (unsigned char*)malloc(alloc_size);
 
     for(;;){
         int n = fgetc(f_to_enc);
@@ -72,13 +65,13 @@ void encrypt_file(PACC *p, const char* file){
         char c = (char)n;
         if(m_size > alloc_size){
             alloc_size += 10;
-            message = (char*)realloc(message,alloc_size);
+            message = (unsigned char*)realloc(message,alloc_size);
         }
         message[m_size] = c;
         ++m_size;
     }
 
-    char enc_message[m_size];
+    unsigned char enc_message[m_size];
 
     printf("\nOriginal Message:\n");
     printf("%s\n", message);
@@ -87,23 +80,12 @@ void encrypt_file(PACC *p, const char* file){
 
     printf("Encrypted Message:\n");
     for(int i = 0; i < m_size; ++i){
-        enc_message[i] = p->map1[(int)message[i]];
+        enc_message[i] = p->map1b[(unsigned int)message[i]];
         printf("%c", enc_message[i]);
     }
     printf("\n\n");
 
-    // printf("Encrypted Message:\n");
-    // for(int i = 0; i < m_size; ++i){
-    //     for(int k = 0; k < PACC_SIZE; ++k){
-    //         if(message[i] == p->map1[k].ascii_hex){
-    //             enc_message[i] = p->map1[k].pacc;
-    //             printf("%c", enc_message[i]);
-    //         }
-    //     }
-    // }
-    // printf("\n\n");
-
-    size_t size = sizeof(char);
+    size_t size = sizeof(unsigned char);
     fwrite(enc_message, size, m_size, enc);
     p->file_char_length = m_size;
 
@@ -120,80 +102,19 @@ void decrypt_file(PACC *p){
 
     if( !enc || !dcpt ) perror("Error reading file."),exit(EXIT_FAILURE);
 
-    char enc_message[p->file_char_length];
-    char message[p->file_char_length];
-    size_t size = sizeof(char);
+    unsigned char enc_message[p->file_char_length];
+    unsigned char message[p->file_char_length];
+    size_t size = sizeof(unsigned char);
 
     fread(enc_message, size, p->file_char_length, enc);
 
     printf("Message Decrypted:\n");
     for(int i = 0; i < p->file_char_length; ++i){
-        for(int k = 0; k < MAP_SIZE; ++k){
-            if((unsigned char)enc_message[i] == (unsigned char)p->map1[k]){
-                message[i] = (unsigned char)k;
-                printf("%c", message[i]);
-                fputc(message[i], dcpt);
-            }
-        }  
+        message[i] = p->map1c[(unsigned int)enc_message[i]];
+        printf("%c", message[i]);
     }
     printf("\n\n");
-
-    // printf("Message Decrypted:\n");
-    // for(int i = 0; i < p->file_char_length; ++i){
-    //     for(int k = 0; k < PACC_SIZE; ++k){
-    //         if((unsigned char)enc_message[i] == p->map1[k].pacc){
-    //             message[i] = p->map1[k].ascii_hex;
-    //             printf("%c", message[i]);
-    //             fputc(message[i], dcpt);
-    //         }
-    //     }
-    // }
-    // printf("\n\n");
 
     fclose(dcpt);
     fclose(enc);
 }
-
-//-----------------------------------------------------------------------------
-// void print_encoded_map(PACC *p){
-//     printf("Hex Encoding Map for Array 1 (ASCII to PACC):\n");
-//     for(int i = 0; i < PACC_SIZE; i++){
-//         if(i % 8 == 0 && i != 0) printf("\n");
-//         unsigned char PACC_hex[2];
-//         unsigned char ascii_hex[2];
-//         unsigned char* ph = PACC_hex;
-//         unsigned char* ah = ascii_hex;
-//         get_hex((int)p->map1[i].pacc, ph);
-//         get_hex(get_ascii(p->map1[i].ascii_hex), ah);
-//         printf("%c%c -> %c%c, ", ah[0], ah[1], ph[0], ph[1]);
-
-//     }
-//     printf("\n");
-// }
-
-// //-----------------------------------------------------------------------------
-// void print_decoded_map(PACC *p){
-//     printf("Hex Decoding Array 1 (PACC to ASCII):\n");
-//     for(int i = 0; i < PACC_SIZE; i++){
-//         if(i % 8 == 0 && i != 0) printf("\n");
-//         unsigned char PACC_hex[2];
-//         unsigned char ascii_hex[2];
-//         unsigned char* ph = PACC_hex;
-//         unsigned char* ah = ascii_hex;
-//         get_hex((int)p->map1[i].pacc, ph);
-//         get_hex(get_ascii(p->map1[i].ascii_hex), ah);
-//         printf("%c%c -> %c%c, ", ph[0], ph[1], ah[0], ah[1]);
-
-//     }
-//     printf("\n");
-// }
-
-// //-----------------------------------------------------------------------------
-// void get_hex(int n, unsigned char* hex){
-//     sprintf((char*)hex, "%02x", n);
-// }
-
-// //-----------------------------------------------------------------------------
-// int get_ascii(unsigned char c){
-//     return (int)c;
-// }

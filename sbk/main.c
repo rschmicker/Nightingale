@@ -23,8 +23,6 @@ int main(int argc, char *argv[]){
 
     PACC p;
     encode(&p);
-    //print_encoded_map(&p);
-    //print_decoded_map(&p);
     encrypt_file(&p, f);
     decrypt_file(&p);
     return 0;
