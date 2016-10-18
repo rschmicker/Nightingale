@@ -4,6 +4,7 @@
 #define MAP_SIZE 255
 #define E_FILE "encrypted_file.txt"
 #define D_FILE "decrypted_file.txt"
+#define PACC_KEY_NAME "assignment.pacc"
 
 typedef struct{
     unsigned char map1b[MAP_SIZE];
@@ -25,3 +26,13 @@ void encrypt_file(PACC *p, const char* file);
 // Decrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
 void decrypt_file(PACC *p);
+
+//-----------------------------------------------------------------------------
+// Write pacc to file
+//-----------------------------------------------------------------------------
+void write_pacc(PACC *p);
+
+//-----------------------------------------------------------------------------
+// Read pacc from file
+//-----------------------------------------------------------------------------
+void read_pacc(PACC *p);

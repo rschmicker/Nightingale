@@ -15,6 +15,8 @@
 #define RAND_SIZE 64
 #define SEED_SIZE_MULTIPLYER 8
 #define PNRG_SIZE 1024
+#define RSA_KEY "private.pem"
+#define SBK_KEY "key.sbk"
 
 typedef struct{
     char*           filename;

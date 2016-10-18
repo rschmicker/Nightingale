@@ -53,23 +53,30 @@ void encrypt_file(PACC *p, const char* file){
     f_to_enc = fopen(file, "r");
     enc = fopen(E_FILE, "wb");
 
-    if( !f_to_enc || !enc ) perror("Error reading file."),exit(EXIT_FAILURE);
+    if( !f_to_enc ) perror("Error reading input file."),exit(EXIT_FAILURE);
+
+    if( !enc ) perror("Error opening encrypted file."),exit(EXIT_FAILURE);
 
     int m_size = 0;
     int alloc_size = 10;
     unsigned char* message = (unsigned char*)malloc(alloc_size);
+    if( message == NULL ) perror("Error allocating malloc."),exit(EXIT_FAILURE);
 
     for(;;){
         int n = fgetc(f_to_enc);
         if(n == EOF) break;
-        char c = (char)n;
+        unsigned char c = (unsigned char)n;
         if(m_size > alloc_size){
             alloc_size += 10;
-            message = (unsigned char*)realloc(message,alloc_size);
+            message = (unsigned char*)realloc(message, alloc_size);
+            if( message == NULL) perror("Error reallocating malloc."),
+                                    exit(EXIT_FAILURE);
         }
         message[m_size] = c;
         ++m_size;
     }
+
+    message[m_size] = (unsigned char)'\0';
 
     unsigned char enc_message[m_size];
 
@@ -86,7 +93,11 @@ void encrypt_file(PACC *p, const char* file){
     printf("\n\n");
 
     size_t size = sizeof(unsigned char);
+
     fwrite(enc_message, size, m_size, enc);
+    if( ferror(enc) ) perror("Error writing to encrypted file."),
+                        exit(EXIT_FAILURE);
+
     p->file_char_length = m_size;
 
     free(message);
@@ -100,13 +111,15 @@ void decrypt_file(PACC *p){
     enc = fopen(E_FILE, "rb");
     dcpt = fopen(D_FILE, "w");
 
-    if( !enc || !dcpt ) perror("Error reading file."),exit(EXIT_FAILURE);
+    if( !enc ) perror("Error reading encrypted file."),exit(EXIT_FAILURE);
+    if( !dcpt ) perror("Error opening decrypted file."),exit(EXIT_FAILURE);
 
     unsigned char enc_message[p->file_char_length];
     unsigned char message[p->file_char_length];
     size_t size = sizeof(unsigned char);
 
     fread(enc_message, size, p->file_char_length, enc);
+    if( ferror(enc) )perror("Error reading encrypted file."),exit(EXIT_FAILURE);
 
     printf("Message Decrypted:\n");
     for(int i = 0; i < p->file_char_length; ++i){
@@ -117,4 +130,30 @@ void decrypt_file(PACC *p){
 
     fclose(dcpt);
     fclose(enc);
+}
+
+//-----------------------------------------------------------------------------
+void write_pacc(PACC *p){
+    FILE *fp = fopen(PACC_KEY_NAME, "wb");
+    if( !fp ) perror("Error opening PACC file."),exit(EXIT_FAILURE);
+
+    size_t size = sizeof(*p);
+
+    fwrite(p, size, 1, fp);
+    if( ferror(fp) ) perror("Error writing to PACC file."),exit(EXIT_FAILURE);
+
+    fclose(fp);
+}
+
+//-----------------------------------------------------------------------------
+void read_pacc(PACC *p){
+    FILE *fp = fopen(PACC_KEY_NAME, "rb");
+    if( !fp ) perror("Error reading PACC file."),exit(EXIT_FAILURE);
+
+    size_t size = sizeof(*p);
+
+    fread(p, size, 1, fp);
+    if( ferror(fp) ) perror("Error reading PACC file."),exit(EXIT_FAILURE);
+
+    fclose(fp);
 }

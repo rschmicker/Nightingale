@@ -13,13 +13,14 @@ void free_r(BIO *bp_private, RSA *r, BIGNUM *bne){
 // Read binary key file
 //-----------------------------------------------------------------------------
 void read_key(SBK *s){
-    FILE *fp = fopen(s->outputname, "rb");
-    if( !fp ) perror("Error reading file."),exit(1);
+    FILE *fp = fopen(SBK_KEY, "rb");
+    if( !fp ) perror("Error reading file SBK file."),exit(EXIT_FAILURE);
 
     unsigned int input[SBK_SIZE];
     size_t size = sizeof(unsigned int);
 
     fread(input, size, SBK_SIZE, fp);
+    if( ferror(fp) ) perror("Error reading SBK file."),exit(EXIT_FAILURE);
 
     printf("\n");
     printf("Key(from file):\n");
@@ -36,12 +37,13 @@ void read_key(SBK *s){
 // Output key to screen and binary file
 //-----------------------------------------------------------------------------
 void write_key(SBK *s){
-    FILE *fp = fopen(s->outputname, "wb");
+    FILE *fp = fopen(SBK_KEY, "wb");
     if( !fp ) perror("Error reading file."),exit(1);
 
     size_t size = sizeof(unsigned int);
 
     fwrite(s->sbk, size, SBK_SIZE, fp);
+    if( ferror(fp) ) perror("Error writing SBK."),exit(EXIT_FAILURE);
 
     printf("\n");
     printf("Key:\n");
@@ -268,8 +270,8 @@ void generate_hash(SBK *s){
     char* buffer = NULL;
     size_t size = 0;
 
-    FILE *fp = fopen(s->filename, "rb");
-    if( !fp ) perror("Error reading file."),exit(1);
+    FILE *fp = fopen(RSA_KEY, "rb");
+    if( !fp ) perror("Error reading private key from RSA."),exit(EXIT_FAILURE);
 
     fseek(fp, 0, SEEK_END);
     size = ftell(fp);
@@ -279,6 +281,8 @@ void generate_hash(SBK *s){
     buffer = malloc((size + 1) * sizeof(*buffer));
 
     fread(buffer, size, 1, fp);
+    if( ferror(fp) ) perror("Error reading private key from RSA."),
+                        exit(EXIT_FAILURE);
 
     buffer[size] = '\0';
 
@@ -320,7 +324,7 @@ void generate_key(SBK *s){
         printf("Failue\n");
     }
 
-    bp_private = BIO_new_file(s->filename, "w+");
+    bp_private = BIO_new_file(RSA_KEY, "w+");
     ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
 
     free_r(bp_private, r, bne);
