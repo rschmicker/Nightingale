@@ -7,7 +7,8 @@
 #include <openssl/sha.h>
 #include <openssl/pem.h>
 #include <openssl/rand.h>
- #include <openssl/err.h>
+#include <openssl/err.h>
+#include "pcg_variants.h"
 
 #define SEED_SIZE 16
 #define TRANSPOSE_SIZE 32
