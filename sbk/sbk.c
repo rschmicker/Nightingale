@@ -110,7 +110,7 @@ void transpose(SBK *s){
 
     printf("\nTransposed Numbers:\n");
     for(int i = 0; i < SBK_SIZE; i++){
-        printf("%d: %d\n", i+1, s->transposed[i]);
+        printf("%d: %ld\n", i+1, s->transposed[i]);
     }
 }
 
@@ -118,116 +118,48 @@ void transpose(SBK *s){
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
 void generate_rands(SBK *s){
-    unsigned char *buf_seed1 = s->seed1;
-    unsigned char *buf_seed2 = s->seed2;
-    unsigned char *buf_seed3 = s->seed3;
-    unsigned char *buf_seed4 = s->seed4;
+    
+    pcg64_random_t rng1, rng2, rng3, rng4;
 
-    /*unsigned char buf_seed1[SBK_SIZE];
-    unsigned char buf_seed2[SBK_SIZE];
-    unsigned char buf_seed3[SBK_SIZE];
-    unsigned char buf_seed4[SBK_SIZE];
+    pcg128_t round = 5;
 
-    int rc1 = RAND_bytes(buf_seed1, sizeof(buf_seed1));
-    int rc2 = RAND_bytes(buf_seed2, sizeof(buf_seed2));
-    int rc3 = RAND_bytes(buf_seed3, sizeof(buf_seed3));
-    int rc4 = RAND_bytes(buf_seed4, sizeof(buf_seed4));*/
+    pcg128_t s1, s2, s3, s4;
 
-    RAND_seed(s->seed1, SEED_SIZE);
-    RAND_bytes(buf_seed1, RAND_SIZE);
-    int rc1 = RAND_status();
+    s1 = *(pcg128_t *)s->seed1;
+    s2 = *(pcg128_t *)s->seed2;
+    s3 = *(pcg128_t *)s->seed3;
+    s4 = *(pcg128_t *)s->seed4;
 
-    RAND_seed(s->seed2, SEED_SIZE);
-    RAND_bytes(buf_seed2, RAND_SIZE);
-    int rc2 = RAND_status();
+    pcg64_srandom_r(&rng1, s1, round);
+    pcg64_srandom_r(&rng2, s2, round);
+    pcg64_srandom_r(&rng3, s3, round);
+    pcg64_srandom_r(&rng4, s4, round);
 
-    RAND_seed(s->seed3, SEED_SIZE);
-    RAND_bytes(buf_seed3, RAND_SIZE);
-    int rc3 = RAND_status();
-
-    RAND_seed(s->seed4, SEED_SIZE);
-    RAND_bytes(buf_seed4, RAND_SIZE);
-    int rc4 = RAND_status();
-
-
-    if(rc1 != 1 || rc2 != 1 || rc3 != 1 || rc4 != 1) {
-        printf("FAILURE IN RAND GENERATION\n");
-    }
-
-
-
-    printf("\nRandom Number 1:\t");
-    for (size_t i = 0; i < RAND_SIZE; i++)
-        printf("%02x", buf_seed1[i]);
-    printf("\n");
-    printf("\nRandom Number 2:\t");
-    for (size_t i = 0; i < RAND_SIZE; i++)
-        printf("%02x", buf_seed2[i]);
-    printf("\n");
-    printf("\nRandom Number 3:\t");
-    for (size_t i = 0; i < RAND_SIZE; i++)
-        printf("%02x", buf_seed3[i]);
-    printf("\n");
-    printf("\nRandom Number 4:\t");
-    for (size_t i = 0; i < RAND_SIZE; i++)
-        printf("%02x", buf_seed4[i]);
-    printf("\n\n");
-
-    unsigned char bits[4];
-    int counter = 0;
-    for(int i = 0; i < PNRG_SIZE + 1; i++){
-        if (i != 0 && i % 4 == 0) {
-            s->transpose1[counter] = abs(*(int *)bits);
-            counter++;
-        }
-        bits[i%4] = buf_seed1[i];
-    }
-
-    counter = 0;
-    for(int i = 0; i < PNRG_SIZE + 1; i++){
-        if (i != 0 && i % 4 == 0) {
-            s->transpose2[counter] = abs(*(int *)bits);
-            counter++;
-        }
-        bits[i%4] = buf_seed2[i];
-    }
-
-    counter = 0;
-    for(int i = 0; i < PNRG_SIZE + 1; i++){
-        if (i != 0 && i % 4 == 0) {
-            s->transpose3[counter] = abs(*(int *)bits);
-            counter++;
-        }
-        bits[i%4] = buf_seed3[i];
-    }
-
-    counter = 0;
-    for(int i = 0; i < PNRG_SIZE  + 1; i++){
-        if (i != 0 && i % 4 == 0) {
-            s->transpose4[counter] = abs(*(int *)bits);
-            counter++;
-        }
-        bits[i%4] = buf_seed4[i];
+    for(int i = 0; i < TRANSPOSE_SIZE; ++i){
+        s->transpose1[i] = abs(pcg64_random_r(&rng1));
+        s->transpose2[i] = abs(pcg64_random_r(&rng2));
+        s->transpose3[i] = abs(pcg64_random_r(&rng3));
+        s->transpose4[i] = abs(pcg64_random_r(&rng4));
     }
 
     printf("Numbers for array 1 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %d\n", i, s->transpose1[i]);
+        printf("%d: %ld\n", i, s->transpose1[i]);
     }
 
     printf("Numbers for array 2 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %d\n", i, s->transpose2[i]);
+        printf("%d: %ld\n", i, s->transpose2[i]);
     }
 
     printf("Numbers for array 3 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %d\n", i, s->transpose3[i]);
+        printf("%d: %ld\n", i, s->transpose3[i]);
     }
 
     printf("Numbers for array 4 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %d\n", i, s->transpose4[i]);
+        printf("%d: %ld\n", i, s->transpose4[i]);
     }
 }
 
