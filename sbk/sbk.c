@@ -110,7 +110,7 @@ void transpose(SBK *s){
 
     printf("\nTransposed Numbers:\n");
     for(int i = 0; i < SBK_SIZE; i++){
-        printf("%d: %ld\n", i+1, s->transposed[i]);
+        printf("%d: %lu\n", i+1, s->transposed[i]);
     }
 }
 
@@ -118,7 +118,7 @@ void transpose(SBK *s){
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
 void generate_rands(SBK *s){
-    
+
     pcg64_random_t rng1, rng2, rng3, rng4;
 
     pcg128_t round = 5;
@@ -144,22 +144,22 @@ void generate_rands(SBK *s){
 
     printf("Numbers for array 1 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %ld\n", i, s->transpose1[i]);
+        printf("%d: %lu\n", i, s->transpose1[i]);
     }
 
     printf("Numbers for array 2 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %ld\n", i, s->transpose2[i]);
+        printf("%d: %lu\n", i, s->transpose2[i]);
     }
 
     printf("Numbers for array 3 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %ld\n", i, s->transpose3[i]);
+        printf("%d: %lu\n", i, s->transpose3[i]);
     }
 
     printf("Numbers for array 4 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %ld\n", i, s->transpose4[i]);
+        printf("%d: %lu\n", i, s->transpose4[i]);
     }
 }
 
@@ -173,10 +173,10 @@ void generate_seeds(SBK *s){
     memcpy(s->seed3, s->hash + SEED_SIZE*2, SEED_SIZE);
     memcpy(s->seed4, s->hash + SEED_SIZE*3, SEED_SIZE);
 
-    s->seed1[SBK_SIZE] = '\0';
-    s->seed2[SBK_SIZE] = '\0';
-    s->seed3[SBK_SIZE] = '\0';
-    s->seed4[SBK_SIZE] = '\0';
+    s->seed1[SBK_SIZE+1] = '\0';
+    s->seed2[SBK_SIZE+1] = '\0';
+    s->seed3[SBK_SIZE+1] = '\0';
+    s->seed4[SBK_SIZE+1] = '\0';
 
     printf("\nSeed1 - %d bits:\n", SBK_SIZE);
     for(int i = 0; i < sizeof(s->seed1) - 1 ; i++) {printf("%02x",s->seed1[i]);}

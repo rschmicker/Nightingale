@@ -23,15 +23,15 @@ typedef struct{
     char*           filename;
     char*           outputname;
     unsigned char   hash[SHA512_DIGEST_LENGTH];
-    unsigned char   seed1[SEED_SIZE];
-    unsigned char   seed2[SEED_SIZE];
-    unsigned char   seed3[SEED_SIZE];
-    unsigned char   seed4[SEED_SIZE];
-    unsigned int 	transpose1[TRANSPOSE_SIZE];
-    unsigned int 	transpose2[TRANSPOSE_SIZE];
-    unsigned int 	transpose3[TRANSPOSE_SIZE];
-    unsigned int 	transpose4[TRANSPOSE_SIZE];
-    unsigned int 	transposed[SBK_SIZE];
+    unsigned char   seed1[SEED_SIZE+1];
+    unsigned char   seed2[SEED_SIZE+1];
+    unsigned char   seed3[SEED_SIZE+1];
+    unsigned char   seed4[SEED_SIZE+1];
+    uint64_t     	transpose1[TRANSPOSE_SIZE];
+    uint64_t     	transpose2[TRANSPOSE_SIZE];
+    uint64_t     	transpose3[TRANSPOSE_SIZE];
+    uint64_t     	transpose4[TRANSPOSE_SIZE];
+    uint64_t     	transposed[SBK_SIZE];
     unsigned int    sbk[SBK_SIZE];
 }SBK;
 
