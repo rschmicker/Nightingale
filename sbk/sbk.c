@@ -142,6 +142,24 @@ void generate_rands(SBK *s){
         s->transpose4[i] = abs(pcg64_random_r(&rng4));
     }
 
+    for(int i = 0; i < 64; ++i){
+        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng1));
+    }
+    for(int i = 64; i < 128; ++i){
+        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng2));
+    }
+    for(int i = 128; i < 192; ++i){
+        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng3));
+    }
+    for(int i = 192; i < 256; ++i){
+        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng4));
+    }
+
+    printf("Substitution Table:\n");
+    for(int i = 0; i < SUB_SIZE; i++){
+        printf("%d: %u\n", i, s->sub_table[i]);
+    }
+
     printf("Numbers for array 1 to transpose:\n");
     for(int i = 0; i < TRANSPOSE_SIZE; i++){
         printf("%d: %lu\n", i, s->transpose1[i]);

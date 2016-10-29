@@ -16,6 +16,7 @@
 #define RAND_SIZE 64
 #define SEED_SIZE_MULTIPLYER 8
 #define PNRG_SIZE 1024
+#define SUB_SIZE 256
 #define RSA_KEY "private.pem"
 #define SBK_KEY "key.sbk"
 
@@ -32,6 +33,7 @@ typedef struct{
     uint64_t     	transpose3[TRANSPOSE_SIZE];
     uint64_t     	transpose4[TRANSPOSE_SIZE];
     uint64_t     	transposed[SBK_SIZE];
+    uint32_t        sub_table[SUB_SIZE];
     unsigned int    sbk[SBK_SIZE];
 }SBK;
 
