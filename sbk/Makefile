@@ -1,7 +1,8 @@
 COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/include/openssl/
-SBKOPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/include/openssl/
+SBKOPTIONS=$(COPTIONS)
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
-EXTRAOBJS=./randlib/extras/entropy.o
+LIBS=
+#LIBS=randlib/src/libpcg_random.a
 
 CMD=testprog
 
@@ -11,7 +12,7 @@ OBJECTS=sbk.o pacc.o main.o
 	gcc $(COPTIONS) -c $<
 
 $(CMD): $(OBJECTS)
-	gcc -o testprog $(OBJECTS) $(EXTRAOBJS) $(LDOPTIONS)
+	gcc -o testprog $(OBJECTS) $(LIBS) $(LDOPTIONS)
 
 sbk.o:
 	gcc $(SBKOPTIONS) -c $*.c
