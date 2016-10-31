@@ -6,6 +6,7 @@ SBKOPTIONS=$(COPTIONS)
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
 LIBS=
 LDOPTIONS+=$(DEBUG)
+RANDLIB=randlib/src/libpcg_random.so
 
 CMD=testprog
 
@@ -14,8 +15,11 @@ OBJECTS=sbk.o pacc.o main.o
 .c.o:
 	gcc $(COPTIONS) $(DEBUG) -c $<
 
-$(CMD): $(OBJECTS)
+$(CMD): $(OBJECTS) $(RANDLIB)
 	gcc -o testprog $(OBJECTS) $(LIBS) $(LDOPTIONS)
+
+$(RANDLIB):
+	cd randlib; make
 
 #This is here as an example - sbk.o does not appear to require special options
 sbk.o:
