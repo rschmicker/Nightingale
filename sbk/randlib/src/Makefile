@@ -11,7 +11,7 @@ CFLAGS   += -std=c99
 all: libpcg_random.so
 
 clean:
-	rm -f *.a *.o
+	rm -f *.a *.o *.so
 
 libpcg_random.so: $(OBJS)
 	gcc -o $@ -shared $(OBJS)
