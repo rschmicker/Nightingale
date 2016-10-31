@@ -17,7 +17,7 @@
 #include "stringinfo.h"
 
 #define Size long long int
-#define MaxAllocSize (2^30)
+#define MaxAllocSize 1073741824
 
 /*
  * makeStringInfo
@@ -174,6 +174,7 @@ enlargeStringInfo(StringInfo str, int needed)
     }
         //elog(ERROR, "invalid string enlargement request size: %d", needed);
     if (((Size) needed) >= (MaxAllocSize - (Size) str->len)) {
+	printf("Maxallocsize: %d\n",MaxAllocSize);
 	printf("Error: out of memory, cannot enlarge string buffer containing %d bytes by %d more bytes.\n", str->len, needed);
 	exit(1);
     }

@@ -47,6 +47,15 @@ void encode(PACC *p){
     }
 }
 
+long long int get_file_length(FILE *fp) {
+  fseek(fp, 0L, SEEK_CUR);
+  long long int mypos = ftell(fp);
+  fseek(fp, 0L, SEEK_END);
+  long long int filesize = ftell(fp);
+  fseek(fp, mypos, SEEK_SET);
+  return filesize;
+}
+
 //-----------------------------------------------------------------------------
 void encrypt_file(PACC *p, const char* file){
     FILE *f_to_enc, *enc;
@@ -57,26 +66,23 @@ void encrypt_file(PACC *p, const char* file){
 
     if( !enc ) perror("Error opening encrypted file."),exit(EXIT_FAILURE);
 
-    int m_size = 0;
-    int alloc_size = 10;
-    unsigned char* message = (unsigned char*)malloc(alloc_size);
-    if( message == NULL ) perror("Error allocating malloc."),exit(EXIT_FAILURE);
+    long long int filesize = get_file_length(f_to_enc);
+    StringInfo message_info = makeStringInfo();
+    enlargeStringInfo(message_info, filesize);
 
-    for(;;){
-        int n = fgetc(f_to_enc);
-        if(n == EOF) break;
-        unsigned char c = (unsigned char)n;
-        if(m_size > alloc_size){
-            alloc_size += 10;
-            message = (unsigned char*)realloc(message, alloc_size);
-            if( message == NULL) perror("Error reallocating malloc."),
-                                    exit(EXIT_FAILURE);
-        }
-        message[m_size] = c;
-        ++m_size;
+    char *message = message_info->data;
+
+    // Read the whole file into the message buffer
+    long long int nread = fread(message, 1, filesize, f_to_enc);
+    if (nread != filesize) {
+	printf("Error: reading input file...\n");
+	exit(1);
     }
 
-    message[m_size] = (unsigned char)'\0';
+    int m_size = filesize;
+
+    // TODO: this shouldn't be necessary - we may be encoding raw data, so we aren't using string conventions
+    // message[m_size] = (unsigned char)'\0';
 
     unsigned char enc_message[m_size];
 

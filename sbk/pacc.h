@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "stringinfo.h"
 #define PACC_SIZE 64
 #define MAP_SIZE 255
 #define E_FILE "encrypted_file.txt"
