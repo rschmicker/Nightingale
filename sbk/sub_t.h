@@ -12,13 +12,13 @@
 
 #define SEED_SIZE 16
 #define TRANSPOSE_SIZE 32
-#define SBK_SIZE 128
+#define SUB_SIZE 256
 #define RAND_SIZE 64
 #define SEED_SIZE_MULTIPLYER 8
 #define PNRG_SIZE 1024
 #define SUB_SIZE 256
 #define RSA_KEY "private.pem"
-#define SBK_KEY "key.sbk"
+#define SUB_KEY "key.sub"
 
 typedef struct{
     char*           filename;
@@ -28,14 +28,9 @@ typedef struct{
     unsigned char   seed2[SEED_SIZE+1];
     unsigned char   seed3[SEED_SIZE+1];
     unsigned char   seed4[SEED_SIZE+1];
-    uint64_t     	transpose1[TRANSPOSE_SIZE];
-    uint64_t     	transpose2[TRANSPOSE_SIZE];
-    uint64_t     	transpose3[TRANSPOSE_SIZE];
-    uint64_t     	transpose4[TRANSPOSE_SIZE];
-    uint64_t     	transposed[SBK_SIZE];
-    uint32_t        sub_table[SUB_SIZE];
-    unsigned int    sbk[SBK_SIZE];
-}SBK;
+    uint64_t        sub_rands[SUB_SIZE];
+    unsigned char   sub[SUB_SIZE];
+}SUB;
 
 typedef struct{
         unsigned int index;
@@ -50,12 +45,12 @@ void free_r(BIO *bp_private, RSA *r, BIGNUM *bne);
 //-----------------------------------------------------------------------------
 // Read binary key file
 //-----------------------------------------------------------------------------
-void read_key(SBK *s);
+void read_key(SUB *s);
 
 //-----------------------------------------------------------------------------
 // Output key to screen and binary file
 //-----------------------------------------------------------------------------
-void write_key(SBK *s);
+void write_key(SUB *s);
 
 //-----------------------------------------------------------------------------
 // Compare function for qsort
@@ -63,31 +58,26 @@ void write_key(SBK *s);
 int cmp(const void * elem1, const void * elem2);
 
 //-----------------------------------------------------------------------------
-// Shuffle the 1 - 128 values using a Knuth shuffle
+// Shuffle the 1 - 256 values using a Knuth shuffle
 //-----------------------------------------------------------------------------
-void shuffle(SBK *s);
-
-//-----------------------------------------------------------------------------
-// Transpose the 4 arrays of random numbers
-//-----------------------------------------------------------------------------
-void transpose(SBK *s);
+void shuffle(SUB *s);
 
 //-----------------------------------------------------------------------------
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
-void generate_rands(SBK *s);
+void generate_rands(SUB *s);
 
 //-----------------------------------------------------------------------------
 // Set up all four seeds from 512 bit hash
 //-----------------------------------------------------------------------------
-void generate_seeds(SBK *s);
+void generate_seeds(SUB *s);
 
 //-----------------------------------------------------------------------------
 // Generate Hash from private key file from RSA
 //-----------------------------------------------------------------------------
-void generate_hash(SBK *s);
+void generate_hash(SUB *s);
 
 //-----------------------------------------------------------------------------
 // Generate 2048 bit RSA key
 //-----------------------------------------------------------------------------
-void generate_key(SBK *s);
+void generate_key(SUB *s);

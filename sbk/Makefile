@@ -7,15 +7,15 @@ LIBS=
 LDOPTIONS+=$(DEBUG)
 RANDLIB=randlib/src/libpcg_random.so
 
-CMD=testprog
+CMD=main
 
-OBJECTS=sbk.o pacc.o main.o stringinfo.o
+OBJECTS=sub_t.o nightgale_c.o main.o stringinfo.o
 
 .c.o:
 	gcc $(COPTIONS) $(DEBUG) -c $<
 
 $(CMD): $(OBJECTS) $(RANDLIB)
-	gcc -o testprog $(OBJECTS) $(LIBS) $(LDOPTIONS)
+	gcc -o $(CMD) $(OBJECTS) $(LIBS) $(LDOPTIONS)
 
 $(RANDLIB):
 	cd randlib; make
@@ -25,4 +25,8 @@ sbk.o:
 	gcc $(SBKOPTIONS) -c $*.c
 
 clean:
-	rm -f $(OBJECTS) testprog
+	rm -f $(OBJECTS) $(CMD)
+	cd randlib; $(MAKE) clean
+
+install:
+	cd randlib; sudo $(MAKE) install; sudo ldconfig -v

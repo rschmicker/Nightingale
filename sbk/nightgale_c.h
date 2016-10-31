@@ -1,39 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "stringinfo.h"
-#define PACC_SIZE 64
-#define MAP_SIZE 255
+#include "sub_t.h"
+#include "pcg_variants.h"
 #define E_FILE "encrypted_file.txt"
 #define D_FILE "decrypted_file.txt"
-#define PACC_KEY_NAME "assignment.pacc"
+#define SEED_CAPACITY 4
 
 typedef struct{
-    unsigned char map1b[MAP_SIZE];
-    unsigned char map1c[MAP_SIZE];
-	int file_char_length;
-}PACC;
-
-//-----------------------------------------------------------------------------
-// Fill the pacc map
-//-----------------------------------------------------------------------------
-void encode(PACC *p);
+    uint64_t anchor;
+    uint64_t keys[SEED_CAPACITY];
+}NIGHT;
 
 //-----------------------------------------------------------------------------
 // Encrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
-void encrypt_file(PACC *p, const char* file);
+void encrypt_file(NIGHT *n, const char* file);
 
 //-----------------------------------------------------------------------------
 // Decrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
-void decrypt_file(PACC *p);
+void decrypt_file(NIGHT *n);
 
 //-----------------------------------------------------------------------------
 // Write pacc to file
 //-----------------------------------------------------------------------------
-void write_pacc(PACC *p);
+void write_pacc(NIGHT *n);
 
 //-----------------------------------------------------------------------------
 // Read pacc from file
 //-----------------------------------------------------------------------------
-void read_pacc(PACC *p);
+void read_pacc(NIGHT *n);

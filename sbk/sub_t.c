@@ -1,4 +1,4 @@
-#include "sbk.h"
+#include "sub_t.h"
 
 //-----------------------------------------------------------------------------
 // Free resources for RSA key creation
@@ -12,19 +12,19 @@ void free_r(BIO *bp_private, RSA *r, BIGNUM *bne){
 //-----------------------------------------------------------------------------
 // Read binary key file
 //-----------------------------------------------------------------------------
-void read_key(SBK *s){
-    FILE *fp = fopen(SBK_KEY, "rb");
-    if( !fp ) perror("Error reading file SBK file."),exit(EXIT_FAILURE);
+void read_key(SUB *s){
+    FILE *fp = fopen(SUB_KEY, "rb");
+    if( !fp ) perror("Error reading file substitution table file."),exit(EXIT_FAILURE);
 
-    unsigned int input[SBK_SIZE];
-    size_t size = sizeof(unsigned int);
+    unsigned char input[SUB_SIZE];
+    size_t size = sizeof(unsigned char);
 
-    fread(input, size, SBK_SIZE, fp);
-    if( ferror(fp) ) perror("Error reading SBK file."),exit(EXIT_FAILURE);
+    fread(input, size, SUB_SIZE, fp);
+    if( ferror(fp) ) perror("Error reading substitution table file."),exit(EXIT_FAILURE);
 
     printf("\n");
     printf("Key(from file):\n");
-    for(int i = 0; i < SBK_SIZE; i++){
+    for(int i = 0; i < SUB_SIZE; i++){
         printf("%d, ", input[i]);
         if(i % 32 == 0 && i != 0) printf("\n");
     }
@@ -36,19 +36,19 @@ void read_key(SBK *s){
 //-----------------------------------------------------------------------------
 // Output key to screen and binary file
 //-----------------------------------------------------------------------------
-void write_key(SBK *s){
-    FILE *fp = fopen(SBK_KEY, "wb");
+void write_key(SUB *s){
+    FILE *fp = fopen(SUB_KEY, "wb");
     if( !fp ) perror("Error reading file."),exit(1);
 
-    size_t size = sizeof(unsigned int);
+    size_t size = sizeof(unsigned char);
 
-    fwrite(s->sbk, size, SBK_SIZE, fp);
-    if( ferror(fp) ) perror("Error writing SBK."),exit(EXIT_FAILURE);
+    fwrite(s->sub, size, SUB_SIZE, fp);
+    if( ferror(fp) ) perror("Error writing substitution table."),exit(EXIT_FAILURE);
 
     printf("\n");
     printf("Key:\n");
-    for(int i = 0; i < SBK_SIZE; i++){
-        printf("%d, ", s->sbk[i]);
+    for(int i = 0; i < SUB_SIZE; i++){
+        printf("%d, ", s->sub[i]);
         if(i % 32 == 0 && i != 0){
             printf("\n");
         }
@@ -69,55 +69,35 @@ int cmp(const void * elem1, const void * elem2){
 }
 
 //-----------------------------------------------------------------------------
-// Shuffle the 1 - 128 values using a Knuth shuffle
+// Shuffle the 1 - 256 values using a Knuth shuffle
 //-----------------------------------------------------------------------------
-void shuffle(SBK *s){
+void shuffle(SUB *s){
 
-    indexes knuth_sort[SBK_SIZE];
+    indexes knuth_sort[SUB_SIZE];
 
-    for(int i = 0; i < SBK_SIZE; i++){
+    for(int i = 0; i < SUB_SIZE; i++){
         knuth_sort[i].index = i+1;
-        knuth_sort[i].value = s->transposed[i];
+        knuth_sort[i].value = s->sub_rands[i];
     }
 
-    qsort(knuth_sort, SBK_SIZE, sizeof(indexes), cmp);
+    qsort(knuth_sort, SUB_SIZE, sizeof(indexes), cmp);
 
     printf("Shuffled Output:\n");
-    for(int i = 0; i < SBK_SIZE; i++){
+    for(int i = 0; i < SUB_SIZE; i++){
         printf("%d: %d\n", knuth_sort[i].index, knuth_sort[i].value);
     }
 
-    for(int i = 0; i < SBK_SIZE; i++){
-        s->sbk[i] = knuth_sort[i].index;
-    }
-}
-
-//-----------------------------------------------------------------------------
-// Transpose the 4 arrays of random numbers
-//-----------------------------------------------------------------------------
-void transpose(SBK *s){
-    int counter = 0;
-    for(int i = 0; i < 32; i++){
-        s->transposed[counter] = s->transpose1[i];
-        counter++;
-        s->transposed[counter] = s->transpose2[i];
-        counter++;
-        s->transposed[counter] = s->transpose3[i];
-        counter++;
-        s->transposed[counter] = s->transpose4[i];
-        counter++;
-    }
-
-    printf("\nTransposed Numbers:\n");
-    for(int i = 0; i < SBK_SIZE; i++){
-        printf("%d: %lu\n", i+1, s->transposed[i]);
+    printf("CHARSSSSS\n");
+    for(int i = 0; i < SUB_SIZE; i++){
+        s->sub[i] = (unsigned char)knuth_sort[i].index;
+        printf("%c\n", s->sub[i]);
     }
 }
 
 //-----------------------------------------------------------------------------
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
-void generate_rands(SBK *s){
+void generate_rands(SUB *s){
 
     pcg64_random_t rng1, rng2, rng3, rng4;
 
@@ -135,80 +115,53 @@ void generate_rands(SBK *s){
     pcg64_srandom_r(&rng3, s3, round);
     pcg64_srandom_r(&rng4, s4, round);
 
-    for(int i = 0; i < TRANSPOSE_SIZE; ++i){
-        s->transpose1[i] = abs(pcg64_random_r(&rng1));
-        s->transpose2[i] = abs(pcg64_random_r(&rng2));
-        s->transpose3[i] = abs(pcg64_random_r(&rng3));
-        s->transpose4[i] = abs(pcg64_random_r(&rng4));
-    }
-
     for(int i = 0; i < 64; ++i){
-        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng1));
+        s->sub_rands[i] = abs(pcg64_random_r(&rng1));
     }
     for(int i = 64; i < 128; ++i){
-        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng2));
+        s->sub_rands[i] = abs(pcg64_random_r(&rng2));
     }
     for(int i = 128; i < 192; ++i){
-        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng3));
+        s->sub_rands[i] = abs(pcg64_random_r(&rng3));
     }
     for(int i = 192; i < 256; ++i){
-        s->sub_table[i] = (uint32_t)abs(pcg64_random_r(&rng4));
+        s->sub_rands[i] = abs(pcg64_random_r(&rng4));
     }
 
     printf("Substitution Table:\n");
     for(int i = 0; i < SUB_SIZE; i++){
-        printf("%d: %u\n", i, s->sub_table[i]);
-    }
-
-    printf("Numbers for array 1 to transpose:\n");
-    for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %lu\n", i, s->transpose1[i]);
-    }
-
-    printf("Numbers for array 2 to transpose:\n");
-    for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %lu\n", i, s->transpose2[i]);
-    }
-
-    printf("Numbers for array 3 to transpose:\n");
-    for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %lu\n", i, s->transpose3[i]);
-    }
-
-    printf("Numbers for array 4 to transpose:\n");
-    for(int i = 0; i < TRANSPOSE_SIZE; i++){
-        printf("%d: %lu\n", i, s->transpose4[i]);
+        printf("%d: %lu\n", i, s->sub_rands[i]);
     }
 }
 
 //-----------------------------------------------------------------------------
 // Set up all four seeds from 512 bit hash
 //-----------------------------------------------------------------------------
-void generate_seeds(SBK *s){
+void generate_seeds(SUB *s){
 
     memcpy(s->seed1, s->hash, SEED_SIZE);
     memcpy(s->seed2, s->hash + SEED_SIZE, SEED_SIZE);
     memcpy(s->seed3, s->hash + SEED_SIZE*2, SEED_SIZE);
     memcpy(s->seed4, s->hash + SEED_SIZE*3, SEED_SIZE);
 
-    s->seed1[SBK_SIZE+1] = '\0';
-    s->seed2[SBK_SIZE+1] = '\0';
-    s->seed3[SBK_SIZE+1] = '\0';
-    s->seed4[SBK_SIZE+1] = '\0';
+    s->seed1[SEED_SIZE+1] = '\0';
+    s->seed2[SEED_SIZE+1] = '\0';
+    s->seed3[SEED_SIZE+1] = '\0';
+    s->seed4[SEED_SIZE+1] = '\0';
 
-    printf("\nSeed1 - %d bits:\n", SBK_SIZE);
+    printf("\nSeed1 - %d bytes:\n", SEED_SIZE);
     for(int i = 0; i < sizeof(s->seed1) - 1 ; i++) {printf("%02x",s->seed1[i]);}
     printf("\n");
 
-    printf("\nSeed2 - %d bits:\n", SBK_SIZE);
+    printf("\nSeed2 - %d bytes:\n", SEED_SIZE);
     for(int i = 0; i < sizeof(s->seed2) - 1 ; i++) {printf("%02x",s->seed2[i]);}
     printf("\n");
 
-    printf("\nSeed3 - %d bits:\n", SBK_SIZE);
+    printf("\nSeed3 - %d bytes:\n", SEED_SIZE);
     for(int i = 0; i < sizeof(s->seed3) - 1 ; i++) {printf("%02x",s->seed3[i]);}
     printf("\n");
 
-    printf("\nSeed4 - %d bits:\n", SBK_SIZE);
+    printf("\nSeed4 - %d bytes:\n", SEED_SIZE);
     for(int i = 0; i < sizeof(s->seed4) - 1 ; i++) {printf("%02x",s->seed4[i]);}
     printf("\n");
 }
@@ -216,7 +169,7 @@ void generate_seeds(SBK *s){
 //-----------------------------------------------------------------------------
 // Generate Hash from private key file from RSA
 //-----------------------------------------------------------------------------
-void generate_hash(SBK *s){
+void generate_hash(SUB *s){
     char* buffer = NULL;
     size_t size = 0;
 
@@ -252,7 +205,7 @@ void generate_hash(SBK *s){
 //-----------------------------------------------------------------------------
 // Generate 2048 bit RSA key
 //-----------------------------------------------------------------------------
-void generate_key(SBK *s){
+void generate_key(SUB *s){
     int             ret = 0;
     int             bits = 2048;
     unsigned long   e = RSA_F4;
