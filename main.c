@@ -18,5 +18,8 @@ int main(int argc, char *argv[]){
     write_key(&s);
     read_key(&s);
 
+    NIGHT n;
+    encrypt_file(&n, &s);
+
     return 0;
 }

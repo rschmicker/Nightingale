@@ -1,8 +1,17 @@
 #include "nightgale_c.h"
 
+//-----------------------------------------------------------------------------
+long long int get_file_length(FILE *fp) {
+    fseek(fp, 0L, SEEK_CUR);
+    long long int mypos = ftell(fp);
+    fseek(fp, 0L, SEEK_END);
+    long long int filesize = ftell(fp);
+    fseek(fp, mypos, SEEK_SET);
+    return filesize;
+ }
 
 //-----------------------------------------------------------------------------
-void encrypt_file(NIGHT *n, const char* file){
+void encrypt_file(NIGHT *n, SUB *s, const char* file){
     FILE *f_to_enc, *enc;
     f_to_enc = fopen(file, "r");
     enc = fopen(E_FILE, "wb");
@@ -19,10 +28,8 @@ void encrypt_file(NIGHT *n, const char* file){
 
     // Read the whole file into the message buffer
     long long int nread = fread(message, 1, filesize, f_to_enc);
-    if (nread != filesize) {
-	printf("Error: reading input file...\n");
-	exit(1);
-    }
+    if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
+    
 
     int m_size = filesize;
 
@@ -34,22 +41,56 @@ void encrypt_file(NIGHT *n, const char* file){
     printf("\nOriginal Message:\n");
     printf("%s\n", message);
 
-    m_size -= 1;
+    //+++++++++++++++++
+    // Encrypt here
+    //+++++++++++++++++
+    pcg64u_random_t rng_unique;
 
-    printf("Encrypted Message:\n");
-    for(int i = 0; i < m_size; ++i){
-        enc_message[i] = p->map1b[(unsigned int)message[i]];
-        printf("%c", enc_message[i]);
+    s1_unique = *(pcg128_t *)s->seed1;
+
+    pcg64u_srandom_r(&rng_unique, s1_unique, 5);
+
+    n->anchor = abs(pcg64u_random_r(&rng_unique));
+
+    uint64_t keys[m_size / WORD_SIZE];
+    uint64_t words[m_size / WORD_SIZE];
+    uint64_t enc_mes[m_size / WORD_SIZE]
+
+    for(int i = 0; i < m_size / WORD_SIZE; ++i){
+        keys[i] = abs(pcg64u_random_r(&rng_unique));
     }
-    printf("\n\n");
 
-    size_t size = sizeof(unsigned char);
+    unsigned char word[WORD_SIZE];
+    int round = 0;
+    for(int i = 0; i < m_size; ++i){
+        if(i == WORD_SIZE){
+            uint64_t binary = *(uint64_t *)word;
+            words[round] = binary;
+            uint64_t result = anchor ^ binary;
+            uint64_t chunk = result ^ keys[round];
+            enc_message[round] = chunk;
+            ++round;
+            memset(word, 0, sizeof(word));
+        }
+        if(i != 0 && m_size % WORD_SIZE == 0){
+            uint64_t binary = *(uint64_t *)word;
+            words[round] = binary;
+            uint64_t result = words[round - 1] ^ binary;
+            uint64_t chunk = result ^ keys[round];
+            enc_message[round] = chunk;
+            ++round;
+            memset(word, 0, sizeof(word));
+        }
+        word[i%WORD_SIZE] = s->sub[(int)message[i]];
+    }
 
-    fwrite(enc_message, size, m_size, enc);
+    size_t size = sizeof(NIGHT);
+
+    fwrite(enc_mes, size, m_size, enc);
     if( ferror(enc) ) perror("Error writing to encrypted file."),
                         exit(EXIT_FAILURE);
 
-    p->file_char_length = m_size;
+    n->file_char_length = m_size;
 
     free(message);
     fclose(f_to_enc);
@@ -72,12 +113,9 @@ void decrypt_file(NIGHT *n){
     fread(enc_message, size, p->file_char_length, enc);
     if( ferror(enc) )perror("Error reading encrypted file."),exit(EXIT_FAILURE);
 
-    printf("Message Decrypted:\n");
-    for(int i = 0; i < p->file_char_length; ++i){
-        message[i] = p->map1c[(unsigned int)enc_message[i]];
-        printf("%c", message[i]);
-    }
-    printf("\n\n");
+    //++++++++++++++++++
+    // Decrypt
+    //++++++++++++++++++
 
     fclose(dcpt);
     fclose(enc);
