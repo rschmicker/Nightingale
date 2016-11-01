@@ -1,4 +1,5 @@
 #include "sub_t.h"
+#include "nightgale_c.h"
 
 int main(int argc, char *argv[]){
     const char* f;
@@ -19,7 +20,8 @@ int main(int argc, char *argv[]){
     read_key(&s);
 
     NIGHT n;
-    encrypt_file(&n, &s);
+    encrypt_file(&n, &s, f);
+    decrypt_file(&n, &s);
 
     return 0;
 }

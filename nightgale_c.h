@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include "stringinfo.h"
@@ -16,7 +17,7 @@ typedef struct{
 //-----------------------------------------------------------------------------
 // Get the file length with fseek()
 //-----------------------------------------------------------------------------
-long long int get_file_length(FILE *fp)
+long long int get_file_length(FILE *fp);
 
 //-----------------------------------------------------------------------------
 // Encrypt the file using the pacc lookup table
@@ -26,7 +27,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file);
 //-----------------------------------------------------------------------------
 // Decrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
-void decrypt_file(NIGHT *n);
+void decrypt_file(NIGHT *n, SUB *s);
 
 //-----------------------------------------------------------------------------
 // Write pacc to file
