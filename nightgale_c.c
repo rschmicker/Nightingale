@@ -121,8 +121,6 @@ void decrypt_file(NIGHT *n, SUB *s){
 
     int chunk_count = n->file_char_length / WORD_SIZE;
 
-    unsigned char message[n->file_char_length];
-    memset(message, 0, sizeof(message));
     uint64_t enc_message[chunk_count];
     uint64_t keys[chunk_count];
     uint64_t binary_mes[chunk_count];
@@ -157,13 +155,24 @@ void decrypt_file(NIGHT *n, SUB *s){
         printf("original word %d: %lu\n", i, binary_mes[i]);
     }
 
-    printf("Original Message:\n");
-    
+    uint64_t *b = &binary_mes[0];
+    unsigned char *message = (unsigned char*)b;
+    message[n->file_char_length] = '\0';
 
-    
-    for(int i = 0; i < n->file_char_length; ++i){
-        fprintf(dcpt, "%c", message[i]);
+    printf("Message before sub table:\n");
+    printf("%s\n", message);
+
+    printf("Original Message:\n");
+    for(int i = 0; i < 16; ++i){
+        for(int j = 0; j < 256; ++j){
+            if(message[i] == s->sub[j]){
+                printf("%c", (unsigned char)j);
+                fprintf(dcpt, "%c", (unsigned char)j);
+            }
+        }
     }
+
+    printf("\n");
 
     fclose(dcpt);
     fclose(enc);
