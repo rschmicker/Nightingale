@@ -79,10 +79,9 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
             uint64_t binary = *(uint64_t *)word;
             words[round] = binary;
             enc_message[round] = words[round - 1] ^ binary ^ keys[round];
-            printf("previous word: %lu\tnew word: %lu\n", words[round - 1], words[round - 1] ^ binary ^ keys[round]);
+            printf("previous word: %lu\tnew word: %lu\n", words[round - 1], binary);
             ++round;
             memset(word, 0, sizeof(word));
-            if(i + 1 == m_size) break;
         }
         word[i%WORD_SIZE] = s->sub[(int)message[i]];
         printf("%d: round: %d enc: %c\t mes: %c\n", i, round, word[i%WORD_SIZE], message[i]);
@@ -118,7 +117,8 @@ void decrypt_file(NIGHT *n, SUB *s){
     if( !enc ) perror("Error reading encrypted file."),exit(EXIT_FAILURE);
     if( !dcpt ) perror("Error opening decrypted file."),exit(EXIT_FAILURE);
 
-    unsigned char *message;
+    unsigned char message[n->file_char_length];
+    memset(message, 0, sizeof(message));
     uint64_t enc_message[n->file_char_length / WORD_SIZE];
     uint64_t keys[n->file_char_length / WORD_SIZE];
     uint64_t binary_mes[n->file_char_length / WORD_SIZE];
@@ -151,9 +151,10 @@ void decrypt_file(NIGHT *n, SUB *s){
         printf("original word %d: %lu\n", i, binary_mes[i]);
     }
 
-    message = (unsigned char *)binary_mes;
+    printf("Original Message:\n");
+    //TODO: figure out how to print
 
-    printf("Original Message:\n%s\n", message);
+    
     for(int i = 0; i < n->file_char_length; ++i){
         fprintf(dcpt, "%c", message[i]);
     }
