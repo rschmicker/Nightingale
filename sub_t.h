@@ -19,7 +19,6 @@
 #define PNRG_SIZE 1024
 #define SUB_SIZE 256
 #define RSA_KEY "private.pem"
-#define SUB_KEY "key.sub"
 
 typedef struct{
     char*           filename;
@@ -31,6 +30,7 @@ typedef struct{
     unsigned char   seed4[SEED_SIZE+1];
     uint64_t        sub_rands[SUB_SIZE];
     unsigned char   sub[SUB_SIZE];
+    unsigned char   reverse_sub[SUB_SIZE];
 }SUB;
 
 typedef struct{

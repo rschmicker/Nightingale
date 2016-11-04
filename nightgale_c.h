@@ -7,11 +7,14 @@
 
 #define E_FILE "encrypted_file.txt"
 #define D_FILE "decrypted_file.txt"
+#define KEY "night.key"
 #define WORD_SIZE 8
 
 typedef struct{
     uint64_t 	anchor;
     int			file_char_length;
+    int			pad;
+    int			word_count;
 }NIGHT;
 
 //-----------------------------------------------------------------------------
