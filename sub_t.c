@@ -9,60 +9,6 @@ void free_r(BIO *bp_private, RSA *r, BIGNUM *bne){
     BN_free(bne);
 }
 
-/*
-//-----------------------------------------------------------------------------
-// Read binary key file
-//-----------------------------------------------------------------------------
-void read_key(SUB *s){
-    FILE *fp = fopen(SUB_KEY, "rb");
-    if( !fp ) perror("Error reading file substitution table file."),
-                exit(EXIT_FAILURE);
-
-    unsigned char input[SUB_SIZE];
-    size_t size = sizeof(unsigned char);
-
-    fread(input, size, SUB_SIZE, fp);
-    if( ferror(fp) ) perror("Error reading substitution table file."),
-                        exit(EXIT_FAILURE);
-
-    printf("\n");
-    printf("Key(from file):\n");
-    for(int i = 0; i < SUB_SIZE; i++){
-        printf("%d, ", input[i]);
-        if(i % 32 == 0 && i != 0) printf("\n");
-    }
-    printf("\n");
-
-    fclose(fp);
-}
-
-//-----------------------------------------------------------------------------
-// Output key to screen and binary file
-//-----------------------------------------------------------------------------
-void write_key(SUB *s){
-    FILE *fp = fopen(SUB_KEY, "wb");
-    if( !fp ) perror("Error reading file."),exit(1);
-
-    size_t size = sizeof(unsigned char);
-
-    fwrite(s->sub, size, SUB_SIZE, fp);
-    if( ferror(fp) ) perror("Error writing substitution table."),
-                        exit(EXIT_FAILURE);
-
-    printf("\n");
-    printf("Key:\n");
-    for(int i = 0; i < SUB_SIZE; i++){
-        printf("%d, ", s->sub[i]);
-        if(i % 32 == 0 && i != 0){
-            printf("\n");
-        }
-    }
-    printf("\n");
-
-    fclose(fp);
-}
-*/
-
 //-----------------------------------------------------------------------------
 // Compare function for qsort
 //-----------------------------------------------------------------------------

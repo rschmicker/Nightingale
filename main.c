@@ -16,8 +16,6 @@ int main(int argc, char *argv[]){
     generate_seeds(&s);
     generate_rands(&s);
     shuffle(&s);
-    //write_key(&s);
-    //read_key(&s);
 
     NIGHT n;
     encrypt_file(&n, &s, f);
