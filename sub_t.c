@@ -79,11 +79,6 @@ void generate_rands(SUB *s){
     for(int i = 192; i < 256; ++i){
         s->sub_rands[i] = abs(pcg64_random_r(&rng4));
     }
-
-    /*printf("Substitution Table:\n");
-    for(int i = 0; i < SUB_SIZE; i++){
-        printf("%d: %lu\n", i, s->sub_rands[i]);
-    }*/
 }
 
 //-----------------------------------------------------------------------------
@@ -100,22 +95,6 @@ void generate_seeds(SUB *s){
     s->seed2[SEED_SIZE+1] = '\0';
     s->seed3[SEED_SIZE+1] = '\0';
     s->seed4[SEED_SIZE+1] = '\0';
-
-    /*printf("\nSeed1 - %d bytes:\n", SEED_SIZE);
-    for(int i = 0; i < sizeof(s->seed1) - 1 ; i++) {printf("%02x",s->seed1[i]);}
-    printf("\n");
-
-    printf("\nSeed2 - %d bytes:\n", SEED_SIZE);
-    for(int i = 0; i < sizeof(s->seed2) - 1 ; i++) {printf("%02x",s->seed2[i]);}
-    printf("\n");
-
-    printf("\nSeed3 - %d bytes:\n", SEED_SIZE);
-    for(int i = 0; i < sizeof(s->seed3) - 1 ; i++) {printf("%02x",s->seed3[i]);}
-    printf("\n");
-
-    printf("\nSeed4 - %d bytes:\n", SEED_SIZE);
-    for(int i = 0; i < sizeof(s->seed4) - 1 ; i++) {printf("%02x",s->seed4[i]);}
-    printf("\n");*/
 }
 
 //-----------------------------------------------------------------------------
@@ -141,14 +120,8 @@ void generate_hash(SUB *s){
 
     buffer[size] = '\0';
 
-    //printf("%s\n", buffer);
-
     SHA512((const unsigned char*)buffer, sizeof(buffer) - 1,
             (unsigned char*)s->hash);
-
-    /*printf("Hash - %ld bits:\n", sizeof(s->hash)*8);
-    for(int i = 0; i < sizeof(s->hash) - 1 ; i++) { printf("%02x",s->hash[i]);}
-    printf("\n");*/
 
     free(buffer);
     fclose(fp);

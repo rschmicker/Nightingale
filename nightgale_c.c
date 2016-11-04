@@ -184,7 +184,6 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     fread(keys, sizeof(uint64_t), word_count + 1, fkey);
 
     fread(&s, sizeof(SUB), 1, fkey);
-    printf("Hello\n");
     
     if( ferror(dcpt) || ferror(enc) ) 
                         perror("Error reading encrypt/decrypt/key file."),
