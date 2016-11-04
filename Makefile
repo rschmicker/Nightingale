@@ -6,8 +6,8 @@ COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
 LIBS=
 LDOPTIONS+=$(DEBUG)
-#RANDLIB=randlib/src/libpcg_random.so
-RANDLIB=randlib/src/libpcg_random.a
+RANDLIB=randlib/src/libpcg_random.so
+#RANDLIB=randlib/src/libpcg_random.a
 
 CMD=main
 

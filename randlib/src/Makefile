@@ -5,21 +5,21 @@ OBJS = pcg-advance-8.o pcg-advance-16.o pcg-advance-32.o pcg-advance-64.o \
        pcg-global-32.o pcg-global-64.o
 
 CPPFLAGS += -I../include
-#CFLAGS += -O3 -fpic
-CFLAGS += -O0 -g
+CFLAGS += -O3 -fpic
+#CFLAGS += -O0 -g -fpic
 CFLAGS   += -std=c99
 
-#all: libpcg_random.so
-all: libpcg_random.a
+all: libpcg_random.so
+#all: libpcg_random.a
 
 clean:
 	rm -f *.a *.o *.so
 
-#libpcg_random.so: $(OBJS)
-#	gcc -o $@ -shared $(OBJS)
-libpcg_random.a: $(OBJS)
-	ar rc $@ $^
-	ranlib $@
+libpcg_random.so: $(OBJS)
+	gcc -o $@ -shared $(OBJS)
+#libpcg_random.a: $(OBJS)
+#	ar rc $@ $^
+#	ranlib $@
 
 # RNGs at different sizes
 
