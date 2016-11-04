@@ -101,27 +101,20 @@ void generate_seeds(SUB *s){
 // Generate Hash from private key file from RSA
 //-----------------------------------------------------------------------------
 void generate_hash(SUB *s){
-    char* buffer = NULL;
-    size_t size = 0;
-
     FILE *fp = fopen(RSA_KEY, "rb");
     if( !fp ) perror("Error reading private key from RSA."),exit(EXIT_FAILURE);
 
     fseek(fp, 0, SEEK_END);
-    size = ftell(fp);
+    size_t size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
 
-    rewind(fp);
+    char *buffer = malloc(size);
 
-    buffer = malloc((size + 1) * sizeof(*buffer));
-
-    fread(buffer, size, 1, fp);
-    if( ferror(fp) ) perror("Error reading private key from RSA."),
+    int nread = fread(buffer, 1, size, fp);
+    if( ferror(fp) || nread != size) perror("Error reading private key from RSA."),
                         exit(EXIT_FAILURE);
 
-    buffer[size] = '\0';
-
-    SHA512((const unsigned char*)buffer, sizeof(buffer) - 1,
-            (unsigned char*)s->hash);
+    SHA512((const unsigned char*)buffer, size, (unsigned char*)s->hash);
 
     free(buffer);
     fclose(fp);

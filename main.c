@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
 
     NIGHT n;
     encrypt_file(&n, &s, f);
-    decrypt_file(E_FILE, KEY);
+//    decrypt_file(E_FILE, KEY);
 
     return 0;
 }
