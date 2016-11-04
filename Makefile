@@ -9,6 +9,8 @@ RANDLIB=randlib/src/libpcg_random.so
 
 CMD=main
 
+ED_FILES=decrypted_file.txt encrypted_file.txt night.key
+
 OBJECTS=sub_t.o nightgale_c.o main.o stringinfo.o
 
 .c.o:
@@ -25,7 +27,7 @@ sbk.o:
 	gcc $(SBKOPTIONS) -c $*.c
 
 clean:
-	rm -f $(OBJECTS) $(CMD)
+	rm -f $(OBJECTS) $(CMD) $(ED_FILES)
 	cd randlib; $(MAKE) clean
 
 install:

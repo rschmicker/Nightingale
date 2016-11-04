@@ -140,6 +140,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     fwrite(n, sizeof(NIGHT), 1, fkey);
     fwrite(enc_message, sizeof(uint64_t), word_count + 1, enc);
     fwrite(keys, sizeof(uint64_t), word_count + 1, fkey);
+    fwrite(s, sizeof(SUB), 1, fkey);
 
     if( ferror(enc) ) perror("Error writing to encrypted file."),
                         exit(EXIT_FAILURE);
@@ -152,15 +153,25 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 }
 
 //-----------------------------------------------------------------------------
-void decrypt_file(NIGHT *n, SUB *s){
+void decrypt_file(const char* cipher_text, const char* key_file){
     FILE *dcpt, *enc, *fkey;
-    enc = fopen(E_FILE, "rb");
+    enc = fopen(cipher_text, "rb");
     dcpt = fopen(D_FILE, "w");
-    fkey = fopen(KEY, "rb");
+    fkey = fopen(key_file, "rb");
 
     if( !enc ) perror("Error reading encrypted file."),exit(EXIT_FAILURE);
     if( !dcpt ) perror("Error opening decrypted file."),exit(EXIT_FAILURE);
     if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
+
+    NIGHT *n;
+    SUB s;
+
+    fread(n, sizeof(NIGHT), 1, fkey);
+    
+
+    if( ferror(fkey) ) 
+                        perror("Error reading encrypt/decrypt/key file."),
+                        exit(EXIT_FAILURE);
 
     int word_count = n->word_count;
     if(word_count == 0) word_count += 1;
@@ -169,15 +180,15 @@ void decrypt_file(NIGHT *n, SUB *s){
     uint64_t keys[word_count];
     uint64_t binary_mes[word_count];
 
-    fread(n, sizeof(NIGHT), 1, fkey);
     fread(enc_message, sizeof(uint64_t), word_count + 1, enc);
     fread(keys, sizeof(uint64_t), word_count + 1, fkey);
 
-    if( ferror(enc) || ferror(dcpt) || ferror(fkey) ) 
+    fread(&s, sizeof(SUB), 1, fkey);
+    printf("Hello\n");
+    
+    if( ferror(dcpt) || ferror(enc) ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
-
-    
 
     for(int i = 0; i < word_count; ++i){
         printf("key %d: %lu\n", i, keys[i]);
@@ -217,7 +228,7 @@ void decrypt_file(NIGHT *n, SUB *s){
 
     unsigned char decrypt_message[message_length];
     for(int i = 0; i < message_length; ++i){
-        decrypt_message[i] = s->reverse_sub[(int)message[i]];
+        decrypt_message[i] = s.reverse_sub[(int)message[i]];
         printf("%c", decrypt_message[i]);
         fprintf(dcpt, "%c", decrypt_message[i]);
     }
