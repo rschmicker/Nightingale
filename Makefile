@@ -22,10 +22,6 @@ $(CMD): $(OBJECTS) $(RANDLIB)
 $(RANDLIB):
 	cd randlib; make
 
-#This is here as an example - sbk.o does not appear to require special options
-sbk.o:
-	gcc $(SBKOPTIONS) -c $*.c
-
 clean:
 	rm -f $(OBJECTS) $(CMD) $(ED_FILES)
 	cd randlib; $(MAKE) clean
