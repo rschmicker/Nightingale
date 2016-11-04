@@ -1,11 +1,11 @@
 #include "nightgale_c.h"
 
 //-----------------------------------------------------------------------------
-long long int get_file_length(FILE *fp) {
+size_t get_file_length(FILE *fp) {
     fseek(fp, 0L, SEEK_CUR);
-    long long int mypos = ftell(fp);
+    long unsigned int mypos = ftell(fp);
     fseek(fp, 0L, SEEK_END);
-    long long int filesize = ftell(fp);
+    long unsigned int filesize = ftell(fp);
     fseek(fp, mypos, SEEK_SET);
     return filesize;
  }
@@ -26,35 +26,27 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
 
     // Length of text to encrypt
-    long long int filesize = get_file_length(f_to_enc);
-    StringInfo message_info = makeStringInfo();
-    enlargeStringInfo(message_info, filesize);
-    filesize -= 1;
-
-    unsigned char *message = message_info->data;
-    
-    // printf("Char count: %lld", filesize);
+    size_t filesize = get_file_length(f_to_enc);
+    printf("File length is: %d\n", (int)filesize);
 
     // Read the whole file into the message buffer
-    long long int nread = fread(message, 1, filesize, f_to_enc);
+    char *message = malloc(filesize);
+    size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
-
-    message[filesize] = (unsigned char)'\0';
-    
-    uint64_t enc_message[filesize];
-
-/*
-    printf("\nOriginal Message:\n");
-    printf("%s\n", message);
-*/
+    //uint64_t enc_message[filesize];
+    uint64_t *enc_message = malloc(sizeof(uint64_t)*filesize);
 
     int to_pad = WORD_SIZE - (filesize % WORD_SIZE);
     int word_count = filesize / WORD_SIZE;
+    printf("WORD_SIZE, to_pad, word_count = %d, %d, %d\n", WORD_SIZE, to_pad, word_count);
+
     n->pad = 0;
     if(to_pad != WORD_SIZE){
         word_count += 1;
         n->pad = to_pad;
     }  
+
+    printf("n->pad, WORD_SIZE, to_pad, word_count = %d, %d, %d, %d\n", n->pad, WORD_SIZE, to_pad, word_count);
 
     //+++++++++++++++++
     // Encrypt here
@@ -67,9 +59,14 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     n->anchor = abs(pcg64u_random_r(&rng_unique));
 
+    uint64_t *keys = malloc(sizeof(uint64_t)*word_count);
+    uint64_t *words = malloc(sizeof(uint64_t)*word_count);
+    uint64_t *enc_mes = malloc(sizeof(uint64_t)*word_count);
+/*
     uint64_t keys   [word_count];
     uint64_t words  [word_count];
     uint64_t enc_mes[word_count];
+*/
 
     for(int i = 0; i < word_count; ++i){
         keys[i] = abs(pcg64u_random_r(&rng_unique));
@@ -78,7 +75,8 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 */
     }
 
-    unsigned char word[WORD_SIZE];
+    // unsigned char word[WORD_SIZE];
+    unsigned char *word = malloc(WORD_SIZE);
     int round = 0;
 
     // Handle if message is less than word size
@@ -181,10 +179,11 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     if( !dcpt ) perror("Error opening decrypted file."),exit(EXIT_FAILURE);
     if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
 
-    NIGHT *n;
+    NIGHT nS, *n;
     SUB s;
 
-    fread(n, sizeof(NIGHT), 1, fkey);
+    fread(&nS, sizeof(NIGHT), 1, fkey);
+    n = &nS;
     
 
     if( ferror(fkey) ) 
@@ -194,9 +193,14 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     int word_count = n->word_count;
     if(word_count == 0) word_count += 1;
 
+    uint64_t *enc_message = malloc(sizeof(uint64_t)*word_count);
+    uint64_t *keys = malloc(sizeof(uint64_t)*word_count);
+    uint64_t *binary_mes = malloc(sizeof(uint64_t)*word_count);
+/*
     uint64_t enc_message[word_count];
     uint64_t keys[word_count];
     uint64_t binary_mes[word_count];
+*/
 
     fread(enc_message, sizeof(uint64_t), word_count + 1, enc);
     fread(keys, sizeof(uint64_t), word_count + 1, fkey);
@@ -253,7 +257,9 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     
     
 
-    unsigned char decrypt_message[message_length];
+    //unsigned char decrypt_message[message_length];
+    unsigned char *decrypt_message = malloc(message_length);
+
     for(int i = 0; i < message_length; ++i){
         decrypt_message[i] = s.reverse_sub[(int)message[i]];
 /*

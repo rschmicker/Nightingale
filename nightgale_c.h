@@ -20,7 +20,7 @@ typedef struct{
 //-----------------------------------------------------------------------------
 // Get the file length with fseek()
 //-----------------------------------------------------------------------------
-long long int get_file_length(FILE *fp);
+long unsigned int get_file_length(FILE *fp);
 
 //-----------------------------------------------------------------------------
 // Encrypt the file using the pacc lookup table
