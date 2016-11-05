@@ -114,7 +114,7 @@ void generate_hash(SUB *s){
     if( ferror(fp) || nread != size) perror("Error reading private key from RSA."),
                         exit(EXIT_FAILURE);
 
-    SHA512((const unsigned char*)buffer, size, (unsigned char*)s->hash);
+    SHA512(buffer, size, s->hash);
 
     free(buffer);
     fclose(fp);

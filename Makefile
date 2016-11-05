@@ -1,6 +1,6 @@
 .PHONY: clean distclean
-#DEBUG=-g -O0
-DEBUG=-O3
+DEBUG=-g -O0
+#DEBUG=-O3
 
 COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/include/openssl/
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
