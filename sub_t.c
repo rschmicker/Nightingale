@@ -90,11 +90,6 @@ void generate_seeds(SUB *s){
     memcpy(s->seed2, s->hash + SEED_SIZE, SEED_SIZE);
     memcpy(s->seed3, s->hash + SEED_SIZE*2, SEED_SIZE);
     memcpy(s->seed4, s->hash + SEED_SIZE*3, SEED_SIZE);
-
-    s->seed1[SEED_SIZE+1] = '\0';
-    s->seed2[SEED_SIZE+1] = '\0';
-    s->seed3[SEED_SIZE+1] = '\0';
-    s->seed4[SEED_SIZE+1] = '\0';
 }
 
 //-----------------------------------------------------------------------------

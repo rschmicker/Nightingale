@@ -1,6 +1,6 @@
 .PHONY: clean distclean
-DEBUG=-g -O0
-#DEBUG=-O3
+#DEBUG=-g -O0
+DEBUG=-O3
 
 COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/include/openssl/
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
@@ -13,7 +13,7 @@ CMD=main
 
 ED_FILES=decrypted_file.txt encrypted_file.txt night.key
 
-OBJECTS=sub_t.o nightgale_c.o main.o stringinfo.o
+OBJECTS=sub_t.o nightgale_c.o main.o
 
 .c.o:
 	gcc $(COPTIONS) $(DEBUG) -c $<

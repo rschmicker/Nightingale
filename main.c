@@ -11,10 +11,15 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
     SUB s;
+    printf("Gen key...\n");
     generate_key(&s);
+    printf("Gen hash...\n");
     generate_hash(&s);
+    printf("Gen seeds...\n");
     generate_seeds(&s);
+    printf("Gen rands...\n");
     generate_rands(&s);
+    printf("Shuffle...\n");
     shuffle(&s);
 
     NIGHT n;

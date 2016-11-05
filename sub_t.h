@@ -24,10 +24,10 @@ typedef struct{
     char*           filename;
     char*           outputname;
     unsigned char   hash[SHA512_DIGEST_LENGTH];
-    unsigned char   seed1[SEED_SIZE+1];
-    unsigned char   seed2[SEED_SIZE+1];
-    unsigned char   seed3[SEED_SIZE+1];
-    unsigned char   seed4[SEED_SIZE+1];
+    unsigned char   seed1[SEED_SIZE];
+    unsigned char   seed2[SEED_SIZE];
+    unsigned char   seed3[SEED_SIZE];
+    unsigned char   seed4[SEED_SIZE];
     uint64_t        sub_rands[SUB_SIZE];
     unsigned char   sub[SUB_SIZE];
     unsigned char   reverse_sub[SUB_SIZE];
