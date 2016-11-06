@@ -10,44 +10,8 @@ size_t get_file_length(FILE *fp) {
     return filesize;
  }
 
-//-----------------------------------------------------------------------------
-void encrypt_file(NIGHT *n, SUB *s, const char* file){
-
-    // File I/O
-    FILE *f_to_enc, *enc, *fkey;
-    f_to_enc = fopen(file, "r");
-    enc      = fopen(E_FILE, "wb");
-    fkey     = fopen(KEY, "wb");
-
-    if( !f_to_enc ) perror("Error reading input file."),exit(EXIT_FAILURE);
-
-    if( !enc ) perror("Error opening encrypted file."),exit(EXIT_FAILURE);
-
-    if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
-
-    // Length of text to encrypt
-    size_t filesize = get_file_length(f_to_enc);
-    printf("File length is: %d\n", (int)filesize);
-
-    // Read the whole file into the message buffer
-    char *message = malloc(filesize);
-    size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
-    if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
-    //uint64_t enc_message[filesize];
-    uint64_t *enc_message = malloc(sizeof(uint64_t)*filesize);
-
-    int to_pad = WORD_SIZE - (filesize % WORD_SIZE);
-    int word_count = filesize / WORD_SIZE;
-
-    n->pad = 0;
-    if(to_pad != WORD_SIZE){
-        word_count += 1;
-        n->pad = to_pad;
-    }  
-
-    //+++++++++++++++++
-    // Encrypt here
-    //+++++++++++++++++
+ void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message,
+                 uint64_t *keys){
     pcg64u_random_t rng_unique;
 
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
@@ -56,11 +20,11 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     n->anchor = abs(pcg64u_random_r(&rng_unique));
 
-    uint64_t *keys = malloc(sizeof(uint64_t)*word_count);
-    uint64_t *words = malloc(sizeof(uint64_t)*word_count);
-    uint64_t *enc_mes = malloc(sizeof(uint64_t)*word_count);
+    
+    uint64_t *words = malloc(sizeof(uint64_t)*n->word_count);
+    //uint64_t *enc_mes = malloc(sizeof(uint64_t)*word_count);
 
-    for(int i = 0; i < word_count; ++i){
+    for(int i = 0; i < n->word_count; ++i){
         keys[i] = abs(pcg64u_random_r(&rng_unique));
     }
 
@@ -68,11 +32,11 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     int round = 0;
 
     // Handle if message is less than word size
-    if(filesize < WORD_SIZE){
+    if(n->file_char_length < WORD_SIZE){
         // Fill word as much as possible
-        for(int p = 0; p < filesize; ++p) word[p] = s->sub[(int)message[p]];
+        for(int p = 0; p < n->file_char_length; ++p) word[p] = s->sub[(int)message[p]];
         // Pad the rest
-        for(int k = filesize; k < WORD_SIZE; ++k) word[k] = (unsigned char)'0';
+        for(int k = n->file_char_length; k < WORD_SIZE; ++k) word[k] = (unsigned char)'0';
 
         uint64_t binary = *(uint64_t *)word;
         words[round] = binary;
@@ -98,8 +62,8 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
             }
             // Pad the remaning characters if message does not evenly divide by 8
             // and handle breaking out of the loop
-            if(i == filesize){
-                if(to_pad != 0){
+            if(i == n->file_char_length){
+                if(n->pad != 0){
                     for(int j = i%WORD_SIZE; j < WORD_SIZE; ++j) word[j] = (unsigned char)'0';
                     uint64_t binary = *(uint64_t *)word;
                     words[round] = binary;
@@ -110,14 +74,58 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
             word[i%WORD_SIZE] = s->sub[(int)message[i]];
         }
     }
+ }
+
+//-----------------------------------------------------------------------------
+void encrypt_file(NIGHT *n, SUB *s, const char* file){
+
+    // File I/O
+    FILE *f_to_enc, *enc, *fkey;
+    f_to_enc = fopen(file, "r");
+    enc      = fopen(E_FILE, "wb");
+    fkey     = fopen(KEY, "wb");
+
+    if( !f_to_enc ) perror("Error reading input file."),exit(EXIT_FAILURE);
+
+    if( !enc ) perror("Error opening encrypted file."),exit(EXIT_FAILURE);
+
+    if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
+
+    // Length of text to encrypt
+    size_t filesize = get_file_length(f_to_enc);
+    printf("File length is: %d\n", (int)filesize);
+
+    // Read the whole file into the message buffer
+    char *message = malloc(filesize);
+    size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
+    if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
+    //uint64_t enc_message[filesize];
     
 
+    int to_pad = WORD_SIZE - (filesize % WORD_SIZE);
+    n->word_count = filesize / WORD_SIZE;
     n->file_char_length = filesize;
-    n->word_count = word_count;
+
+    n->pad = 0;
+    if(to_pad != WORD_SIZE){
+        n->word_count += 1;
+        n->pad = to_pad;
+    }  
+
+    uint64_t *enc_message = malloc(sizeof(uint64_t)*filesize);
+    uint64_t *keys = malloc(sizeof(uint64_t)*n->word_count);
+
+    //+++++++++++++++++
+    // Encrypt here
+    //+++++++++++++++++
+    encrypt(n, s, message, enc_message, keys);
+    
+
+    
 
     fwrite(n, sizeof(NIGHT), 1, fkey);
-    fwrite(enc_message, sizeof(uint64_t), word_count + 1, enc);
-    fwrite(keys, sizeof(uint64_t), word_count + 1, fkey);
+    fwrite(enc_message, sizeof(uint64_t), n->word_count + 1, enc);
+    fwrite(keys, sizeof(uint64_t), n->word_count + 1, fkey);
     fwrite(s, sizeof(SUB), 1, fkey);
 
     if( ferror(enc) ) perror("Error writing to encrypted file."),
