@@ -13,7 +13,7 @@ CMD=main
 
 ED_FILES=decrypted_file.txt encrypted_file.txt night.key
 
-OBJECTS=sub_t.o nightgale_c.o main.o
+OBJECTS=sub_t.o nightgale_c.o main.o mysecond.o
 
 .c.o:
 	gcc $(COPTIONS) $(DEBUG) -c $<
