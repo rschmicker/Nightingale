@@ -33,16 +33,9 @@ void shuffle(SUB *s){
 
     qsort(knuth_sort, SUB_SIZE, sizeof(indexes), cmp);
 
-    /*printf("Shuffled Output:\n");
-    for(int i = 0; i < SUB_SIZE; i++){
-        printf("%d: %d\n", knuth_sort[i].index, knuth_sort[i].value);
-    }*/
-
-    //printf("CHARSSSSS\n");
     for(int i = 0; i < SUB_SIZE; i++){
         s->sub[i] = (unsigned char)knuth_sort[i].index;
         s->reverse_sub[(uint8_t)knuth_sort[i].index] = i;
-        //printf("%d -> %c\n", i,  s->sub[i]);
     }
 }
 
