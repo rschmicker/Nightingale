@@ -31,10 +31,16 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file);
 //-----------------------------------------------------------------------------
 // Encrypt
 //-----------------------------------------------------------------------------
-void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message,
+void encrypt(NIGHT *n, SUB *s, unsigned char *message, uint64_t *enc_message,
                  uint64_t *keys);
 
 //-----------------------------------------------------------------------------
 // Decrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
 void decrypt_file(const char* cipher_text, const char* key_file);
+
+//-----------------------------------------------------------------------------
+// Decrypt
+//-----------------------------------------------------------------------------
+void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, 
+				uint64_t *enc_message, uint64_t *keys, uint64_t *binary_mes);

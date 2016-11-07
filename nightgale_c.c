@@ -123,7 +123,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     t1 = mysecond();
     encrypt(n, s, message, enc_message, keys);
     t2 = mysecond();
-    printf("Time: %fs\n", t2 - t1);
+    printf("Encrypt Time: %fs\n", t2 - t1);
 
     
 
@@ -141,6 +141,24 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     fclose(enc);
     fclose(fkey);
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+}
+
+
+void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, 
+                uint64_t *enc_message, uint64_t *keys, uint64_t *binary_mes){
+
+    binary_mes[0] = n->anchor ^ enc_message[0] ^ keys[0]; 
+
+    for(int i = 1; i < n->word_count; ++i){
+        binary_mes[i] = binary_mes[i-1] ^ enc_message[i] ^ keys[i];
+    }
+
+    uint64_t *b = &binary_mes[0];
+    unsigned char *message = (unsigned char*)b;
+
+    for(int i = 0; i < n->file_char_length; ++i){
+        decrypt_message[i] = s->reverse_sub[(int)message[i]];
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -186,21 +204,13 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     //++++++++++++++++++
     // Decrypt
     //++++++++++++++++++
-    binary_mes[0] = n->anchor ^ enc_message[0] ^ keys[0]; 
-
-    for(int i = 1; i < word_count; ++i){
-        binary_mes[i] = binary_mes[i-1] ^ enc_message[i] ^ keys[i];
-    }
-
-    uint64_t *b = &binary_mes[0];
-    unsigned char *message = (unsigned char*)b;
-
     unsigned char *decrypt_message = malloc(message_length);
 
-    for(int i = 0; i < message_length; ++i){
-        decrypt_message[i] = s->reverse_sub[(int)message[i]];
-    }
-    printf("\n");
+    double t1, t2;
+    t1 = mysecond();
+    decrypt(n, s, decrypt_message, enc_message, keys, binary_mes);
+    t2 = mysecond();
+    printf("Decrypt Time: %fs\n", t2 - t1);
 
     fclose(dcpt);
     fclose(enc);
