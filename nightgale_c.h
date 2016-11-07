@@ -4,6 +4,7 @@
 #include "stringinfo.h"
 #include "sub_t.h"
 #include "pcg_variants.h"
+#include "mysecond.h"
 
 #define E_FILE "encrypted_file.txt"
 #define D_FILE "decrypted_file.txt"

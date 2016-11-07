@@ -24,12 +24,10 @@ int main(int argc, char *argv[]){
     shuffle(&s);
 
     NIGHT n;
-    double t1, t2;
-    t1 = mysecond();
+    
     encrypt_file(&n, &s, f);
-    t2 = mysecond();
-    printf("Time: %fs\n", t2 - t1);
-//    decrypt_file(E_FILE, KEY);
+    
+    decrypt_file(E_FILE, KEY);
 
     return 0;
 }

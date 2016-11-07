@@ -118,18 +118,23 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     //+++++++++++++++++
     // Encrypt here
     //+++++++++++++++++
+
+    double t1, t2;
+    t1 = mysecond();
     encrypt(n, s, message, enc_message, keys);
-    
+    t2 = mysecond();
+    printf("Time: %fs\n", t2 - t1);
 
     
 
     fwrite(n, sizeof(NIGHT), 1, fkey);
-    fwrite(enc_message, sizeof(uint64_t), n->word_count + 1, enc);
-    fwrite(keys, sizeof(uint64_t), n->word_count + 1, fkey);
+    fwrite(enc_message, sizeof(uint64_t), n->word_count, enc);
+    fwrite(keys, sizeof(uint64_t), n->word_count, fkey);
     fwrite(s, sizeof(SUB), 1, fkey);
 
     if( ferror(enc) ) perror("Error writing to encrypted file."),
                         exit(EXIT_FAILURE);
+
 
     free(message);
     fclose(f_to_enc);
@@ -150,7 +155,7 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
 
     NIGHT nS, *n;
-    SUB s;
+    SUB sS, *s;
 
     int nread = fread(&nS, sizeof(NIGHT), 1, fkey);
     n = &nS;
@@ -166,9 +171,10 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     uint64_t *keys = malloc(sizeof(uint64_t)*word_count);
     uint64_t *binary_mes = malloc(sizeof(uint64_t)*word_count);
 
-    int nreadenc = fread(enc_message, sizeof(uint64_t), word_count, enc);
-    int nreadkeys = fread(keys, sizeof(uint64_t), word_count, fkey);
-    int nreadSUB = fread(&s, sizeof(SUB), 1, fkey);
+    int nreadenc = fread(enc_message, sizeof(uint64_t), n->word_count, enc);
+    int nreadkeys = fread(keys, sizeof(uint64_t), n->word_count, fkey);
+    int nreadSUB = fread(&sS, sizeof(SUB), 1, fkey);
+    s = &sS;
     
     if( ferror(dcpt) || ferror(enc) || nreadenc != word_count || nreadkeys != word_count || nreadSUB != 1) 
                         perror("Error reading encrypt/decrypt/key file."),
@@ -192,9 +198,9 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     unsigned char *decrypt_message = malloc(message_length);
 
     for(int i = 0; i < message_length; ++i){
-        decrypt_message[i] = s.reverse_sub[(int)message[i]];
-        fprintf(dcpt, "%c", decrypt_message[i]);
+        decrypt_message[i] = s->reverse_sub[(int)message[i]];
     }
+    printf("\n");
 
     fclose(dcpt);
     fclose(enc);
