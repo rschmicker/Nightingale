@@ -212,6 +212,8 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     t2 = mysecond();
     printf("Decrypt Time: %fs\n", t2 - t1);
 
+    fwrite(decrypt_message, sizeof(char), n->file_char_length, dcpt);
+
     fclose(dcpt);
     fclose(enc);
     fclose(fkey);
