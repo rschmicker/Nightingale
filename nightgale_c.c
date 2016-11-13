@@ -17,15 +17,16 @@ size_t get_file_length(FILE *fp) {
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
 
     pcg64u_srandom_r(&rng_unique, s1_unique);
+    //pcg_unique_128_xsh_rs_64_random_r(&rng_unique, s1_unique);
 
-    n->anchor = abs(pcg64u_random_r(&rng_unique));
+    n->anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
 
     
     uint64_t *words = malloc(sizeof(uint64_t)*n->word_count);
     //uint64_t *enc_mes = malloc(sizeof(uint64_t)*word_count);
 
     for(int i = 0; i < n->word_count; ++i){
-        keys[i] = abs(pcg64u_random_r(&rng_unique));
+        keys[i] = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
     }
 
     unsigned char *word = malloc(WORD_SIZE);
