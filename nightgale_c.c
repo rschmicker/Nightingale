@@ -153,6 +153,9 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
 
     free(message);
+    free(enc_message);
+    free(keys);
+
     fclose(f_to_enc);
     fclose(enc);
     fclose(fkey);
@@ -163,10 +166,6 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, 
                 uint64_t *enc_message, uint64_t *keys, uint64_t *binary_mes){
 
-    StringInfo message_info = makeStringInfo();
-    enlargeStringInfo(message_info, n->file_char_length);
-    decrypt_message = message_info->data;
-
     for(int round = 0; round < n->word_count; ++round){
         binary_mes[round] = enc_message[round] ^ keys[round];
         uint64_t *b = &binary_mes[round];
@@ -176,16 +175,22 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message,
         }
         if(round == 0){
             binary_mes[round] = n->anchor ^ binary_mes[round] ^ n->hamming_mask;
-            appendBinaryStringInfo(message_info, (const)message, WORD_SIZE);
+            memcpy(decrypt_message, message, WORD_SIZE);
         }
         else{
             binary_mes[round] = binary_mes[round] ^ binary_mes[round-1] ^ n->hamming_mask;
-            appendBinaryStringInfo(message_info, (const)message, WORD_SIZE);
-        }
 
-        /*for(int k = round*WORD_SIZE; k < round*WORD_SIZE+WORD_SIZE; ++k){
-            decrypt_message[k] = message[k%WORD_SIZE];
-        }*/
+            size_t size_Dec = round * WORD_SIZE;
+
+            decrypt_message = realloc(decrypt_message, size_Dec + WORD_SIZE);
+            if(decrypt_message == NULL) {
+                free(decrypt_message);
+                printf("Error: Cannot realloc decrypt_message\n");
+                exit(EXIT_FAILURE);
+            }
+            for(int i = 0; i < WORD_SIZE; ++i) 
+                decrypt_message[size_Dec+i] = message[i];
+        }
     }
     
 }
@@ -242,6 +247,11 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     printf("Decrypt Time: %fs\n", t2 - t1);
 
     fwrite(decrypt_message, sizeof(char), n->file_char_length, dcpt);
+
+    free(decrypt_message);
+    free(enc_message);
+    free(keys);
+    free(binary_mes);
 
     fclose(dcpt);
     fclose(enc);
