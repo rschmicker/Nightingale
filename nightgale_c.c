@@ -163,6 +163,10 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, 
                 uint64_t *enc_message, uint64_t *keys, uint64_t *binary_mes){
 
+    StringInfo message_info = makeStringInfo();
+    enlargeStringInfo(message_info, n->file_char_length);
+    decrypt_message = message_info->data;
+
     for(int round = 0; round < n->word_count; ++round){
         binary_mes[round] = enc_message[round] ^ keys[round];
         uint64_t *b = &binary_mes[round];
@@ -172,16 +176,18 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message,
         }
         if(round == 0){
             binary_mes[round] = n->anchor ^ binary_mes[round] ^ n->hamming_mask;
-            //strncpy(decrypt_message, message, WORD_SIZE);
+            appendBinaryStringInfo(message_info, (const)message, WORD_SIZE);
         }
         else{
             binary_mes[round] = binary_mes[round] ^ binary_mes[round-1] ^ n->hamming_mask;
-            //strncat(decrypt_message, message, WORD_SIZE);
+            appendBinaryStringInfo(message_info, (const)message, WORD_SIZE);
         }
-        for(int k = round*WORD_SIZE; k < round*WORD_SIZE+WORD_SIZE; ++k){
+
+        /*for(int k = round*WORD_SIZE; k < round*WORD_SIZE+WORD_SIZE; ++k){
             decrypt_message[k] = message[k%WORD_SIZE];
-        }
+        }*/
     }
+    
 }
 
 //-----------------------------------------------------------------------------
