@@ -17,13 +17,12 @@ size_t get_file_length(FILE *fp) {
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
 
     pcg64u_srandom_r(&rng_unique, s1_unique);
-    //pcg_unique_128_xsh_rs_64_random_r(&rng_unique, s1_unique);
 
     n->anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    n->hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
 
     
     uint64_t *words = malloc(sizeof(uint64_t)*n->word_count);
-    //uint64_t *enc_mes = malloc(sizeof(uint64_t)*word_count);
 
     for(int i = 0; i < n->word_count; ++i){
         keys[i] = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
@@ -41,7 +40,11 @@ size_t get_file_length(FILE *fp) {
 
         uint64_t binary = *(uint64_t *)word;
         words[round] = binary;
-        enc_message[round] = n->anchor ^ binary ^ keys[round];
+        uint64_t to_sub = n->anchor ^ binary ^ n->hamming_mask;
+        uint64_t *b = &to_sub;
+        unsigned char* pre_sub = (unsigned char*)b;
+        for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+        enc_message[round] = to_sub ^ keys[round];
     }
     else{
         for(int i = 0; ; ++i){
@@ -49,7 +52,11 @@ size_t get_file_length(FILE *fp) {
             if(i == WORD_SIZE){
                 uint64_t binary = *(uint64_t *)word;
                 words[round] = binary;
-                enc_message[round] = n->anchor ^ binary ^ keys[round];
+                uint64_t to_sub = n->anchor ^ binary ^ n->hamming_mask;
+                uint64_t *b = &to_sub;
+                unsigned char* pre_sub = (unsigned char*)b;
+                for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+                enc_message[round] = to_sub ^ keys[round];
                 ++round;
                 memset(word, 0, sizeof(word));
             }
@@ -57,7 +64,11 @@ size_t get_file_length(FILE *fp) {
             if(i != 0 && i % WORD_SIZE == 0 && i != WORD_SIZE){
                 uint64_t binary = *(uint64_t *)word;
                 words[round] = binary;
-                enc_message[round] = words[round - 1] ^ binary ^ keys[round];
+                uint64_t to_sub = words[round -1] ^ binary ^ n->hamming_mask;
+                uint64_t *b = &to_sub;
+                unsigned char* pre_sub = (unsigned char*)b;
+                for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+                enc_message[round] = to_sub ^ keys[round];
                 ++round;
                 memset(word, 0, sizeof(word));
             }
@@ -68,11 +79,15 @@ size_t get_file_length(FILE *fp) {
                     for(int j = i%WORD_SIZE; j < WORD_SIZE; ++j) word[j] = (unsigned char)'0';
                     uint64_t binary = *(uint64_t *)word;
                     words[round] = binary;
-                    enc_message[round] = words[round - 1] ^ binary ^ keys[round];
+                    uint64_t to_sub = words[round -1] ^ binary ^ n->hamming_mask;
+                    uint64_t *b = &to_sub;
+                    unsigned char* pre_sub = (unsigned char*)b;
+                    for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+                    enc_message[round] = to_sub ^ keys[round];
                 }
                 break;                
             }
-            word[i%WORD_SIZE] = s->sub[(int)message[i]];
+            word[i%WORD_SIZE] = message[i];
         }
     }
  }
@@ -148,17 +163,24 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, 
                 uint64_t *enc_message, uint64_t *keys, uint64_t *binary_mes){
 
-    binary_mes[0] = n->anchor ^ enc_message[0] ^ keys[0]; 
-
-    for(int i = 1; i < n->word_count; ++i){
-        binary_mes[i] = binary_mes[i-1] ^ enc_message[i] ^ keys[i];
-    }
-
-    uint64_t *b = &binary_mes[0];
-    unsigned char *message = (unsigned char*)b;
-
-    for(int i = 0; i < n->file_char_length; ++i){
-        decrypt_message[i] = s->reverse_sub[(int)message[i]];
+    for(int round = 0; round < n->word_count; ++round){
+        binary_mes[round] = enc_message[round] ^ keys[round];
+        uint64_t *b = &binary_mes[round];
+        unsigned char *message = (unsigned char*)b;
+        for(int j = 0; j < WORD_SIZE; ++j){
+            message[j] = s->reverse_sub[(int)message[j]];
+        }
+        if(round == 0){
+            binary_mes[round] = n->anchor ^ binary_mes[round] ^ n->hamming_mask;
+            //strncpy(decrypt_message, message, WORD_SIZE);
+        }
+        else{
+            binary_mes[round] = binary_mes[round] ^ binary_mes[round-1] ^ n->hamming_mask;
+            //strncat(decrypt_message, message, WORD_SIZE);
+        }
+        for(int k = round*WORD_SIZE; k < round*WORD_SIZE+WORD_SIZE; ++k){
+            decrypt_message[k] = message[k%WORD_SIZE];
+        }
     }
 }
 

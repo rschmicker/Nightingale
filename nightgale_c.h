@@ -16,6 +16,7 @@ typedef struct{
     int			file_char_length;
     int			pad;
     int			word_count;
+    uint64_t	hamming_mask;
 }NIGHT;
 
 //-----------------------------------------------------------------------------
