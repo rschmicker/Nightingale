@@ -1,7 +1,6 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
-#include "stringinfo.h"
 #include "sub_t.h"
 #include "pcg_variants.h"
 #include "mysecond.h"

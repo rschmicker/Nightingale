@@ -12,6 +12,7 @@ size_t get_file_length(FILE *fp) {
 
  void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message,
                  uint64_t *keys){
+
     pcg64u_random_t rng_unique;
 
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
@@ -31,6 +32,10 @@ size_t get_file_length(FILE *fp) {
     unsigned char *word = malloc(WORD_SIZE);
     int round = 0;
 
+    uint64_t to_sub;
+    uint64_t *b;
+    unsigned char* pre_sub;
+
     // Handle if message is less than word size
     if(n->file_char_length < WORD_SIZE){
         // Fill word as much as possible
@@ -47,14 +52,14 @@ size_t get_file_length(FILE *fp) {
         enc_message[round] = to_sub ^ keys[round];
     }
     else{
+        double pre_word_t, post_word_t, total_word_t;
         for(int i = 0; ; ++i){
             // First case for when i = the Word size, use the anchor
             if(i == WORD_SIZE){
-                uint64_t binary = *(uint64_t *)word;
-                words[round] = binary;
-                uint64_t to_sub = n->anchor ^ binary ^ n->hamming_mask;
-                uint64_t *b = &to_sub;
-                unsigned char* pre_sub = (unsigned char*)b;
+                words[round] = *(uint64_t *)word;
+                to_sub = n->anchor ^ words[round] ^ n->hamming_mask;
+                b = &to_sub;
+                pre_sub = (unsigned char*)b;
                 for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
                 enc_message[round] = to_sub ^ keys[round];
                 ++round;
@@ -62,11 +67,10 @@ size_t get_file_length(FILE *fp) {
             }
             // Every word after 8 i.e. 16, 24, 32, etc.
             if(i != 0 && i % WORD_SIZE == 0 && i != WORD_SIZE){
-                uint64_t binary = *(uint64_t *)word;
-                words[round] = binary;
-                uint64_t to_sub = words[round -1] ^ binary ^ n->hamming_mask;
-                uint64_t *b = &to_sub;
-                unsigned char* pre_sub = (unsigned char*)b;
+                words[round] = *(uint64_t *)word;
+                to_sub = words[round -1] ^ words[round] ^ n->hamming_mask;
+                b = &to_sub;
+                pre_sub = (unsigned char*)b;
                 for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
                 enc_message[round] = to_sub ^ keys[round];
                 ++round;
@@ -77,11 +81,10 @@ size_t get_file_length(FILE *fp) {
             if(i == n->file_char_length){
                 if(n->pad != 0){
                     for(int j = i%WORD_SIZE; j < WORD_SIZE; ++j) word[j] = (unsigned char)'0';
-                    uint64_t binary = *(uint64_t *)word;
-                    words[round] = binary;
-                    uint64_t to_sub = words[round -1] ^ binary ^ n->hamming_mask;
-                    uint64_t *b = &to_sub;
-                    unsigned char* pre_sub = (unsigned char*)b;
+                    words[round] = *(uint64_t *)word;
+                    to_sub = words[round -1] ^ words[round] ^ n->hamming_mask;
+                    b = &to_sub;
+                    pre_sub = (unsigned char*)b;
                     for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
                     enc_message[round] = to_sub ^ keys[round];
                 }
@@ -139,7 +142,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     t1 = mysecond();
     encrypt(n, s, message, enc_message, keys);
     t2 = mysecond();
-    printf("Encrypt Time: %fs\n", t2 - t1);
+    printf("Encrypt Time:\t%fs\n", t2 - t1);
 
     
 
