@@ -34,18 +34,22 @@ size_t get_file_length(FILE *fp) {
     unsigned char *pre_sub;
 
     // First buffer
-    memcpy(message, word, WORD_SIZE);
+    memcpy(word, message, WORD_SIZE);
     message += WORD_SIZE;
+    printf("word: %lu\n", *(uint64_t *)word);
     to_sub = n->anchor ^ *(uint64_t *)word ^ n->hamming_mask;
+    printf("Before Sub: %lu\n", to_sub);
     b = &to_sub;
     pre_sub = (unsigned char*)b;
     for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+    printf("Post Sub: %lu\n", to_sub);
     enc_message[round] = to_sub ^ abs(pcg64_random_r(&rng_unique));
+    printf("enc: %lu\n", enc_message[round]);
     ++round;
 
     // Every buffer after
     for(int i = 1; i < n->word_count; i+=WORD_SIZE){
-        memcpy(message, word, WORD_SIZE);
+        memcpy(word, message, WORD_SIZE);
         message += WORD_SIZE;
         to_sub = enc_message[round-1] ^ *(uint64_t *)word ^ n->hamming_mask;
         b = &to_sub;
@@ -148,18 +152,22 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
     unsigned char *pre_sub;
 
     //First buffer
-    memcpy(enc_message, word, WORD_SIZE);
+    memcpy(word, enc_message, WORD_SIZE);
     enc_message += WORD_SIZE;
+    printf("encword: %lu\n", *(uint64_t *)word);
     to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
+    printf("Before Sub: %lu\n", to_sub);
     b = &to_sub;
     pre_sub = (unsigned char*)b;
     for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
+    printf("Post Sub: %lu\n", to_sub);
     dec_message[round] = anchor ^ to_sub ^ hamming_mask;
+    printf("word: %lu\n", dec_message[round]);
     ++round;
     
     // Every buffer after
-    for(int i = 0; i < word_count; i += WORD_SIZE){
-        memcpy(enc_message, word, WORD_SIZE);
+    for(int i = 1; i < word_count; i += WORD_SIZE){
+        memcpy(word, enc_message, WORD_SIZE);
         enc_message += WORD_SIZE;
         to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
         b = &to_sub;
@@ -169,8 +177,8 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
         ++round;
     }
 
-    uint64_t *temp = &dec_message;
-    decrypt_message = (unsigned char *)temp;
+    void *converter = &dec_message;
+    decrypt_message = converter;
   
 }
 
