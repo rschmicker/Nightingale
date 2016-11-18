@@ -12,14 +12,14 @@ size_t get_file_length(FILE *fp) {
 
  void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message){
 
-    pcg64u_random_t rng_unique;
+    pcg64_random_t rng_unique;
 
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
 
-    pcg64u_srandom_r(&rng_unique, s1_unique);
+    pcg64_srandom_r(&rng_unique, s1_unique, 5);
 
-    n->anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
-    n->hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    n->anchor = abs(pcg64_random_r(&rng_unique));
+    n->hamming_mask = abs(pcg64_random_r(&rng_unique));
 
     printf("Anchor:  %lu\n", n->anchor);
     printf("hamming: %lu\n", n->hamming_mask);
@@ -40,7 +40,7 @@ size_t get_file_length(FILE *fp) {
     b = &to_sub;
     pre_sub = (unsigned char*)b;
     for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-    enc_message[round] = to_sub ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    enc_message[round] = to_sub ^ abs(pcg64_random_r(&rng_unique));
     ++round;
 
     // Every buffer after
@@ -51,7 +51,7 @@ size_t get_file_length(FILE *fp) {
         b = &to_sub;
         pre_sub = (unsigned char*)b;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        enc_message[round] = to_sub ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+        enc_message[round] = to_sub ^ abs(pcg64_random_r(&rng_unique));
         ++round;
     }
  }
@@ -103,8 +103,6 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     t2 = mysecond();
     printf("Encrypt Time:\t%fs\n", t2 - t1);
 
-    
-
     fwrite(n, sizeof(NIGHT), 1, nkey);
     fwrite(enc_message, sizeof(uint64_t), n->word_count, enc);
 
@@ -128,14 +126,14 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
 
     int word_count = n->file_char_length / WORD_SIZE;
 
-    pcg64u_random_t rng_unique;
+    pcg64_random_t rng_unique;
 
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
 
-    pcg64u_srandom_r(&rng_unique, s1_unique);
+    pcg64_srandom_r(&rng_unique, s1_unique, 5);
 
-    uint64_t anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
-    uint64_t hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    uint64_t anchor = abs(pcg64_random_r(&rng_unique));
+    uint64_t hamming_mask = abs(pcg64_random_r(&rng_unique));
 
     printf("Anchor:  %lu\n", anchor);
     printf("hamming: %lu\n", hamming_mask);
@@ -152,7 +150,7 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
     //First buffer
     memcpy(enc_message, word, WORD_SIZE);
     enc_message += WORD_SIZE;
-    to_sub = *(uint64_t *)word ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
     b = &to_sub;
     pre_sub = (unsigned char*)b;
     for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
@@ -163,7 +161,7 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
     for(int i = 0; i < word_count; i += WORD_SIZE){
         memcpy(enc_message, word, WORD_SIZE);
         enc_message += WORD_SIZE;
-        to_sub = *(uint64_t *)word ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+        to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
         b = &to_sub;
         pre_sub = (unsigned char*)b;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
