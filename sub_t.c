@@ -88,8 +88,8 @@ void generate_seeds(SUB *s){
 //-----------------------------------------------------------------------------
 // Generate Hash from private key file from RSA
 //-----------------------------------------------------------------------------
-void generate_hash(SUB *s){
-    FILE *fp = fopen(RSA_KEY, "rb");
+void generate_hash(SUB *s, const char* key_file){
+    FILE *fp = fopen(key_file, "rb");
     if( !fp ) perror("Error reading private key from RSA."),exit(EXIT_FAILURE);
 
     fseek(fp, 0, SEEK_END);

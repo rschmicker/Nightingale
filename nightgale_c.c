@@ -10,8 +10,7 @@ size_t get_file_length(FILE *fp) {
     return filesize;
  }
 
- void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message,
-                 uint64_t *keys){
+ void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message){
 
     pcg64u_random_t rng_unique;
 
@@ -22,76 +21,35 @@ size_t get_file_length(FILE *fp) {
     n->anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
     n->hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
 
-    
-    uint64_t *words = malloc(sizeof(uint64_t)*n->word_count);
-
-    for(int i = 0; i < n->word_count; ++i){
-        keys[i] = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
-    }
-
-    unsigned char *word = malloc(WORD_SIZE);
+    unsigned char *word = calloc(1, WORD_SIZE);
     int round = 0;
 
+    uint64_t previous_word;
+    uint64_t current_word;
     uint64_t to_sub;
     uint64_t *b;
-    unsigned char* pre_sub;
+    unsigned char *pre_sub;
 
-    // Handle if message is less than word size
-    if(n->file_char_length < WORD_SIZE){
-        // Fill word as much as possible
-        for(int p = 0; p < n->file_char_length; ++p) word[p] = s->sub[(int)message[p]];
-        // Pad the rest
-        for(int k = n->file_char_length; k < WORD_SIZE; ++k) word[k] = (unsigned char)'0';
+    // First buffer
+    memcpy(message, word, WORD_SIZE);
+    message += WORD_SIZE;
+    to_sub = n->anchor ^ *(uint64_t *)word ^ n->hamming_mask;
+    b = &to_sub;
+    pre_sub = (unsigned char*)b;
+    for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+    enc_message[round] = to_sub ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    ++round;
 
-        uint64_t binary = *(uint64_t *)word;
-        words[round] = binary;
-        uint64_t to_sub = n->anchor ^ binary ^ n->hamming_mask;
-        uint64_t *b = &to_sub;
-        unsigned char* pre_sub = (unsigned char*)b;
+    // Every buffer after
+    for(int i = 1; i < n->word_count; i+=WORD_SIZE){
+        memcpy(message, word, WORD_SIZE);
+        message += WORD_SIZE;
+        to_sub = enc_message[round-1] ^ *(uint64_t *)word ^ n->hamming_mask;
+        b = &to_sub;
+        pre_sub = (unsigned char*)b;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        enc_message[round] = to_sub ^ keys[round];
-    }
-    else{
-        double pre_word_t, post_word_t, total_word_t;
-        for(int i = 0; ; ++i){
-            // First case for when i = the Word size, use the anchor
-            if(i == WORD_SIZE){
-                words[round] = *(uint64_t *)word;
-                to_sub = n->anchor ^ words[round] ^ n->hamming_mask;
-                b = &to_sub;
-                pre_sub = (unsigned char*)b;
-                for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-                enc_message[round] = to_sub ^ keys[round];
-                ++round;
-                memset(word, 0, sizeof(word));
-            }
-            // Every word after 8 i.e. 16, 24, 32, etc.
-            if(i != 0 && i % WORD_SIZE == 0 && i != WORD_SIZE){
-                words[round] = *(uint64_t *)word;
-                to_sub = words[round -1] ^ words[round] ^ n->hamming_mask;
-                b = &to_sub;
-                pre_sub = (unsigned char*)b;
-                for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-                enc_message[round] = to_sub ^ keys[round];
-                ++round;
-                memset(word, 0, sizeof(word));
-            }
-            // Pad the remaning characters if message does not evenly divide by 8
-            // and handle breaking out of the loop
-            if(i == n->file_char_length){
-                if(n->pad != 0){
-                    for(int j = i%WORD_SIZE; j < WORD_SIZE; ++j) word[j] = (unsigned char)'0';
-                    words[round] = *(uint64_t *)word;
-                    to_sub = words[round -1] ^ words[round] ^ n->hamming_mask;
-                    b = &to_sub;
-                    pre_sub = (unsigned char*)b;
-                    for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-                    enc_message[round] = to_sub ^ keys[round];
-                }
-                break;                
-            }
-            word[i%WORD_SIZE] = message[i];
-        }
+        enc_message[round] = to_sub ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+        ++round;
     }
  }
 
@@ -99,16 +57,16 @@ size_t get_file_length(FILE *fp) {
 void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     // File I/O
-    FILE *f_to_enc, *enc, *fkey;
+    FILE *f_to_enc, *enc, *nkey;
     f_to_enc = fopen(file, "r");
     enc      = fopen(E_FILE, "wb");
-    fkey     = fopen(KEY, "wb");
+    nkey     = fopen(NIGHT_KEY, "wb");
 
     if( !f_to_enc ) perror("Error reading input file."),exit(EXIT_FAILURE);
 
     if( !enc ) perror("Error opening encrypted file."),exit(EXIT_FAILURE);
 
-    if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
+    if( !nkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
 
     // Length of text to encrypt
     size_t filesize = get_file_length(f_to_enc);
@@ -118,7 +76,6 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     char *message = malloc(filesize);
     size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
-    //uint64_t enc_message[filesize];
     
 
     int to_pad = WORD_SIZE - (filesize % WORD_SIZE);
@@ -132,7 +89,6 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     }  
 
     uint64_t *enc_message = malloc(sizeof(uint64_t)*filesize);
-    uint64_t *keys = malloc(sizeof(uint64_t)*n->word_count);
 
     //+++++++++++++++++
     // Encrypt here
@@ -140,16 +96,14 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     double t1, t2;
     t1 = mysecond();
-    encrypt(n, s, message, enc_message, keys);
+    encrypt(n, s, message, enc_message);
     t2 = mysecond();
     printf("Encrypt Time:\t%fs\n", t2 - t1);
 
     
 
-    fwrite(n, sizeof(NIGHT), 1, fkey);
+    fwrite(n, sizeof(NIGHT), 1, nkey);
     fwrite(enc_message, sizeof(uint64_t), n->word_count, enc);
-    fwrite(keys, sizeof(uint64_t), n->word_count, fkey);
-    fwrite(s, sizeof(SUB), 1, fkey);
 
     if( ferror(enc) ) perror("Error writing to encrypted file."),
                         exit(EXIT_FAILURE);
@@ -157,65 +111,82 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     free(message);
     free(enc_message);
-    free(keys);
 
     fclose(f_to_enc);
     fclose(enc);
-    fclose(fkey);
+    fclose(nkey);
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 }
 
 
-void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, 
-                uint64_t *enc_message, uint64_t *keys, uint64_t *binary_mes){
+void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_message){
 
-    for(int round = 0; round < n->word_count; ++round){
-        binary_mes[round] = enc_message[round] ^ keys[round];
-        uint64_t *b = &binary_mes[round];
-        unsigned char *message = (unsigned char*)b;
-        for(int j = 0; j < WORD_SIZE; ++j){
-            message[j] = s->reverse_sub[(int)message[j]];
-        }
-        if(round == 0){
-            binary_mes[round] = n->anchor ^ binary_mes[round] ^ n->hamming_mask;
-            memcpy(decrypt_message, message, WORD_SIZE);
-        }
-        else{
-            binary_mes[round] = binary_mes[round] ^ binary_mes[round-1] ^ n->hamming_mask;
+    uint64_t *dec_message = malloc(sizeof(uint64_t)*n->file_char_length);
 
-            size_t size_Dec = round * WORD_SIZE;
+    int word_count = n->file_char_length / WORD_SIZE;
 
-            decrypt_message = realloc(decrypt_message, size_Dec + WORD_SIZE);
-            if(decrypt_message == NULL) {
-                free(decrypt_message);
-                printf("Error: Cannot realloc decrypt_message\n");
-                exit(EXIT_FAILURE);
-            }
-            for(int i = 0; i < WORD_SIZE; ++i) 
-                decrypt_message[size_Dec+i] = message[i];
-        }
-    }
+    pcg64u_random_t rng_unique;
+
+    pcg128_t s1_unique = *(pcg128_t *)s->seed1;
+
+    pcg64u_srandom_r(&rng_unique, s1_unique);
+
+    uint64_t anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    uint64_t hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+
+    unsigned char *word = calloc(1, WORD_SIZE);
+    int round = 0;
+
+    uint64_t previous_word;
+    uint64_t current_word;
+    uint64_t to_sub;
+    uint64_t *b;
+    unsigned char *pre_sub;
+
+    //First buffer
+    memcpy(enc_message, word, WORD_SIZE);
+    enc_message += WORD_SIZE;
+    to_sub = *(uint64_t *)word ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+    b = &to_sub;
+    pre_sub = (unsigned char*)b;
+    for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
+    dec_message[round] = anchor ^ to_sub ^ hamming_mask;
+    ++round;
     
+    // Every buffer after
+    for(int i = 0; i < word_count; i += WORD_SIZE){
+        memcpy(enc_message, word, WORD_SIZE);
+        enc_message += WORD_SIZE;
+        to_sub = *(uint64_t *)word ^ abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
+        b = &to_sub;
+        pre_sub = (unsigned char*)b;
+        for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
+        dec_message[round] = dec_message[round-1] ^ to_sub ^ hamming_mask;
+        ++round;
+    }
+
+    uint64_t *temp = &dec_message;
+    decrypt_message = (unsigned char *)temp;
+  
 }
 
 //-----------------------------------------------------------------------------
-void decrypt_file(const char* cipher_text, const char* key_file){
-    FILE *dcpt, *enc, *fkey;
+void decrypt_file(const char* cipher_text, const char* night_key_file, const char* rsa_key_file){
+    FILE *dcpt, *enc, *nkey;
     enc = fopen(cipher_text, "rb");
     dcpt = fopen(D_FILE, "w");
-    fkey = fopen(key_file, "rb");
+    nkey = fopen(night_key_file, "rb");
 
     if( !enc ) perror("Error reading encrypted file."),exit(EXIT_FAILURE);
     if( !dcpt ) perror("Error opening decrypted file."),exit(EXIT_FAILURE);
-    if( !fkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
+    if( !nkey ) perror("Error opening key file."),exit(EXIT_FAILURE);
 
     NIGHT nS, *n;
-    SUB sS, *s;
 
-    int nread = fread(&nS, sizeof(NIGHT), 1, fkey);
+    int nread = fread(&nS, sizeof(NIGHT), 1, nkey);
     n = &nS;
 
-    if( ferror(fkey) || nread != 1) 
+    if( ferror(nkey) || nread != 1) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
@@ -223,20 +194,27 @@ void decrypt_file(const char* cipher_text, const char* key_file){
     if(word_count == 0) word_count += 1;
 
     uint64_t *enc_message = malloc(sizeof(uint64_t)*word_count);
-    uint64_t *keys = malloc(sizeof(uint64_t)*word_count);
-    uint64_t *binary_mes = malloc(sizeof(uint64_t)*word_count);
 
     int nreadenc = fread(enc_message, sizeof(uint64_t), n->word_count, enc);
-    int nreadkeys = fread(keys, sizeof(uint64_t), n->word_count, fkey);
-    int nreadSUB = fread(&sS, sizeof(SUB), 1, fkey);
-    s = &sS;
     
-    if( ferror(dcpt) || ferror(enc) || nreadenc != word_count || nreadkeys != word_count || nreadSUB != 1) 
+    if( ferror(dcpt) || ferror(enc) || nreadenc != word_count ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
     int message_length = n->file_char_length;
     if(message_length < WORD_SIZE) message_length = n->file_char_length;
     printf("Message Length: %d\n", message_length);
+
+    SUB s;
+    printf("Gen key...\n");
+    generate_key(&s);
+    printf("Gen hash...\n");
+    generate_hash(&s, rsa_key_file);
+    printf("Gen seeds...\n");
+    generate_seeds(&s);
+    printf("Gen rands...\n");
+    generate_rands(&s);
+    printf("Shuffle...\n");
+    shuffle(&s);
 
     //++++++++++++++++++
     // Decrypt
@@ -245,7 +223,7 @@ void decrypt_file(const char* cipher_text, const char* key_file){
 
     double t1, t2;
     t1 = mysecond();
-    decrypt(n, s, decrypt_message, enc_message, keys, binary_mes);
+    decrypt(n, &s, decrypt_message, enc_message);
     t2 = mysecond();
     printf("Decrypt Time: %fs\n", t2 - t1);
 
@@ -253,10 +231,8 @@ void decrypt_file(const char* cipher_text, const char* key_file){
 
     free(decrypt_message);
     free(enc_message);
-    free(keys);
-    free(binary_mes);
 
     fclose(dcpt);
     fclose(enc);
-    fclose(fkey);
+    fclose(nkey);
 }

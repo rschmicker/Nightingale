@@ -76,7 +76,7 @@ void generate_seeds(SUB *s);
 //-----------------------------------------------------------------------------
 // Generate Hash from private key file from RSA
 //-----------------------------------------------------------------------------
-void generate_hash(SUB *s);
+void generate_hash(SUB *s, const char* key_file);
 
 //-----------------------------------------------------------------------------
 // Generate 2048 bit RSA key
