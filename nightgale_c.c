@@ -101,11 +101,14 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     // Encrypt here
     //+++++++++++++++++
 
-    double t1, t2;
+    double t1, elapsed;
     t1 = mysecond();
     encrypt(n, s, message, enc_message);
-    t2 = mysecond();
-    printf("Encrypt Time:\t%fs\n", t2 - t1);
+    elapsed = mysecond() - t1;
+    double rate = ((double)filesize / 1000000000. )/elapsed;
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("Encrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", elapsed*1000., rate);
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     fwrite(n, sizeof(NIGHT), 1, nkey);
     fwrite(enc_message, sizeof(uint64_t), n->word_count, enc);
@@ -231,11 +234,14 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
     //++++++++++++++++++
     unsigned char *decrypt_message = malloc(message_length);
 
-    double t1, t2;
+    double t1, elapsed;
     t1 = mysecond();
     decrypt(n, &s, decrypt_message, enc_message);
-    t2 = mysecond();
-    printf("Decrypt Time: %fs\n", t2 - t1);
+    elapsed = mysecond() - t1;
+    double rate = ((double)n->file_char_length/ 1000000000. )/elapsed;
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("Decrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", elapsed*1000., rate);
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     fwrite(decrypt_message, sizeof(char), n->file_char_length, dcpt);
 
