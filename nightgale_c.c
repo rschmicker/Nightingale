@@ -21,7 +21,10 @@ size_t get_file_length(FILE *fp) {
     n->anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
     n->hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
 
-    unsigned char *word = calloc(1, WORD_SIZE);
+    printf("Anchor:  %lu\n", n->anchor);
+    printf("hamming: %lu\n", n->hamming_mask);
+
+    unsigned char *word = malloc(WORD_SIZE);
     int round = 0;
 
     uint64_t previous_word;
@@ -134,7 +137,10 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
     uint64_t anchor = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
     uint64_t hamming_mask = abs(pcg_unique_128_xsh_rs_64_random_r(&rng_unique));
 
-    unsigned char *word = calloc(1, WORD_SIZE);
+    printf("Anchor:  %lu\n", anchor);
+    printf("hamming: %lu\n", hamming_mask);
+
+    unsigned char *word = malloc(WORD_SIZE);
     int round = 0;
 
     uint64_t previous_word;
@@ -205,8 +211,6 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
     printf("Message Length: %d\n", message_length);
 
     SUB s;
-    printf("Gen key...\n");
-    generate_key(&s);
     printf("Gen hash...\n");
     generate_hash(&s, rsa_key_file);
     printf("Gen seeds...\n");
