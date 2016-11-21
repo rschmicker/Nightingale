@@ -38,24 +38,29 @@ size_t get_file_length(FILE *fp) {
     message += WORD_SIZE;
     printf("word: %lu\n", *(uint64_t *)word);
     to_sub = n->anchor ^ *(uint64_t *)word ^ n->hamming_mask;
-    printf("Before Sub: %lu\n", to_sub);
     b = &to_sub;
     pre_sub = (unsigned char*)b;
     for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-    printf("Post Sub: %lu\n", to_sub);
     enc_message[round] = to_sub ^ abs(pcg64_random_r(&rng_unique));
-    printf("enc: %lu\n", enc_message[round]);
     ++round;
 
     // Every buffer after
     for(int i = 1; i < n->word_count; i+=WORD_SIZE){
         memcpy(word, message, WORD_SIZE);
         message += WORD_SIZE;
+        printf("word: %lu\n", *(uint64_t *)word);
         to_sub = enc_message[round-1] ^ *(uint64_t *)word ^ n->hamming_mask;
+        printf("enc-1: %lu\n", enc_message[round-1]);
+        printf("word: %lu\n", *(uint64_t *)word);
+        printf("ham: %lu\n", n->hamming_mask);
         b = &to_sub;
         pre_sub = (unsigned char*)b;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        enc_message[round] = to_sub ^ abs(pcg64_random_r(&rng_unique));
+        uint64_t test = abs(pcg64_random_r(&rng_unique));
+        enc_message[round] = to_sub ^ test;
+        printf("test: %lu\n", test);
+        printf("tosub: %lu\n", to_sub);
+        printf("encm: %lu\n", enc_message[round]);
         ++round;
     }
  }
@@ -155,16 +160,18 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
     uint64_t *b;
     unsigned char *pre_sub;
 
+    printf("1: %lu\n", enc_message[0]);
+    printf("2: %lu\n", enc_message[1]);
+
     //First buffer
     memcpy(word, enc_message, WORD_SIZE);
     enc_message += WORD_SIZE;
-    printf("encword: %lu\n", *(uint64_t *)word);
+    printf("1: %lu\n", *(uint64_t *)word);
+    previous_word = *(uint64_t *)word;
     to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
-    printf("Before Sub: %lu\n", to_sub);
     b = &to_sub;
     pre_sub = (unsigned char*)b;
     for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
-    printf("Post Sub: %lu\n", to_sub);
     dec_message[round] = anchor ^ to_sub ^ hamming_mask;
     printf("word: %lu\n", dec_message[round]);
     ++round;
@@ -173,17 +180,26 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
     for(int i = 1; i < word_count; i += WORD_SIZE){
         memcpy(word, enc_message, WORD_SIZE);
         enc_message += WORD_SIZE;
-        to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
+        printf("2: %lu\n", *(uint64_t *)word);
+        printf("encm: %lu\n", *(uint64_t *)word);
+        uint64_t test = abs(pcg64_random_r(&rng_unique));
+        printf("test: %lu\n", test);
+        to_sub = *(uint64_t *)word ^ test;
+        printf("tosub: %lu\n", to_sub);
         b = &to_sub;
         pre_sub = (unsigned char*)b;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
-        dec_message[round] = dec_message[round-1] ^ to_sub ^ hamming_mask;
+        dec_message[round] = previous_word ^ to_sub ^ hamming_mask;
+        printf("ham: %lu\n", hamming_mask);
+        printf("postsub: %lu\n", to_sub);
+        printf("prev: %lu\n", previous_word);
+        printf("word: %lu\n", dec_message[round]);
         ++round;
+        previous_word = *(uint64_t *)word;
     }
 
-    void *converter = &dec_message;
-    decrypt_message = converter;
-  
+    decrypt_message = (unsigned char*)&dec_message;
+
 }
 
 //-----------------------------------------------------------------------------
