@@ -124,11 +124,11 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 }
 
 
-void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_message){
-
-    uint64_t *dec_message = malloc(sizeof(uint64_t)*n->file_char_length);
+void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_message){    
 
     int word_count = n->file_char_length / WORD_SIZE;
+
+    uint64_t *dec_message = malloc(sizeof(uint64_t)*word_count);
 
     pcg64_random_t rng_unique;
 
