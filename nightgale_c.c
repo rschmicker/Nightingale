@@ -81,15 +81,9 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
     
 
-    int to_pad = WORD_SIZE - (filesize % WORD_SIZE);
     n->word_count = filesize / WORD_SIZE;
     n->file_char_length = filesize;
 
-    n->pad = 0;
-    if(to_pad != WORD_SIZE){
-        n->word_count += 1;
-        n->pad = to_pad;
-    }  
 
     uint64_t *enc_message = malloc(sizeof(uint64_t)*filesize);
 
@@ -120,7 +114,6 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     fclose(f_to_enc);
     fclose(enc);
     fclose(nkey);
-    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 }
 
 
@@ -174,7 +167,6 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
         ++round;
         previous_word = *(uint64_t *)word;
     }
-
     decrypt_message = (unsigned char*)&dec_message;
 }
 
@@ -209,7 +201,6 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
     int message_length = n->file_char_length;
-    if(message_length < WORD_SIZE) message_length = n->file_char_length;
     printf("Message Length: %d\n", message_length);
 
     SUB s;
@@ -236,7 +227,7 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
     printf("Decrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
-    fwrite(decrypt_message, sizeof(char), n->file_char_length, dcpt);
+    fwrite(decrypt_message, sizeof(unsigned char), n->file_char_length, dcpt);
 
     free(decrypt_message);
     free(enc_message);
