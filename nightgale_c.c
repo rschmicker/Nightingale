@@ -80,7 +80,6 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
     
-
     n->word_count = filesize / WORD_SIZE;
     n->file_char_length = filesize;
 
