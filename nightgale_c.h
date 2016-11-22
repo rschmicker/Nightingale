@@ -43,4 +43,4 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
 //-----------------------------------------------------------------------------
 // Decrypt
 //-----------------------------------------------------------------------------
-void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_message);
+unsigned char *decrypt(NIGHT *n, SUB *s, uint64_t *enc_message);

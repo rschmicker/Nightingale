@@ -116,7 +116,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 }
 
 
-void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_message){    
+unsigned char *decrypt(NIGHT *n, SUB *s, uint64_t *enc_message){    
 
     int word_count = n->file_char_length / WORD_SIZE;
 
@@ -128,45 +128,30 @@ void decrypt(NIGHT *n, SUB *s, unsigned char *decrypt_message, uint64_t *enc_mes
 
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
 
-    uint64_t anchor = abs(pcg64_random_r(&rng_unique));
+    // Anchor needs to call the random number generator first
+    uint64_t anchor = abs(pcg64_random_r(&rng_unique)), root;
     uint64_t hamming_mask = abs(pcg64_random_r(&rng_unique));
 
     unsigned char *word = malloc(WORD_SIZE);
-    int round = 0;
+    uint64_t decimalWord, tempWord;
 
-    uint64_t previous_word;
-    uint64_t current_word;
-    uint64_t to_sub;
-    uint64_t *b;
+    uint64_t previous_word, current_word, to_sub;
     unsigned char *pre_sub;
 
     //First buffer
-    memcpy(word, enc_message, WORD_SIZE);
-    ++enc_message;
-    previous_word = *(uint64_t *)word;
-    to_sub = *(uint64_t *)word ^ abs(pcg64_random_r(&rng_unique));
-    b = &to_sub;
-    pre_sub = (unsigned char*)b;
-    for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
-    dec_message[round] = anchor ^ to_sub ^ hamming_mask;
-    printf("word: %lu\n", dec_message[round]);
-    ++round;
-    
+    int round = 0;
+
     // Every buffer after
-    for(int i = 1; i < word_count; i += WORD_SIZE){
-        memcpy(word, enc_message, WORD_SIZE);
-        ++enc_message;
-        uint64_t test = abs(pcg64_random_r(&rng_unique));
-        to_sub = *(uint64_t *)word ^ test;
-        b = &to_sub;
-        pre_sub = (unsigned char*)b;
+    root = anchor;
+    for(int i = 0; i < word_count; i++) {
+        decimalWord = enc_message[i] ^ abs(pcg64_random_r(&rng_unique));
+        pre_sub = (unsigned char *)&decimalWord;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
-        dec_message[round] = previous_word ^ to_sub ^ hamming_mask;
-        printf("word: %lu\n", dec_message[round]);
-        ++round;
-        previous_word = *(uint64_t *)word;
+        dec_message[i] = root ^ decimalWord ^ hamming_mask;
+        root = enc_message[i];
+        printf("word: %lu\n", dec_message[i]);
     }
-    decrypt_message = (unsigned char*)&dec_message;
+    return (unsigned char *)dec_message;
 }
 
 //-----------------------------------------------------------------------------
@@ -215,11 +200,10 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
     //++++++++++++++++++
     // Decrypt
     //++++++++++++++++++
-    unsigned char *decrypt_message = malloc(message_length);
 
     double t1;
     t1 = mysecond();
-    decrypt(n, &s, decrypt_message, enc_message);
+    unsigned char *decrypt_message = decrypt(n, &s, enc_message);
     t1 = mysecond() - t1;
     double rate = (((double)message_length)/1000000000.)/t1;
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
