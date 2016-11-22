@@ -13,11 +13,9 @@
 #define WORD_SIZE 8
 
 typedef struct{
-    uint64_t 	anchor;
     int			file_char_length;
     int			pad;
     int			word_count;
-    uint64_t	hamming_mask;
 }NIGHT;
 
 //-----------------------------------------------------------------------------
@@ -33,7 +31,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file);
 //-----------------------------------------------------------------------------
 // Encrypt
 //-----------------------------------------------------------------------------
-void encrypt(NIGHT *n, SUB *s, unsigned char *message, uint64_t *enc_message);
+unsigned char *encrypt(NIGHT *n, SUB *s, unsigned char *message);
 
 //-----------------------------------------------------------------------------
 // Decrypt the file using the pacc lookup table

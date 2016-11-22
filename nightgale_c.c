@@ -10,50 +10,33 @@ size_t get_file_length(FILE *fp) {
     return filesize;
  }
 
- void encrypt(NIGHT *n, SUB *s, unsigned char* message, uint64_t *enc_message){
+unsigned char *encrypt(NIGHT *n, SUB *s, unsigned char* message){
 
+    uint64_t *enc_message = malloc(sizeof(uint64_t)*n->word_count);
+    uint64_t *plain_text = (uint64_t *)message;
+
+    // PNRG initialization
     pcg64_random_t rng_unique;
-
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
-
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
 
-    n->anchor = pcg64_random_r(&rng_unique);
-    n->hamming_mask = pcg64_random_r(&rng_unique);
+    // Anchor must call the PNRG first
+    uint64_t anchor = pcg64_random_r(&rng_unique), root;
+    uint64_t hamming_mask = pcg64_random_r(&rng_unique);
 
-    unsigned char *word = malloc(WORD_SIZE);
+    unsigned char *word = malloc(WORD_SIZE), *pre_sub;
+    uint64_t decimalWord, tempWord, previous_word, current_word, to_sub;
+
     int round = 0;
-
-    uint64_t previous_word;
-    uint64_t current_word;
-    uint64_t to_sub;
-    uint64_t *b;
-    unsigned char *pre_sub;
-
-    // First buffer
-    memcpy(word, message, WORD_SIZE);
-    message += WORD_SIZE;
-    // printf("word: %lu\n", *(uint64_t *)word);
-    to_sub = n->anchor ^ *(uint64_t *)word ^ n->hamming_mask;
-    b = &to_sub;
-    pre_sub = (unsigned char*)b;
-    for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-    enc_message[round] = to_sub ^ pcg64_random_r(&rng_unique);
-    ++round;
-
-    // Every buffer after
-    for(int i = 1; i < n->word_count; i+=WORD_SIZE){
-        memcpy(word, message, WORD_SIZE);
-        message += WORD_SIZE;
-        // printf("word: %lu\n", *(uint64_t *)word);
-        to_sub = enc_message[round-1] ^ *(uint64_t *)word ^ n->hamming_mask;
-        b = &to_sub;
-        pre_sub = (unsigned char*)b;
+    root = anchor;
+    for(int i = 0; i < n->word_count; ++i){
+        decimalWord = root ^ plain_text[i] ^ hamming_mask;
+        pre_sub = (unsigned char *)&decimalWord;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        uint64_t test = pcg64_random_r(&rng_unique);
-        enc_message[round] = to_sub ^ test;
-        ++round;
+        enc_message[i] = decimalWord ^ pcg64_random_r(&rng_unique);
+        root = enc_message[i];
     }
+    return (unsigned char *)enc_message;
  }
 
 //-----------------------------------------------------------------------------
@@ -74,17 +57,15 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     // Length of text to encrypt
     size_t filesize = get_file_length(f_to_enc);
     printf("File length is: %d\n", (int)filesize);
+    n->word_count = filesize / WORD_SIZE;
+    n->file_char_length = filesize;
 
     // Read the whole file into the message buffer
     char *message = malloc(filesize);
     size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
     
-    n->word_count = filesize / WORD_SIZE;
-    n->file_char_length = filesize;
-
-
-    uint64_t *enc_message = malloc(sizeof(uint64_t)*filesize);
+    
 
     //+++++++++++++++++
     // Encrypt here
@@ -92,7 +73,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     double t1, elapsed;
     t1 = mysecond();
-    encrypt(n, s, message, enc_message);
+    unsigned char *enc_message = encrypt(n, s, message);
     t1 = mysecond() - t1;
     double rate = (((double)filesize)/1000000000.)/t1;
 
@@ -122,34 +103,26 @@ unsigned char *decrypt(NIGHT *n, SUB *s, uint64_t *enc_message){
 
     uint64_t *dec_message = malloc(sizeof(uint64_t)*word_count);
 
+    // PRNG initilization
     pcg64_random_t rng_unique;
-
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
-
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
 
     // Anchor needs to call the random number generator first
     uint64_t anchor = pcg64_random_r(&rng_unique), root;
     uint64_t hamming_mask = pcg64_random_r(&rng_unique);
 
-    unsigned char *word = malloc(WORD_SIZE);
-    uint64_t decimalWord, tempWord;
+    unsigned char *word = malloc(WORD_SIZE), *pre_sub;
+    uint64_t decimalWord, tempWord, previous_word, current_word, to_sub;
 
-    uint64_t previous_word, current_word, to_sub;
-    unsigned char *pre_sub;
-
-    //First buffer
     int round = 0;
-
-    // Every buffer after
     root = anchor;
-    for(int i = 0; i < word_count; i++) {
+    for(int i = 0; i < word_count; ++i) {
         decimalWord = enc_message[i] ^ pcg64_random_r(&rng_unique);
         pre_sub = (unsigned char *)&decimalWord;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
         dec_message[i] = root ^ decimalWord ^ hamming_mask;
         root = enc_message[i];
-        // printf("word: %lu\n", dec_message[i]);
     }
     return (unsigned char *)dec_message;
 }
@@ -179,7 +152,7 @@ void decrypt_file(const char* cipher_text, const char* night_key_file, const cha
 
     uint64_t *enc_message = malloc(sizeof(uint64_t)*word_count);
 
-    int nreadenc = fread(enc_message, sizeof(uint64_t), n->word_count, enc);
+    int nreadenc = fread(enc_message, sizeof(uint64_t), word_count, enc);
     
     if( ferror(dcpt) || ferror(enc) || nreadenc != word_count ) 
                         perror("Error reading encrypt/decrypt/key file."),
