@@ -12,11 +12,6 @@
 #include "pcg_variants.h"
 
 #define SEED_SIZE 16
-#define TRANSPOSE_SIZE 32
-#define SUB_SIZE 256
-#define RAND_SIZE 64
-#define SEED_SIZE_MULTIPLYER 8
-#define PNRG_SIZE 1024
 #define SUB_SIZE 256
 #define RSA_KEY "private.pem"
 

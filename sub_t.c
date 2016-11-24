@@ -1,12 +1,21 @@
 #include "sub_t.h"
 
 //-----------------------------------------------------------------------------
+// Free resources for RSA key creation
+//-----------------------------------------------------------------------------
+void free_r(BIO *bp_private, RSA *r, BIGNUM *bne){
+    BIO_free_all(bp_private);
+    RSA_free(r);
+    BN_free(bne);
+}
+
+//-----------------------------------------------------------------------------
 // Compare function for qsort
 //-----------------------------------------------------------------------------
-int cmp(const void * elem1, const void * elem2){
-    indexes * i1, *i2;
-    i1 = (indexes*)elem1;
-    i2 = (indexes*)elem2;
+int cmp(const void *elem1, const void *elem2){
+    indexes *i1, *i2;
+    i1 = (indexes *)elem1;
+    i2 = (indexes *)elem2;
     return i1->value - i2->value;
 }
 
@@ -14,7 +23,6 @@ int cmp(const void * elem1, const void * elem2){
 // Shuffle the 1 - 256 values using a Knuth shuffle
 //-----------------------------------------------------------------------------
 void shuffle(SUB *s){
-
     indexes knuth_sort[SUB_SIZE];
 
     for(int i = 0; i < SUB_SIZE; i++){
@@ -26,7 +34,7 @@ void shuffle(SUB *s){
 
     for(int i = 0; i < SUB_SIZE; i++){
         s->sub[i] = (unsigned char)knuth_sort[i].index;
-        s->reverse_sub[(uint8_t)knuth_sort[i].index] = i;
+        s->reverse_sub[(unsigned char)knuth_sort[i].index] = i;
     }
 }
 
@@ -34,11 +42,8 @@ void shuffle(SUB *s){
 // Create random ints for shared block key
 //-----------------------------------------------------------------------------
 void generate_rands(SUB *s){
-
     pcg64_random_t rng1, rng2, rng3, rng4;
-
     pcg128_t round = 5;
-
     pcg128_t s1, s2, s3, s4;
 
     s1 = *(pcg128_t *)s->seed1;
@@ -69,7 +74,6 @@ void generate_rands(SUB *s){
 // Set up all four seeds from 512 bit hash
 //-----------------------------------------------------------------------------
 void generate_seeds(SUB *s){
-
     memcpy(s->seed1, s->hash, SEED_SIZE);
     memcpy(s->seed2, s->hash + SEED_SIZE, SEED_SIZE);
     memcpy(s->seed3, s->hash + SEED_SIZE*2, SEED_SIZE);
@@ -127,7 +131,5 @@ void generate_key(SUB *s){
     bp_private = BIO_new_file(RSA_KEY, "w+");
     ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
 
-    BIO_free_all(bp_private);
-    RSA_free(r);
-    BN_free(bne);
+    free_r(bp_private, r, bne);
 }

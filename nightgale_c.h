@@ -12,7 +12,7 @@
 #define WORD_SIZE 8
 
 typedef struct{
-    int			file_char_length;
+    int			file_length;
     int			pad;
     int			word_count;
 }NIGHT;
@@ -41,4 +41,5 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
 //-----------------------------------------------------------------------------
 // Decrypt
 //-----------------------------------------------------------------------------
-unsigned char *decrypt(NIGHT *n, SUB *s, const unsigned char *e);
+unsigned char *decrypt(NIGHT *n, SUB *s, 
+						const unsigned char *encrypted_message);

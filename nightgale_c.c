@@ -26,16 +26,16 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
     uint64_t hamming_mask = pcg64_random_r(&rng_unique);
 
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
-    uint64_t decimalWord;
+    uint64_t decimal_word;
 
     // Encrypt buffers
     int round = 0;
     root = anchor;
     for(int i = 0; i < n->word_count; ++i){
-        decimalWord = root ^ plain_text[i] ^ hamming_mask;
-        pre_sub = (unsigned char *)&decimalWord;
+        decimal_word = root ^ plain_text[i] ^ hamming_mask;
+        pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        enc_message[i] = decimalWord ^ pcg64_random_r(&rng_unique);
+        enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique);
         root = enc_message[i];
     }
 
@@ -60,7 +60,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     size_t filesize = get_file_length(f_to_enc);
     printf("File length is: %d\n", (int)filesize);
     n->word_count = filesize / WORD_SIZE;
-    n->file_char_length = filesize;
+    n->file_length = filesize;
 
     // Read the whole file into the message buffer
     char *message = malloc(filesize);
@@ -93,11 +93,12 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 }
 
 //-----------------------------------------------------------------------------
-unsigned char *decrypt(NIGHT *n, SUB *s, const unsigned char *e){ 
+unsigned char *decrypt(NIGHT *n, SUB *s, 
+                        const unsigned char *encrypted_message){ 
 
-    uint64_t *enc_message = (uint64_t *)e;   
+    uint64_t *enc_message = (uint64_t *)encrypted_message;   
 
-    int word_count = n->file_char_length / WORD_SIZE;
+    int word_count = n->file_length / WORD_SIZE;
     uint64_t *dec_message = malloc(sizeof(uint64_t)*word_count);
 
     // PRNG initilization
@@ -110,18 +111,21 @@ unsigned char *decrypt(NIGHT *n, SUB *s, const unsigned char *e){
     uint64_t hamming_mask = pcg64_random_r(&rng_unique);
 
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
-    uint64_t decimalWord;
+    uint64_t decimal_word;
 
     // Decrypt here
     int round = 0;
     root = anchor;
     for(int i = 0; i < word_count; ++i) {
-        decimalWord = enc_message[i] ^ pcg64_random_r(&rng_unique);
-        pre_sub = (unsigned char *)&decimalWord;
+        decimal_word = enc_message[i] ^ pcg64_random_r(&rng_unique);
+        pre_sub = (unsigned char *)&decimal_word;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
-        dec_message[i] = root ^ decimalWord ^ hamming_mask;
+        dec_message[i] = root ^ decimal_word ^ hamming_mask;
         root = enc_message[i];
     }
+
+    // Eliminate extra padding here
+
     return (unsigned char *)dec_message;
 }
 
@@ -151,15 +155,13 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
     if(word_count == 0) word_count += 1;
 
     // Read the encrypted text from file
-    //uint64_t *enc_message = malloc(sizeof(uint64_t)*word_count);
-    //int nreadenc = fread(enc_message, sizeof(uint64_t), word_count, enc);
-    unsigned char *e = malloc(n->file_char_length);
-    int nreadenc = fread(e, sizeof(char), n->file_char_length, enc);
-    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_char_length ) 
+    unsigned char *encrypted_message = malloc(n->file_length);
+    int nreadenc = fread(encrypted_message, sizeof(char), n->file_length, enc);
+    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
-    printf("File length is: %d\n", n->file_char_length);
+    printf("File length is: %d\n", n->file_length);
 
     // Generate substitution table from RSA key
     SUB s;
@@ -175,20 +177,20 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
     // Decrypt here
     double t1;
     t1 = mysecond();
-    unsigned char *decrypt_message = decrypt(n, &s, e);
+    unsigned char *decrypt_message = decrypt(n, &s, encrypted_message);
     t1 = mysecond() - t1;
-    double rate = (((double)n->file_char_length)/1000000000.)/t1;
+    double rate = (((double)n->file_length)/1000000000.)/t1;
 
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Decrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     // Write decrypted text to file
-    fwrite(decrypt_message, sizeof(unsigned char), n->file_char_length, dcpt);
+    fwrite(decrypt_message, sizeof(unsigned char), n->file_length, dcpt);
 
     // Clean up
     free(decrypt_message);
-    free(e);
+    free(encrypted_message);
     fclose(dcpt);
     fclose(enc);
     fclose(nkey);
