@@ -32,7 +32,6 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
     int round = 0;
     root = anchor;
     for(int i = 0; i < n->word_count; ++i){
-        printf("word: %lu\n", plain_text[i]);
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
@@ -121,12 +120,8 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
         pre_sub = (unsigned char *)&decimal_word;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
         dec_message[i] = root ^ decimal_word ^ hamming_mask;
-        printf("word: %lu\n", dec_message[i]);
         root = enc_message[i];
     }
-
-    // Eliminate extra padding here
-
     return (unsigned char *)dec_message;
 }
 
