@@ -32,15 +32,13 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
     int round = 0;
     root = anchor;
     for(int i = 0; i < n->word_count; ++i){
+        printf("word: %lu\n", plain_text[i]);
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
         enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique);
         root = enc_message[i];
     }
-
-    // Pad if necessary
-
     return (unsigned char *)enc_message;
  }
 
@@ -60,11 +58,14 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     size_t filesize = get_file_length(f_to_enc);
     printf("File length is: %d\n", (int)filesize);
     n->word_count = filesize / WORD_SIZE;
+    if(filesize % WORD_SIZE != 0) ++n->word_count;
     n->file_length = filesize;
 
-    // Read the whole file into the message buffer
-    char *message = malloc(filesize);
-    size_t nread = fread(message, sizeof(char), filesize, f_to_enc);
+    // Read the whole file into the message buffer including any padding
+    n->pad = WORD_SIZE - filesize % WORD_SIZE;
+    unsigned char *message = malloc(filesize + n->pad);
+    memset(message, '0', filesize + n->pad);
+    size_t nread = fread(message, sizeof(unsigned char), filesize, f_to_enc);
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
 
     // Encrypt here
@@ -80,7 +81,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 
     // Write encrypted message to file
     fwrite(n, sizeof(NIGHT), 1, nkey);
-    fwrite(enc_message, sizeof(uint64_t), n->word_count, enc);
+    fwrite(enc_message, sizeof(unsigned char), n->file_length + n->pad, enc);
     if( ferror(enc) ) perror("Error writing to encrypted file."),
                         exit(EXIT_FAILURE);
 
@@ -98,8 +99,7 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
 
     uint64_t *enc_message = (uint64_t *)encrypted_message;   
 
-    int word_count = n->file_length / WORD_SIZE;
-    uint64_t *dec_message = malloc(sizeof(uint64_t)*word_count);
+    uint64_t *dec_message = malloc(sizeof(uint64_t)*n->word_count);
 
     // PRNG initilization
     pcg64_random_t rng_unique;
@@ -116,11 +116,12 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
     // Decrypt here
     int round = 0;
     root = anchor;
-    for(int i = 0; i < word_count; ++i) {
+    for(int i = 0; i < n->word_count; ++i) {
         decimal_word = enc_message[i] ^ pcg64_random_r(&rng_unique);
         pre_sub = (unsigned char *)&decimal_word;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
         dec_message[i] = root ^ decimal_word ^ hamming_mask;
+        printf("word: %lu\n", dec_message[i]);
         root = enc_message[i];
     }
 
@@ -150,14 +151,11 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
-    // Calculate the number of words
-    int word_count = n->word_count;
-    if(word_count == 0) word_count += 1;
-
     // Read the encrypted text from file
-    unsigned char *encrypted_message = malloc(n->file_length);
-    int nreadenc = fread(encrypted_message, sizeof(char), n->file_length, enc);
-    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length ) 
+    unsigned char *encrypted_message = malloc(n->file_length + n->pad);
+    memset(encrypted_message, '0', n->file_length + n->pad);
+    int nreadenc = fread(encrypted_message, sizeof(unsigned char), n->file_length + n->pad, enc);
+    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length + n->pad) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
