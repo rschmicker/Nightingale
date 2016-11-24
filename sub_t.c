@@ -1,15 +1,6 @@
 #include "sub_t.h"
 
 //-----------------------------------------------------------------------------
-// Free resources for RSA key creation
-//-----------------------------------------------------------------------------
-void free_r(BIO *bp_private, RSA *r, BIGNUM *bne){
-    BIO_free_all(bp_private);
-    RSA_free(r);
-    BN_free(bne);
-}
-
-//-----------------------------------------------------------------------------
 // Compare function for qsort
 //-----------------------------------------------------------------------------
 int cmp(const void * elem1, const void * elem2){
@@ -61,16 +52,16 @@ void generate_rands(SUB *s){
     pcg64_srandom_r(&rng4, s4, round);
 
     for(int i = 0; i < 64; ++i){
-        s->sub_rands[i] = abs(pcg64_random_r(&rng1));
+        s->sub_rands[i] = pcg64_random_r(&rng1);
     }
     for(int i = 64; i < 128; ++i){
-        s->sub_rands[i] = abs(pcg64_random_r(&rng2));
+        s->sub_rands[i] = pcg64_random_r(&rng2);
     }
     for(int i = 128; i < 192; ++i){
-        s->sub_rands[i] = abs(pcg64_random_r(&rng3));
+        s->sub_rands[i] = pcg64_random_r(&rng3);
     }
     for(int i = 192; i < 256; ++i){
-        s->sub_rands[i] = abs(pcg64_random_r(&rng4));
+        s->sub_rands[i] = pcg64_random_r(&rng4);
     }
 }
 
@@ -136,5 +127,7 @@ void generate_key(SUB *s){
     bp_private = BIO_new_file(RSA_KEY, "w+");
     ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
 
-    free_r(bp_private, r, bne);
+    BIO_free_all(bp_private);
+    RSA_free(r);
+    BN_free(bne);
 }

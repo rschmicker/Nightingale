@@ -38,6 +38,9 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
         enc_message[i] = decimalWord ^ pcg64_random_r(&rng_unique);
         root = enc_message[i];
     }
+
+    // Pad if necessary
+
     return (unsigned char *)enc_message;
  }
 
@@ -90,7 +93,9 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
 }
 
 //-----------------------------------------------------------------------------
-unsigned char *decrypt(NIGHT *n, SUB *s, const uint64_t *enc_message){    
+unsigned char *decrypt(NIGHT *n, SUB *s, const unsigned char *e){ 
+
+    uint64_t *enc_message = (uint64_t *)e;   
 
     int word_count = n->file_char_length / WORD_SIZE;
     uint64_t *dec_message = malloc(sizeof(uint64_t)*word_count);
@@ -146,9 +151,11 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
     if(word_count == 0) word_count += 1;
 
     // Read the encrypted text from file
-    uint64_t *enc_message = malloc(sizeof(uint64_t)*word_count);
-    int nreadenc = fread(enc_message, sizeof(uint64_t), word_count, enc);
-    if( ferror(dcpt) || ferror(enc) || nreadenc != word_count ) 
+    //uint64_t *enc_message = malloc(sizeof(uint64_t)*word_count);
+    //int nreadenc = fread(enc_message, sizeof(uint64_t), word_count, enc);
+    unsigned char *e = malloc(n->file_char_length);
+    int nreadenc = fread(e, sizeof(char), n->file_char_length, enc);
+    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_char_length ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
@@ -168,7 +175,7 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
     // Decrypt here
     double t1;
     t1 = mysecond();
-    unsigned char *decrypt_message = decrypt(n, &s, enc_message);
+    unsigned char *decrypt_message = decrypt(n, &s, e);
     t1 = mysecond() - t1;
     double rate = (((double)n->file_char_length)/1000000000.)/t1;
 
@@ -181,7 +188,7 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
 
     // Clean up
     free(decrypt_message);
-    free(enc_message);
+    free(e);
     fclose(dcpt);
     fclose(enc);
     fclose(nkey);
