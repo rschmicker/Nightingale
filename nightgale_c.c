@@ -35,7 +35,8 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique);
+        uint64_t key = pcg64_random_r(&rng_unique);
+        enc_message[i] = decimal_word ^ key;
         root = enc_message[i];
     }
     return (unsigned char *)enc_message;
