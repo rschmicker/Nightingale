@@ -14,7 +14,7 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_unique), root;
     uint64_t hamming_mask = pcg64_random_r(&rng_unique);
-
+    
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
     uint64_t decimal_word;
 
