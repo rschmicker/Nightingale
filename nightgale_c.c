@@ -47,7 +47,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     size_t filesize = get_file_length(f_to_enc);
     printf("File length is: %d\n", (int)filesize);
     n->word_count = filesize / WORD_SIZE;
-    //if(filesize % WORD_SIZE != 0) ++n->word_count;
+    if(filesize % WORD_SIZE != 0) ++n->word_count;
     n->file_length = filesize;
 
     // Read the whole file into the message buffer including any padding
