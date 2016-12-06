@@ -14,8 +14,8 @@ int main(int argc, char *argv[]){
     }
 
     SUB s;
-    printf("Gen key...\n");
-    generate_key(&s);
+    //printf("Gen key...\n");
+    //generate_key(&s);
     printf("Gen hash...\n");
     generate_hash(&s, RSA_KEY);
     printf("Gen seeds...\n");

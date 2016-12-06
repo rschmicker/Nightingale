@@ -1,6 +1,16 @@
 #include "sub_t.h"
 
 //-----------------------------------------------------------------------------
+size_t get_file_length(FILE *fp) {
+    fseek(fp, 0L, SEEK_CUR);
+    long unsigned int mypos = ftell(fp);
+    fseek(fp, 0L, SEEK_END);
+    long unsigned int filesize = ftell(fp);
+    fseek(fp, mypos, SEEK_SET);
+    return filesize;
+ }
+
+//-----------------------------------------------------------------------------
 // Free resources for RSA key creation
 //-----------------------------------------------------------------------------
 void free_r(BIO *bp_private, RSA *r, BIGNUM *bne){
@@ -87,17 +97,14 @@ void generate_hash(SUB *s, const char* key_file){
     FILE *fp = fopen(key_file, "rb");
     if( !fp ) perror("Error reading private key from RSA."),exit(EXIT_FAILURE);
 
-    fseek(fp, 0, SEEK_END);
-    size_t size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    size_t filesize = get_file_length(fp);
+    unsigned char *buffer = malloc(filesize);
+    size_t nread = fread(buffer, sizeof(unsigned char), filesize, fp);
 
-    char *buffer = malloc(size);
-
-    int nread = fread(buffer, 1, size, fp);
-    if( ferror(fp) || nread != size) perror("Error reading private key from RSA."),
+    if( ferror(fp) || nread != filesize) perror("Error reading private key from RSA."),
                         exit(EXIT_FAILURE);
 
-    SHA512(buffer, size, s->hash);
+    SHA512(buffer, filesize, s->hash);
 
     free(buffer);
     fclose(fp);
