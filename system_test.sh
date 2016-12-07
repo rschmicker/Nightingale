@@ -41,12 +41,12 @@ touch empty.txt 2>/dev/null 1>&2
 # Create a file where the length % 8 (word size) != 0
 # and the length > 8
 echo "Creating over file..."
-echo "Hello World!" > over.txt 2>/dev/null 1>&2
+echo "Hello World!" > over.txt 
 
 # Create a file where the length % 8 (word size) != 0
 # and the length < 8
 echo "Creating under file..."
-echo "Hello!" > under.txt 2>/dev/null 1>&2
+echo "Hello!" > under.txt 
 
 # Test each file and perform a binary diff to
 # ensure the plain text and decrypted files match
