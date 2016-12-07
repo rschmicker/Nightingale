@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Give this some color!
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+GREEN='\033[0;32m'
+
 # Remove the previous performance data to avoid confusion
 rm perf.txt 2>/dev/null 1>&2
 
@@ -50,9 +55,9 @@ echo "=========================================================" >> perf.txt
 echo "Testing 1GB random file..." >> perf.txt
 ./main randomfile1GB >> perf.txt
 if ! diff -q randomfile1GB decrypted_file.txt > /dev/null  2>&1; then
-  echo "	1GB random file failed!"
+  echo "	${RED}1GB random file failed!${NC}"
 else
-  echo "	1GB random file passed!"
+  echo "	${GREEN}1GB random file passed!${NC}"
 fi
 echo "=========================================================" >> perf.txt
 
@@ -61,9 +66,9 @@ echo "=========================================================" >> perf.txt
 echo "Testing zero file..." >> perf.txt
 ./main zerofile1GB >> perf.txt
 if ! diff -q zerofile1GB decrypted_file.txt > /dev/null  2>&1; then
-  echo "	1GB zero file failed!"
+  echo "	${RED}1GB zero file failed!${NC}"
 else
-  echo "	1GB zero file passed!"
+  echo "	${GREEN}1GB zero file passed!${NC}"
 fi
 echo "=========================================================" >> perf.txt
 
@@ -72,9 +77,9 @@ echo "=========================================================" >> perf.txt
 echo "Testing empty file..." >> perf.txt
 ./main empty.txt >> perf.txt
 if ! diff -q empty.txt decrypted_file.txt > /dev/null  2>&1; then
-  echo "	empty file failed!"
+  echo "	${RED}empty file failed!${NC}"
 else
-  echo "	empty file passed!"
+  echo "	${GREEN}empty file passed!${NC}"
 fi
 echo "=========================================================" >> perf.txt
 
@@ -83,9 +88,9 @@ echo "=========================================================" >> perf.txt
 echo "Testing over file..." >> perf.txt
 ./main over.txt >> perf.txt
 if ! diff -q over.txt decrypted_file.txt > /dev/null  2>&1; then
-  echo "	over file failed!"
+  echo "	${RED}over file failed!${NC}"
 else
-  echo "	over file passed!"
+  echo "	${GREEN}over file passed!${NC}"
 fi
 echo "=========================================================" >> perf.txt
 
@@ -94,9 +99,9 @@ echo "=========================================================" >> perf.txt
 echo "Testing under file..." >> perf.txt
 ./main under.txt >> perf.txt
 if ! diff -q under.txt decrypted_file.txt > /dev/null  2>&1; then
-  echo "	under file failed!"
+  echo "	${RED}under file failed!${NC}"
 else
-  echo "	under file passed!"
+  echo "	${GREEN}under file passed!${NC}"
 fi
 echo "=========================================================" >> perf.txt
 
