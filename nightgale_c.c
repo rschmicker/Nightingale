@@ -54,8 +54,8 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file){
     n->pad = WORD_SIZE - filesize % WORD_SIZE;
     if(n->pad == 8) n->pad = 0;
     printf("pad: %d\n", n->pad);
-    unsigned char *message = malloc(filesize + n->pad);
-    memset(message, '0', filesize + n->pad);
+    unsigned char *message = calloc(sizeof(unsigned char), filesize + n->pad);
+
     size_t nread = fread(message, sizeof(unsigned char), filesize, f_to_enc);
     if (nread != filesize) perror("Error: reading input file...\n"), exit(1);
 
@@ -141,8 +141,9 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
                         exit(EXIT_FAILURE);
 
     // Read the encrypted text from file
-    unsigned char *encrypted_message = malloc(n->file_length + n->pad);
-    memset(encrypted_message, '0', n->file_length + n->pad);
+    unsigned char *encrypted_message = calloc(sizeof(unsigned char), 
+                                                n->file_length + n->pad);
+
     int nreadenc = fread(encrypted_message, sizeof(unsigned char), n->file_length + n->pad, enc);
     if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length + n->pad) 
                         perror("Error reading encrypt/decrypt/key file."),
