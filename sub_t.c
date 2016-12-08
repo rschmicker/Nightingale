@@ -105,6 +105,7 @@ void generate_hash(SUB *s, const char* key_file){
                         exit(EXIT_FAILURE);
 
     SHA512(buffer, filesize, s->hash);
+    SHA256(s->hash, SHA512_DIGEST_LENGTH, s->digest);
 
     free(buffer);
     fclose(fp);

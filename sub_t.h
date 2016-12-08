@@ -19,6 +19,7 @@ typedef struct{
     char*           filename;
     char*           outputname;
     unsigned char   hash[SHA512_DIGEST_LENGTH];
+    unsigned char   digest[SHA256_DIGEST_LENGTH];
     unsigned char   seed1[SEED_SIZE];
     unsigned char   seed2[SEED_SIZE];
     unsigned char   seed3[SEED_SIZE];

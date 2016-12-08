@@ -7,13 +7,18 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
     uint64_t *plain_text = (uint64_t *)message;
 
     // PNRG initialization
-    pcg64_random_t rng_unique;
+    pcg64_random_t rng_unique, rng_anch, rng_ham;
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
+    pcg128_t anchor_seed = *(pcg128_t *)&s->digest[0];
+    pcg128_t ham_seed = *(pcg128_t *)&s->digest[SHA256_DIGEST_LENGTH/2];
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
+    pcg64_srandom_r(&rng_anch, anchor_seed, 6);
+    pcg64_srandom_r(&rng_ham, ham_seed, 7);
 
     // Anchor must call the PNRG first
-    uint64_t anchor = pcg64_random_r(&rng_unique), root;
-    uint64_t hamming_mask = pcg64_random_r(&rng_unique);
+    uint64_t anchor = pcg64_random_r(&rng_anch), root;
+    printf("test: %lu\n", anchor);
+    uint64_t hamming_mask = pcg64_random_r(&rng_ham);
     
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
     uint64_t decimal_word;
@@ -92,14 +97,19 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
 
     uint64_t *dec_message = malloc(sizeof(uint64_t)*n->word_count);
 
-    // PRNG initilization
-    pcg64_random_t rng_unique;
+    // PNRG initialization
+    pcg64_random_t rng_unique, rng_anch, rng_ham;
     pcg128_t s1_unique = *(pcg128_t *)s->seed1;
+    pcg128_t anchor_seed = *(pcg128_t *)&s->digest[0];
+    pcg128_t ham_seed = *(pcg128_t *)&s->digest[SHA256_DIGEST_LENGTH/2];
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
+    pcg64_srandom_r(&rng_anch, anchor_seed, 6);
+    pcg64_srandom_r(&rng_ham, ham_seed, 7);
 
-    // Anchor needs to call the random number generator first
-    uint64_t anchor = pcg64_random_r(&rng_unique), root;
-    uint64_t hamming_mask = pcg64_random_r(&rng_unique);
+    // Anchor must call the PNRG first
+    uint64_t anchor = pcg64_random_r(&rng_anch), root;
+    printf("test: %lu\n", anchor);
+    uint64_t hamming_mask = pcg64_random_r(&rng_ham);
 
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
     uint64_t decimal_word, pre_sub_decimal_word;
