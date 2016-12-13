@@ -17,7 +17,6 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
 
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_anch), root;
-    printf("test: %lu\n", anchor);
     uint64_t hamming_mask = pcg64_random_r(&rng_ham);
     
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
@@ -37,12 +36,12 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
  }
 
 //-----------------------------------------------------------------------------
-void encrypt_file(NIGHT *n, SUB *s, const char* file){
+void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file){
 
     // File I/O
     FILE *f_to_enc, *enc, *nkey;
     f_to_enc = fopen(file, "r");
-    enc      = fopen(E_FILE, "wb");
+    enc      = fopen(enc_file, "wb");
     nkey     = fopen(NIGHT_KEY, "wb");
     if( !f_to_enc ) perror("Error reading input file."),exit(EXIT_FAILURE);
     if( !enc ) perror("Error opening encrypted file."),exit(EXIT_FAILURE);
@@ -108,7 +107,6 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
 
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_anch), root;
-    printf("test: %lu\n", anchor);
     uint64_t hamming_mask = pcg64_random_r(&rng_ham);
 
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
@@ -130,13 +128,13 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
 }
 
 //-----------------------------------------------------------------------------
-void decrypt_file(const char* cipher_text, const char* night_key_file, 
-                    const char* rsa_key_file){
+void decrypt_file(const char* cipher_text, const char* dec_file, 
+                    const char* night_key_file, const char* rsa_key_file){
 
     // File I/O
     FILE *dcpt, *enc, *nkey;
     enc = fopen(cipher_text, "rb");
-    dcpt = fopen(D_FILE, "w");
+    dcpt = fopen(dec_file, "w");
     nkey = fopen(night_key_file, "rb");
     if( !enc ) perror("Error reading encrypted file."),exit(EXIT_FAILURE);
     if( !dcpt ) perror("Error opening decrypted file."),exit(EXIT_FAILURE);
@@ -146,7 +144,8 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
     NIGHT nS, *n;
     int nread = fread(&nS, sizeof(NIGHT), 1, nkey);
     n = &nS;
-    if( ferror(nkey) || nread != 1) 
+    
+    if( ferror(nkey) || nread != 1 ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
@@ -155,7 +154,7 @@ void decrypt_file(const char* cipher_text, const char* night_key_file,
                                                 n->file_length + n->pad);
 
     int nreadenc = fread(encrypted_message, sizeof(unsigned char), n->file_length + n->pad, enc);
-    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length + n->pad) 
+    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length + n->pad ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 

@@ -14,8 +14,8 @@ int main(int argc, char *argv[]){
     }
 
     SUB s;
-    //printf("Gen key...\n");
-    //generate_key(&s);
+    printf("Gen key...\n");
+    generate_key(&s);
     printf("Gen hash...\n");
     generate_hash(&s, RSA_KEY);
     printf("Gen seeds...\n");
@@ -27,9 +27,9 @@ int main(int argc, char *argv[]){
 
     NIGHT n;
     
-    encrypt_file(&n, &s, filename);
+    encrypt_file(&n, &s, filename, E_FILE);
     
-    decrypt_file(E_FILE, NIGHT_KEY, RSA_KEY);
+    decrypt_file(E_FILE, D_FILE, NIGHT_KEY, RSA_KEY);
 
     return 0;
 }

@@ -20,7 +20,7 @@ typedef struct{
 //-----------------------------------------------------------------------------
 // Encrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
-void encrypt_file(NIGHT *n, SUB *s, const char* file);
+void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file);
 
 //-----------------------------------------------------------------------------
 // Encrypt
@@ -30,8 +30,8 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char *message);
 //-----------------------------------------------------------------------------
 // Decrypt the file using the pacc lookup table
 //-----------------------------------------------------------------------------
-void decrypt_file(const char* cipher_text, const char* night_key_file, 
-					const char* rsa_key_file);
+void decrypt_file(const char* cipher_text, const char* dec_file, 
+                    const char* night_key_file, const char* rsa_key_file);
 
 //-----------------------------------------------------------------------------
 // Decrypt
