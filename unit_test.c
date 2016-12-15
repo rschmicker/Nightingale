@@ -47,7 +47,6 @@ void unit_test(){
     int check = memcmp( buffer, dec_buffer, n.length );
 
     assert(check == 0);
-    printf("Passed first message!\n");
 
     free(buffer);
     free(enc_buffer);

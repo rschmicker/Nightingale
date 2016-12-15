@@ -12,7 +12,7 @@
 #define WORD_SIZE 8
 
 typedef struct{
-    int			file_length;
+    int			length;
     int			pad;
     int			word_count;
 }NIGHT;

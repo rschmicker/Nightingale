@@ -9,6 +9,11 @@ LDOPTIONS+=$(DEBUG)
 RANDLIB=randlib/src/libpcg_random.so
 #RANDLIB=randlib/src/libpcg_random.a
 
+# Give this some color!
+RED=\033[0;31m
+NC=\033[0m
+GREEN=\033[0;32m
+
 CMD=main
 
 ED_FILES=decrypted_file.txt encrypted_file.txt night.key
@@ -38,7 +43,8 @@ install:
 
 unit_test: $(UT_OBJECTS) $(RANDLIB)
 	gcc -o $(CMD) $(UT_OBJECTS) $(LIBS) $(LDOPTIONS)
-	./$(CMD)
+	./$(CMD) || (@echo "${RED}Unit test failed $$?${NC}"; exit 1)
+	@echo "${GREEN}Unit test passed!${NC}"
 
 unit_test_clean:
 	rm -f $(UT_OBJECTS) $(CMD) $(ED_FILES)
