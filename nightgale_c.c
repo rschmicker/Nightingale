@@ -52,7 +52,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file){
     printf("File length is: %d\n", (int)filesize);
     n->word_count = filesize / WORD_SIZE;
     if(filesize % WORD_SIZE != 0) ++n->word_count;
-    n->file_length = filesize;
+    n->length = filesize;
 
     // Read the whole file into the message buffer including any padding
     n->pad = WORD_SIZE - filesize % WORD_SIZE;
@@ -76,7 +76,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file){
 
     // Write encrypted message to file
     fwrite(n, sizeof(NIGHT), 1, nkey);
-    fwrite(enc_message, sizeof(unsigned char), n->file_length + n->pad, enc);
+    fwrite(enc_message, sizeof(unsigned char), n->length + n->pad, enc);
     if( ferror(enc) ) perror("Error writing to encrypted file."),
                         exit(EXIT_FAILURE);
 
@@ -151,14 +151,14 @@ void decrypt_file(const char* cipher_text, const char* dec_file,
 
     // Read the encrypted text from file
     unsigned char *encrypted_message = calloc(sizeof(unsigned char), 
-                                                n->file_length + n->pad);
+                                                n->length + n->pad);
 
-    int nreadenc = fread(encrypted_message, sizeof(unsigned char), n->file_length + n->pad, enc);
-    if( ferror(dcpt) || ferror(enc) || nreadenc != n->file_length + n->pad ) 
+    int nreadenc = fread(encrypted_message, sizeof(unsigned char), n->length + n->pad, enc);
+    if( ferror(dcpt) || ferror(enc) || nreadenc != n->length + n->pad ) 
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
-    printf("File length is: %d\n", n->file_length);
+    printf("File length is: %d\n", n->length);
 
     // Generate substitution table from RSA key
     SUB s;
@@ -176,14 +176,14 @@ void decrypt_file(const char* cipher_text, const char* dec_file,
     t1 = mysecond();
     unsigned char *decrypt_message = decrypt(n, &s, encrypted_message);
     t1 = mysecond() - t1;
-    double rate = (((double)n->file_length)/1000000000.)/t1;
+    double rate = (((double)n->length)/1000000000.)/t1;
 
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Decrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     // Write decrypted text to file
-    fwrite(decrypt_message, sizeof(unsigned char), n->file_length, dcpt);
+    fwrite(decrypt_message, sizeof(unsigned char), n->length, dcpt);
 
     // Clean up
     free(decrypt_message);

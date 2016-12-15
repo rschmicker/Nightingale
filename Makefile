@@ -38,6 +38,7 @@ install:
 
 unit_test: $(UT_OBJECTS) $(RANDLIB)
 	gcc -o $(CMD) $(UT_OBJECTS) $(LIBS) $(LDOPTIONS)
+	./$(CMD)
 
 unit_test_clean:
 	rm -f $(UT_OBJECTS) $(CMD) $(ED_FILES)

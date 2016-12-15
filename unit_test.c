@@ -1,5 +1,4 @@
-#include "unit_test.h"
-
+#include <assert.h> 
 #include "sub_t.h"
 #include "nightgale_c.h"
 
@@ -8,18 +7,8 @@
 //-----------------------------------------------------------------------------
 void unit_test(){
 
-    // Messages to test
-    const char* file1 = "./testfiles/message1.txt";
-    const char* encfile1 = "./testfiles/enc_message1.txt";
-    const char* decfile1 = "./testfiles/dec_message1.txt";
-
-    const char* file2 = "./testfiles/message2.txt";
-    const char* encfile2 = "./testfiles/enc_message2.txt";
-    const char* decfile2 = "./testfiles/dec_message2.txt";
-
-    const char* file3 = "./testfiles/message3.txt";
-    const char* encfile3 = "./testfiles/enc_message3.txt";
-    const char* decfile3 = "./testfiles/dec_message3.txt";
+    // Message to test
+    unsigned char* message = "hello my name is paul!";
 
     // Create sub table for testing using "harlen.pem"
     SUB s;
@@ -36,16 +25,33 @@ void unit_test(){
     // length and pading of message
     NIGHT n;
 
+    // Pad length of message before encrypt
+    n.length = strlen(message);
+    printf("Length: %d\n", n.length);
+    n.word_count = n.length / WORD_SIZE;
+    if(n.length % WORD_SIZE != 0) ++n.word_count;
+    n.pad = WORD_SIZE - n.length % WORD_SIZE;
+    if(n.pad == 8) n.pad = 0;
+    printf("pad: %d\n", n.pad);
+
+    // Create buffer for message if padding is necessary
+    unsigned char* buffer = calloc(sizeof(unsigned char), n.length + n.pad);
+    memcpy(buffer, message, n.length);
+
+
     // encrypt
-    encrypt_file(&n, &s, file1, encfile1);    
-    decrypt_file(encfile1, decfile1, NIGHT_KEY, UT_RSA_KEY);
+    unsigned char* enc_buffer = encrypt(&n, &s, buffer);
 
-    encrypt_file(&n, &s, file2, encfile2);
-    decrypt_file(encfile2, decfile2, NIGHT_KEY, UT_RSA_KEY);
+    unsigned char* dec_buffer = decrypt(&n, &s, enc_buffer);
 
-    encrypt_file(&n, &s, file3, encfile3);
-    decrypt_file(encfile3, decfile3, NIGHT_KEY, UT_RSA_KEY);
-    
+    int check = memcmp( buffer, dec_buffer, n.length );
+
+    assert(check == 0);
+    printf("Passed first message!\n");
+
+    free(buffer);
+    free(enc_buffer);
+    free(dec_buffer);
 }
 
 int main(){
