@@ -117,8 +117,6 @@ void unit_test(){
 
     check = memcmp( buffer, dec_buffer, n.length );      assert(check == 0);
 
-    return;
-
     free(buffer);
     free(enc_buffer);
     free(dec_buffer);
