@@ -1,4 +1,4 @@
-#include "unit_test_rand.h"
+#include <stdint.h>
 
 uint64_t pcg64_random_r(void* garbage){
 	static int last_ix = 0;
