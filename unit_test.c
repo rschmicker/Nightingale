@@ -1,7 +1,6 @@
 #include <assert.h> 
 #include "sub_t.h"
 #include "nightgale_c.h"
-#include "unit_test_rand.h"
 
 #define UT_RSA_KEY "harlen.pem"
 
@@ -118,7 +117,7 @@ void unit_test(){
 
     check = memcmp( buffer, dec_buffer, n.length );      assert(check == 0);
 
-    return 0;
+    return;
 
     free(buffer);
     free(enc_buffer);
