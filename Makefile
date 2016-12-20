@@ -54,7 +54,7 @@ install:
 
 unit_test: $(UT_OBJECTS)
 	gcc -o $(TEST) $(UT_OBJECTS) $(LIBS) $(LDOPTIONS_UT)
-	./$(TEST) || (@echo "${RED}Unit test failed $$?${NC}"; exit 1)
+	@./$(TEST) || (@echo "${RED}Unit test failed $$?${NC}"; exit 1)
 	@echo "${GREEN}Unit test passed!${NC}"
 
 unit_test_clean:
