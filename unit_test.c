@@ -109,7 +109,20 @@ void unit_test(){
     // encrypt
     enc_buffer = encrypt(&n, &s, buffer);
 
-    //check = memcmp(enc_buffer, enc_message1, n.length + n.pad); assert(check == 0);
+    printf("length=%d, padlen=%d\n", n.length, n.pad);
+    printf("Encrypted buffer:\n");
+    for (int i=0; i<24; i++) {
+	printf("%d ",enc_buffer[i]);
+    }
+    printf("\n");
+    printf("Check buffer:\n");
+    for (int i=0; i<24; i++) {
+	printf("%d ",enc_message1[i]);
+    }
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    check = memcmp(enc_buffer, enc_message1, n.length + n.pad); assert(check == 0);
 
     dec_buffer = decrypt(&n, &s, enc_buffer);
 
