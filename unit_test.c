@@ -1,12 +1,12 @@
 #include <assert.h> 
 #include "sub_t.h"
 #include "nightgale_c.h"
+#include "unit_test_rand.h"
 
 #define UT_RSA_KEY "harlen.pem"
 
 //-----------------------------------------------------------------------------
 void unit_test(){
-
     // Messages to test
 
     // Message 1
@@ -14,6 +14,7 @@ void unit_test(){
     unsigned char buffer1[] = {50,46,55,49,56,50,56,49,56,50,56,52,53,57,
                                     48,52,53,50,51,53,51,54,48};
     unsigned char* message1 = buffer1;
+    int message1_length = 23;
 
     unsigned char enc_buffer1[] = {7, 236, 207, 78, 222, 33, 98, 119, 60, 
         27, 179, 249, 114, 244, 220, 138, 242, 96, 34, 242, 209, 83, 9, 38};
@@ -25,6 +26,7 @@ void unit_test(){
         233,106,224,32,118,117,32,97,108,108,32,111,118,101,114,32,97,
         103,97,105,110,46};
     unsigned char* message2 = buffer2;
+    int message2_length = 33;
 
     unsigned char enc_buffer2[] = {166, 119, 241, 34, 251, 130, 124, 37, 133,
         47, 108, 53, 183, 195, 188, 119, 195, 215, 107, 84, 150, 52, 65, 199, 
@@ -40,6 +42,7 @@ void unit_test(){
         100,99,104,117,99,107,32,99,111,117,108,100,32,99,104,117,99,107,
         32,119,111,111,100,63,63,63};
     unsigned char* message3 = buffer3;
+    int message3_length = 72;
 
     unsigned char enc_buffer3[] = {117, 246, 235, 180, 37, 179, 240, 192, 78, 
         223, 120, 225, 14, 155, 162, 157, 224, 39, 86, 214, 230, 184, 178, 168, 
@@ -89,10 +92,11 @@ void unit_test(){
     //=========================================================================
 
     // Pad length of message before encrypt
-    n.length = strlen(message1);
+    n.length = message1_length;
     printf("Length: %d\n", n.length);
     n.word_count = n.length / WORD_SIZE;
     if(n.length % WORD_SIZE != 0) ++n.word_count;
+    printf("Word Count: %d\n", n.word_count);
     n.pad = WORD_SIZE - n.length % WORD_SIZE;
     if(n.pad == 8) n.pad = 0;
     printf("pad: %d\n", n.pad);
@@ -101,15 +105,20 @@ void unit_test(){
     buffer = calloc(sizeof(unsigned char), n.length + n.pad);
     memcpy(buffer, message1, n.length);
 
+    printf("buffer: %s\n", buffer);
 
     // encrypt
     enc_buffer = encrypt(&n, &s, buffer);
 
-    check = memcmp(enc_buffer, enc_buffer1, n.length);   assert(check == 0);
+    //check = memcmp(enc_buffer, enc_message1, n.length + n.pad); assert(check == 0);
 
     dec_buffer = decrypt(&n, &s, enc_buffer);
 
-    check = memcmp( buffer, dec_buffer, n.length );              assert(check == 0);
+    printf("dec_buffer: %s\n", dec_buffer);
+
+    check = memcmp( buffer, dec_buffer, n.length );      assert(check == 0);
+
+    return 0;
 
     free(buffer);
     free(enc_buffer);
@@ -120,7 +129,7 @@ void unit_test(){
     //=========================================================================
 
     // Pad length of message before encrypt
-    n.length = strlen(message2);
+    n.length = message2_length;
     printf("Length: %d\n", n.length);
     n.word_count = n.length / WORD_SIZE;
     if(n.length % WORD_SIZE != 0) ++n.word_count;
@@ -136,7 +145,7 @@ void unit_test(){
     // encrypt
     enc_buffer = encrypt(&n, &s, buffer);
 
-    check = memcmp(enc_buffer, enc_buffer2, n.length);   assert(check == 0);
+    check = memcmp(enc_buffer, enc_buffer2,  n.length + n.pad);   assert(check == 0);
 
     dec_buffer = decrypt(&n, &s, enc_buffer);
 
@@ -151,7 +160,7 @@ void unit_test(){
     //=========================================================================
 
     // Pad length of message before encrypt
-    n.length = strlen(message3);
+    n.length = message3_length;
     printf("Length: %d\n", n.length);
     n.word_count = n.length / WORD_SIZE;
     if(n.length % WORD_SIZE != 0) ++n.word_count;

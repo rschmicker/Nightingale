@@ -1,9 +1,10 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "unit_test_rand.h"
 
 uint64_t pcg64_random_r(void* garbage){
 	static int last_ix = 0;
+
+	if(last_ix == 5) last_ix = 0;
+
 	uint64_t arr[] = {
 			2236597603191088455U,
 			6674290611325526650U,
@@ -20,3 +21,5 @@ uint64_t pcg64_random_r(void* garbage){
 	++last_ix;
 	return arr[last_ix - 1];
 }
+
+void pcg64_srandom_r(void* garbage, char more_garbage, int last_garbage){ return; }

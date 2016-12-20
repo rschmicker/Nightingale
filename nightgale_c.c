@@ -17,7 +17,9 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
 
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_anch), root;
+    //printf("anchor: %lu\n", anchor);
     uint64_t hamming_mask = pcg64_random_r(&rng_ham);
+    //printf("ham: %lu\n", hamming_mask);
     
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
     uint64_t decimal_word;
@@ -29,6 +31,9 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+        //uint64_t key = pcg64_random_r(&rng_unique);
+        //printf("key: %lu\n", key);
+        //enc_message[i] = decimal_word ^ key;
         enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique);
         root = decimal_word;
     }
@@ -107,6 +112,7 @@ unsigned char *decrypt(NIGHT *n, SUB *s,
 
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_anch), root;
+    //printf("anchor: %lu\n", anchor);
     uint64_t hamming_mask = pcg64_random_r(&rng_ham);
 
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
