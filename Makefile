@@ -57,5 +57,5 @@ unit_test: $(UT_OBJECTS)
 	@echo "${GREEN}Unit test passed!${NC}"
 
 unit_test_clean:
-	rm -f $(UT_OBJECTS) $(CMD) $(ED_FILES)
+	rm -f $(UT_OBJECTS) $(TEST) $(ED_FILES)
 
