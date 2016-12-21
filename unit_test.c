@@ -122,8 +122,10 @@ void unit_test(){
     printf("\n");
     printf("\n");
     printf("\n");
+
     check = memcmp(enc_buffer, enc_message1, n.length + n.pad); assert(check == 0);
 
+    // decrypt
     dec_buffer = decrypt(&n, &s, enc_buffer);
 
     printf("dec_buffer: %s\n", dec_buffer);
@@ -133,6 +135,8 @@ void unit_test(){
     free(buffer);
     free(enc_buffer);
     free(dec_buffer);
+
+    return;
 
     //=========================================================================
     // Encrypt and decrypt message 2

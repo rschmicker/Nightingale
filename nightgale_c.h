@@ -1,8 +1,14 @@
 #pragma once
+
+#if defined(UNIT_TEST)
+#include "unit_test_rand.h"
+#else
+#include "pcg_variants.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "sub_t.h"
-#include "pcg_variants.h"
 #include "mysecond.h"
 #include "sub_t.h"
 

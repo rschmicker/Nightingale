@@ -28,12 +28,21 @@ unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
     int round = 0;
     root = anchor;
     for(int i = 0; i < n->word_count; ++i){
+        // unsigned char* plain = (unsigned char*)&plain_text[i];
+        // for (int j=0; j<8; j++) {
+        // printf("%d ",plain[j]);
+        // }
+        // printf("\n");
+        // printf("plain: %lu\n", (int64_t)plain_text[i]);
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
+        //printf("xor: %lu\n", decimal_word);
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
+        //printf("post sub: %lu\n", decimal_word);
         //uint64_t key = pcg64_random_r(&rng_unique);
-        //printf("key: %lu\n", key);
+        //printf("key %d: %lu\n", i, key);
         //enc_message[i] = decimal_word ^ key;
+        //printf("enc: %lu\n", enc_message[i]);
         enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique);
         root = decimal_word;
     }

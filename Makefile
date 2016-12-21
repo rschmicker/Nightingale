@@ -3,8 +3,7 @@
 DEBUG=-O3
 
 COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/include/openssl/
-COPTIONS_UT_RAND=-std=c99 -I/usr/local/openssl/include/openssl/ -include unit_test_rand.h
-COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/
+COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/ -Dpcg64_random_t=char -Dpcg128_t=char -DUNIT_TEST=1
 
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
 LDOPTIONS_UT=-lcrypto -lssl -Wall $(DEBUG) 
@@ -30,8 +29,8 @@ OBJECTS=sub_t.o nightgale_c.o main.o mysecond.o
 UT_OBJECTS=unit_test_rand.o sub_t.o nightgale_c.o unit_test.o mysecond.o
 
 .c.o:
-	#gcc $(COPTIONS_UT_RAND) $(DEBUG) -c $<
 	gcc $(COPTIONS) $(DEBUG) -c $<
+	
 
 $(CMD): $(OBJECTS) $(RANDLIB)
 	gcc -o $(CMD) $(OBJECTS) $(LIBS) $(LDOPTIONS)

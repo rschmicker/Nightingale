@@ -1,4 +1,11 @@
 #pragma once
+
+#if defined(UNIT_TEST)
+#include "unit_test_rand.h"
+#else
+#include "pcg_variants.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +16,6 @@
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
-#include "pcg_variants.h"
 
 #define SEED_SIZE 16
 #define SUB_SIZE 256
