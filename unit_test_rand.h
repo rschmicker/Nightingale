@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 uint64_t pcg64_random_r(void* garbage);
 

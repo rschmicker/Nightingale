@@ -15,8 +15,9 @@ void unit_test(){
     unsigned char* message1 = buffer1;
     int message1_length = 23;
 
-    unsigned char enc_buffer1[] = {7, 236, 207, 78, 222, 33, 98, 119, 60, 
-        27, 179, 249, 114, 244, 220, 138, 242, 96, 34, 242, 209, 83, 9, 38};
+    unsigned char enc_buffer1[] = {33, 28, 61, 92, 116, 189, 53, 36, 93, 
+        63, 234, 230, 246, 120, 165, 95, 191, 229, 212, 66, 216, 165, 44, 
+        147};
     unsigned char* enc_message1 = enc_buffer1;
 
     // Message 2
@@ -27,9 +28,10 @@ void unit_test(){
     unsigned char* message2 = buffer2;
     int message2_length = 33;
 
-    unsigned char enc_buffer2[] = {166, 119, 241, 34, 251, 130, 124, 37, 133,
-        47, 108, 53, 183, 195, 188, 119, 195, 215, 107, 84, 150, 52, 65, 199, 
-        83, 100, 144, 116, 63, 155, 250, 146, 151, 174, 0, 246, 19, 45, 246, 157};
+    unsigned char enc_buffer2[] = {123, 152, 183, 252, 180, 33, 193, 134, 
+        123, 55, 214, 95, 22, 48, 239, 101, 206, 0, 248, 32, 77, 135, 234, 
+        239, 229, 217, 24, 99, 113, 210, 244, 178, 59, 184, 76, 190, 86, 93, 
+        6, 109};
     unsigned char* enc_message2 = enc_buffer2;
 
 
@@ -43,11 +45,12 @@ void unit_test(){
     unsigned char* message3 = buffer3;
     int message3_length = 72;
 
-    unsigned char enc_buffer3[] = {117, 246, 235, 180, 37, 179, 240, 192, 78, 
-        223, 120, 225, 14, 155, 162, 157, 224, 39, 86, 214, 230, 184, 178, 168, 
-        90, 53, 183, 96, 146, 242, 55, 162, 210, 76, 129, 171, 108, 195, 163, 234, 
-        191, 76, 223, 77, 163, 192, 12, 224, 73, 86, 186, 162, 22, 151, 209, 118, 
-        192, 71, 110, 255, 25, 203, 123, 6, 30, 216, 84, 10, 47, 153, 137, 149};
+    unsigned char enc_buffer3[] = {246, 193, 113, 251, 110, 185, 19, 115, 
+        75, 100, 11, 57, 159, 70, 196, 169, 48, 127, 247, 192, 79, 113, 39, 
+        221, 158, 27, 86, 38, 136, 97, 42, 212, 121, 123, 117, 166, 100, 135, 
+        216, 109, 72, 231, 47, 242, 96, 43, 196, 154, 200, 115, 129, 218, 61, 
+        199, 19, 129, 221, 134, 47, 49, 110, 206, 115, 70, 25, 116, 170, 62, 
+        174, 228, 243, 94};
     unsigned char* enc_message3 = enc_buffer3;
 
     // Create sub table for testing 
@@ -89,38 +92,35 @@ void unit_test(){
 
     // Encrypt and decrypt message 1
     //=========================================================================
+    printf("==============================================================\n");
 
     // Pad length of message before encrypt
     n.length = message1_length;
-    printf("Length: %d\n", n.length);
     n.word_count = n.length / WORD_SIZE;
     if(n.length % WORD_SIZE != 0) ++n.word_count;
     printf("Word Count: %d\n", n.word_count);
     n.pad = WORD_SIZE - n.length % WORD_SIZE;
     if(n.pad == 8) n.pad = 0;
-    printf("pad: %d\n", n.pad);
 
     // Create buffer for message if padding is necessary
     buffer = calloc(sizeof(unsigned char), n.length + n.pad);
     memcpy(buffer, message1, n.length);
 
-    printf("buffer: %s\n", buffer);
-
     // encrypt
     enc_buffer = encrypt(&n, &s, buffer);
 
     printf("length=%d, padlen=%d\n", n.length, n.pad);
+
+    printf("Buffer:\n");
+    for (int i=0; i<24; i++) printf("%d ",buffer[i]);
+    printf("\n");
+    
     printf("Encrypted buffer:\n");
-    for (int i=0; i<24; i++) {
-	printf("%d ",enc_buffer[i]);
-    }
+    for (int i=0; i<24; i++) printf("%d ",enc_buffer[i]);
     printf("\n");
+
     printf("Check buffer:\n");
-    for (int i=0; i<24; i++) {
-	printf("%d ",enc_message1[i]);
-    }
-    printf("\n");
-    printf("\n");
+    for (int i=0; i<24; i++) printf("%d ",enc_message1[i]);
     printf("\n");
 
     check = memcmp(enc_buffer, enc_message1, n.length + n.pad); assert(check == 0);
@@ -128,7 +128,9 @@ void unit_test(){
     // decrypt
     dec_buffer = decrypt(&n, &s, enc_buffer);
 
-    printf("dec_buffer: %s\n", dec_buffer);
+    printf("Decrypted buffer:\n");
+    for (int i=0; i<24; i++) printf("%d ",dec_buffer[i]);
+    printf("\n");
 
     check = memcmp( buffer, dec_buffer, n.length );      assert(check == 0);
 
@@ -136,28 +138,40 @@ void unit_test(){
     free(enc_buffer);
     free(dec_buffer);
 
-    return;
+    printf("==============================================================\n");
 
     //=========================================================================
     // Encrypt and decrypt message 2
     //=========================================================================
+    printf("==============================================================\n");
 
     // Pad length of message before encrypt
     n.length = message2_length;
-    printf("Length: %d\n", n.length);
     n.word_count = n.length / WORD_SIZE;
     if(n.length % WORD_SIZE != 0) ++n.word_count;
     n.pad = WORD_SIZE - n.length % WORD_SIZE;
     if(n.pad == 8) n.pad = 0;
-    printf("pad: %d\n", n.pad);
 
     // Create buffer for message if padding is necessary
     buffer = calloc(sizeof(unsigned char), n.length + n.pad);
     memcpy(buffer, message2, n.length);
 
-
     // encrypt
     enc_buffer = encrypt(&n, &s, buffer);
+
+    printf("length=%d, padlen=%d\n", n.length, n.pad);
+
+    printf("Buffer:\n");
+    for (int i=0; i<40; i++) printf("%d ",buffer[i]);
+    printf("\n");
+    
+    printf("Encrypted buffer:\n");
+    for (int i=0; i<40; i++) printf("%d ",enc_buffer[i]);
+    printf("\n");
+
+    printf("Check buffer:\n");
+    for (int i=0; i<40; i++) printf("%d ",enc_message2[i]);
+    printf("\n");
 
     check = memcmp(enc_buffer, enc_buffer2,  n.length + n.pad);   assert(check == 0);
 
@@ -165,40 +179,62 @@ void unit_test(){
 
     check = memcmp( buffer, dec_buffer, n.length );              assert(check == 0);
 
+    printf("Decrypted buffer:\n");
+    for (int i=0; i<40; i++) printf("%d ",dec_buffer[i]);
+    printf("\n");
+
     free(buffer);
     free(enc_buffer);
     free(dec_buffer);
+    printf("==============================================================\n");
 
     //=========================================================================
     // Encrypt and decrypt message 3
     //=========================================================================
+    printf("==============================================================\n");
 
     // Pad length of message before encrypt
     n.length = message3_length;
-    printf("Length: %d\n", n.length);
     n.word_count = n.length / WORD_SIZE;
     if(n.length % WORD_SIZE != 0) ++n.word_count;
     n.pad = WORD_SIZE - n.length % WORD_SIZE;
     if(n.pad == 8) n.pad = 0;
-    printf("pad: %d\n", n.pad);
 
     // Create buffer for message if padding is necessary
     buffer = calloc(sizeof(unsigned char), n.length + n.pad);
     memcpy(buffer, message3, n.length);
 
-
     // encrypt
     enc_buffer = encrypt(&n, &s, buffer);
+
+    printf("length=%d, padlen=%d\n", n.length, n.pad);
+
+    printf("Buffer:\n");
+    for (int i=0; i<72; i++) printf("%d ",buffer[i]);
+    printf("\n");
+    
+    printf("Encrypted buffer:\n");
+    for (int i=0; i<72; i++) printf("%d ",enc_buffer[i]);
+    printf("\n");
+
+    printf("Check buffer:\n");
+    for (int i=0; i<72; i++) printf("%d ",enc_message3[i]);
+    printf("\n");
 
     check = memcmp(enc_buffer, enc_buffer3, n.length);   assert(check == 0);
 
     dec_buffer = decrypt(&n, &s, enc_buffer);
 
-    check = memcmp( buffer, dec_buffer, n.length );              assert(check == 0);
+    check = memcmp( buffer, dec_buffer, n.length );      assert(check == 0);
+
+    printf("Decrypted buffer:\n");
+    for (int i=0; i<72; i++) printf("%d ",dec_buffer[i]);
+    printf("\n");
 
     free(buffer);
     free(enc_buffer);
     free(dec_buffer);
+    printf("==============================================================\n");
 }
 
 int main(){

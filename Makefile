@@ -55,6 +55,7 @@ unit_test: $(UT_OBJECTS)
 	gcc -o $(TEST) $(UT_OBJECTS) $(LIBS) $(LDOPTIONS_UT)
 	@./$(TEST) || (echo "${RED}Unit test failed $$?${NC}"; exit 1)
 	@echo "${GREEN}Unit test passed!${NC}"
+	$(MAKE) unit_test_clean
 
 unit_test_clean:
 	rm -f $(UT_OBJECTS) $(TEST) $(ED_FILES)
