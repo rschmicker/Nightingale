@@ -1,7 +1,7 @@
 #include "nightgale_c.h"
 
 //-----------------------------------------------------------------------------
-unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char* message){
+unsigned char *encrypt_night(NIGHT *n, SUB *s, const unsigned char* message){
 
     uint64_t *enc_message = malloc(sizeof(uint64_t)*n->word_count);
     uint64_t *plain_text = (uint64_t *)message;
@@ -66,7 +66,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file){
     // Encrypt here
     double t1, elapsed;
     t1 = mysecond();
-    unsigned char *enc_message = encrypt(n, s, message);
+    unsigned char *enc_message = encrypt_night(n, s, message);
     t1 = mysecond() - t1;
     double rate = (((double)filesize)/1000000000.)/t1;
 
@@ -89,7 +89,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file){
 }
 
 //-----------------------------------------------------------------------------
-unsigned char *decrypt(NIGHT *n, SUB *s, 
+unsigned char *decrypt_night(NIGHT *n, SUB *s, 
                         const unsigned char *encrypted_message){ 
 
     uint64_t *enc_message = (uint64_t *)encrypted_message;   
@@ -175,7 +175,7 @@ void decrypt_file(const char* cipher_text, const char* dec_file,
     // Decrypt here
     double t1;
     t1 = mysecond();
-    unsigned char *decrypt_message = decrypt(n, &s, encrypted_message);
+    unsigned char *decrypt_message = decrypt_night(n, &s, encrypted_message);
     t1 = mysecond() - t1;
     double rate = (((double)n->length)/1000000000.)/t1;
 

@@ -107,7 +107,7 @@ void unit_test(){
     memcpy(buffer, message1, n.length);
 
     // encrypt
-    enc_buffer = encrypt(&n, &s, buffer);
+    enc_buffer = encrypt_night(&n, &s, buffer);
 
     printf("length=%d, padlen=%d\n", n.length, n.pad);
 
@@ -126,7 +126,7 @@ void unit_test(){
     check = memcmp(enc_buffer, enc_message1, n.length + n.pad); assert(check == 0);
 
     // decrypt
-    dec_buffer = decrypt(&n, &s, enc_buffer);
+    dec_buffer = decrypt_night(&n, &s, enc_buffer);
 
     printf("Decrypted buffer:\n");
     for (int i=0; i<24; i++) printf("%d ",dec_buffer[i]);
@@ -157,7 +157,7 @@ void unit_test(){
     memcpy(buffer, message2, n.length);
 
     // encrypt
-    enc_buffer = encrypt(&n, &s, buffer);
+    enc_buffer = encrypt_night(&n, &s, buffer);
 
     printf("length=%d, padlen=%d\n", n.length, n.pad);
 
@@ -175,7 +175,7 @@ void unit_test(){
 
     check = memcmp(enc_buffer, enc_buffer2,  n.length + n.pad);   assert(check == 0);
 
-    dec_buffer = decrypt(&n, &s, enc_buffer);
+    dec_buffer = decrypt_night(&n, &s, enc_buffer);
 
     check = memcmp( buffer, dec_buffer, n.length );              assert(check == 0);
 
@@ -205,7 +205,7 @@ void unit_test(){
     memcpy(buffer, message3, n.length);
 
     // encrypt
-    enc_buffer = encrypt(&n, &s, buffer);
+    enc_buffer = encrypt_night(&n, &s, buffer);
 
     printf("length=%d, padlen=%d\n", n.length, n.pad);
 
@@ -223,7 +223,7 @@ void unit_test(){
 
     check = memcmp(enc_buffer, enc_buffer3, n.length);   assert(check == 0);
 
-    dec_buffer = decrypt(&n, &s, enc_buffer);
+    dec_buffer = decrypt_night(&n, &s, enc_buffer);
 
     check = memcmp( buffer, dec_buffer, n.length );      assert(check == 0);
 

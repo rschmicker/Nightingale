@@ -31,7 +31,7 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file);
 //-----------------------------------------------------------------------------
 // Encrypt
 //-----------------------------------------------------------------------------
-unsigned char *encrypt(NIGHT *n, SUB *s, const unsigned char *message);
+unsigned char *encrypt_night(NIGHT *n, SUB *s, const unsigned char *message);
 
 //-----------------------------------------------------------------------------
 // Decrypt the file using the pacc lookup table
@@ -42,5 +42,5 @@ void decrypt_file(const char* cipher_text, const char* dec_file,
 //-----------------------------------------------------------------------------
 // Decrypt
 //-----------------------------------------------------------------------------
-unsigned char *decrypt(NIGHT *n, SUB *s, 
+unsigned char *decrypt_night(NIGHT *n, SUB *s, 
 						const unsigned char *encrypted_message);
