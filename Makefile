@@ -6,7 +6,7 @@ COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/
 COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/ -Dpcg64_random_t=char -Dpcg128_t=char -DUNIT_TEST=1
 
 LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
-LDOPTIONS_UT=-lcrypto -lssl -Wall $(DEBUG) 
+LDOPTIONS_UT=-lcrypto -lssl -Wall $(DEBUG)
 
 LIBS=
 LDOPTIONS+=$(DEBUG)
@@ -30,12 +30,12 @@ UT_OBJECTS=unit_test_rand.o sub_t.o nightgale_c.o unit_test.o mysecond.o
 
 .c.o:
 	gcc $(COPTIONS) $(DEBUG) -c $<
-	
+
 
 $(CMD): $(OBJECTS) $(RANDLIB)
 	gcc -o $(CMD) $(OBJECTS) $(LIBS) $(LDOPTIONS)
 
-$(TEST): $(UT_OBJECTS) 
+$(TEST): $(UT_OBJECTS)
 	gcc -o $(TEST) $(UT_OBJECTS) $(LIBS) $(LDOPTIONS_UT)
 
 $(RANDLIB):
@@ -59,4 +59,3 @@ unit_test: $(UT_OBJECTS)
 
 unit_test_clean:
 	rm -f $(UT_OBJECTS) $(TEST) $(ED_FILES)
-

@@ -18,7 +18,7 @@ unsigned char *encrypt_night(NIGHT *n, SUB *s, const unsigned char* message){
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_anch), root;
     uint64_t hamming_mask = pcg64_random_r(&rng_ham);
-    
+
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
     uint64_t decimal_word;
 
@@ -29,7 +29,7 @@ unsigned char *encrypt_night(NIGHT *n, SUB *s, const unsigned char* message){
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
-        enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique);
+        enc_message[i] = decimal_word ^ pcg64_random_r(&rng_unique) ^ anchor;
         root = decimal_word;
     }
     return (unsigned char *)enc_message;
@@ -89,10 +89,10 @@ void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file){
 }
 
 //-----------------------------------------------------------------------------
-unsigned char *decrypt_night(NIGHT *n, SUB *s, 
-                        const unsigned char *encrypted_message){ 
+unsigned char *decrypt_night(NIGHT *n, SUB *s,
+                        const unsigned char *encrypted_message){
 
-    uint64_t *enc_message = (uint64_t *)encrypted_message;   
+    uint64_t *enc_message = (uint64_t *)encrypted_message;
 
     uint64_t *dec_message = malloc(sizeof(uint64_t)*n->word_count);
 
@@ -107,7 +107,6 @@ unsigned char *decrypt_night(NIGHT *n, SUB *s,
 
     // Anchor must call the PNRG first
     uint64_t anchor = pcg64_random_r(&rng_anch), root;
-    //printf("anchor: %lu\n", anchor);
     uint64_t hamming_mask = pcg64_random_r(&rng_ham);
 
     unsigned char *word = malloc(WORD_SIZE), *pre_sub;
@@ -117,8 +116,7 @@ unsigned char *decrypt_night(NIGHT *n, SUB *s,
     int round = 0;
     root = anchor;
     for(int i = 0; i < n->word_count; ++i) {
-        uint64_t key = pcg64_random_r(&rng_unique);
-        decimal_word = enc_message[i] ^ key;
+        decimal_word = enc_message[i] ^ pcg64_random_r(&rng_unique) ^ anchor;
         pre_sub_decimal_word = decimal_word;
         pre_sub = (unsigned char *)&decimal_word;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
@@ -129,7 +127,7 @@ unsigned char *decrypt_night(NIGHT *n, SUB *s,
 }
 
 //-----------------------------------------------------------------------------
-void decrypt_file(const char* cipher_text, const char* dec_file, 
+void decrypt_file(const char* cipher_text, const char* dec_file,
                     const char* night_key_file, const char* rsa_key_file){
 
     // File I/O
@@ -145,17 +143,17 @@ void decrypt_file(const char* cipher_text, const char* dec_file,
     NIGHT nS, *n;
     int nread = fread(&nS, sizeof(NIGHT), 1, nkey);
     n = &nS;
-    
-    if( ferror(nkey) || nread != 1 ) 
+
+    if( ferror(nkey) || nread != 1 )
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
     // Read the encrypted text from file
-    unsigned char *encrypted_message = calloc(sizeof(unsigned char), 
+    unsigned char *encrypted_message = calloc(sizeof(unsigned char),
                                                 n->length + n->pad);
 
     int nreadenc = fread(encrypted_message, sizeof(unsigned char), n->length + n->pad, enc);
-    if( ferror(dcpt) || ferror(enc) || nreadenc != n->length + n->pad ) 
+    if( ferror(dcpt) || ferror(enc) || nreadenc != n->length + n->pad )
                         perror("Error reading encrypt/decrypt/key file."),
                         exit(EXIT_FAILURE);
 
