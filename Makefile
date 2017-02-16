@@ -18,11 +18,11 @@ RED=\033[0;31m
 NC=\033[0m
 GREEN=\033[0;32m
 
-CMD=main
+CMD=test
 
-TEST=test
+TEST=unit_test
 
-ED_FILES=decrypted_file.txt encrypted_file.txt night.key
+ED_FILES=private.pem
 
 OBJECTS=sub_t.o nightgale_c.o main.o mysecond.o
 
