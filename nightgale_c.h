@@ -12,35 +12,27 @@
 #include "mysecond.h"
 #include "sub_t.h"
 
-#define E_FILE "encrypted_file.txt"
-#define D_FILE "decrypted_file.txt"
-#define NIGHT_KEY "night.key"
 #define WORD_SIZE 8
-
-typedef struct{
-    int			length;
-    int			pad;
-    int			word_count;
-}NIGHT;
-
-//-----------------------------------------------------------------------------
-// Encrypt the file using the pacc lookup table
-//-----------------------------------------------------------------------------
-void encrypt_file(NIGHT *n, SUB *s, const char* file, const char* enc_file);
+#define MASK 0x3F
 
 //-----------------------------------------------------------------------------
 // Encrypt
 //-----------------------------------------------------------------------------
-unsigned char *encrypt_night(NIGHT *n, SUB *s, const unsigned char *message);
-
-//-----------------------------------------------------------------------------
-// Decrypt the file using the pacc lookup table
-//-----------------------------------------------------------------------------
-void decrypt_file(const char* cipher_text, const char* dec_file, 
-                    const char* night_key_file, const char* rsa_key_file);
+void encrypt_night(SUB *s, size_t len, const unsigned char *in, 
+			unsigned char *out);
 
 //-----------------------------------------------------------------------------
 // Decrypt
 //-----------------------------------------------------------------------------
-unsigned char *decrypt_night(NIGHT *n, SUB *s, 
-						const unsigned char *encrypted_message);
+void decrypt_night(SUB *s, size_t len, const unsigned char *in, 
+			unsigned char *out);
+
+//-----------------------------------------------------------------------------
+// Anchor rotation based off the last 6 bits of the key
+//-----------------------------------------------------------------------------
+inline uint64_t rotr64 (uint64_t n, unsigned int c){
+    const unsigned int mask = (CHAR_BIT*sizeof(n)-1);
+    c &= mask;
+    return (n>>c) | (n<<( (-c)&mask ));
+}
+

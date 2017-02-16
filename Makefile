@@ -2,10 +2,10 @@
 #DEBUG=-g -O0
 DEBUG=-O3
 
-COPTIONS=-std=c99 -I./randlib/include/ -I./randlib/extras/ -I/usr/local/openssl/include/openssl/
+COPTIONS=-std=c99 -I/usr/local/openssl/include/openssl/ -Wall -Wextra
 COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/ -Dpcg64_random_t=char -Dpcg128_t=char -DUNIT_TEST=1
 
-LDOPTIONS=-L./randlib/src -lpcg_random -lcrypto -lssl -Wall
+LDOPTIONS=-lcrypto
 LDOPTIONS_UT=-lcrypto -lssl -Wall $(DEBUG)
 
 LIBS=
@@ -32,7 +32,7 @@ UT_OBJECTS=unit_test_rand.o sub_t.o nightgale_c.o unit_test.o mysecond.o
 	gcc $(COPTIONS) $(DEBUG) -c $<
 
 
-$(CMD): $(OBJECTS) $(RANDLIB)
+$(CMD): $(OBJECTS) 
 	gcc -o $(CMD) $(OBJECTS) $(LIBS) $(LDOPTIONS)
 
 $(TEST): $(UT_OBJECTS)

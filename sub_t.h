@@ -41,6 +41,12 @@ typedef struct{
 }indexes;
 
 //-----------------------------------------------------------------------------
+// Set the sub table for nightgale
+//-----------------------------------------------------------------------------
+void nightgale_enc_set_key(SUB *s);
+void nightgale_dec_set_key(SUB *s);
+
+//-----------------------------------------------------------------------------
 // Get the file length with fseek()
 //-----------------------------------------------------------------------------
 long unsigned int get_file_length(FILE *fp);
@@ -88,4 +94,4 @@ void generate_hash(SUB *s, const char* key_file);
 //-----------------------------------------------------------------------------
 // Generate 2048 bit RSA key
 //-----------------------------------------------------------------------------
-void generate_key(SUB *s);
+void generate_key();

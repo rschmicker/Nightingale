@@ -1,6 +1,23 @@
 #include "sub_t.h"
 
 //-----------------------------------------------------------------------------
+void nightgale_dec_set_key(SUB *s){
+    generate_hash(s, RSA_KEY);
+    generate_seeds(s);
+    generate_rands(s);
+    shuffle(s);
+}
+
+//-----------------------------------------------------------------------------
+void nightgale_enc_set_key(SUB *s){
+    generate_key();
+    generate_hash(s, RSA_KEY);
+    generate_seeds(s);
+    generate_rands(s);
+    shuffle(s);
+}
+
+//-----------------------------------------------------------------------------
 size_t get_file_length(FILE *fp) {
     fseek(fp, 0L, SEEK_CUR);
     long unsigned int mypos = ftell(fp);
@@ -114,7 +131,7 @@ void generate_hash(SUB *s, const char* key_file){
 //-----------------------------------------------------------------------------
 // Generate 2048 bit RSA key
 //-----------------------------------------------------------------------------
-void generate_key(SUB *s){
+void generate_key(){
     int             ret = 0;
     int             bits = 2048;
     unsigned long   e = RSA_F4;
