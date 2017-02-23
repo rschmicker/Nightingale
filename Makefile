@@ -24,7 +24,7 @@ TEST=unit_test
 
 ED_FILES=private.pem
 
-OBJECTS=sub_t.o nightgale_c.o main.o mysecond.o
+OBJECTS=sub_t.o nightgale_c.o test.o mysecond.o
 
 UT_OBJECTS=unit_test_rand.o sub_t.o nightgale_c.o unit_test.o mysecond.o
 
