@@ -76,10 +76,10 @@ Insert into OpenSSL and OpenSSL's EVP
 	     and make sure they are not equal
 
 	v)   the evp script uses the EVP interface and the latter 
-	     simply directly calls the nightgale functions
+	     directly calls the nightgale functions
 	
-	vi) the evp script also makes a call to the speedtest 
-	    integrated into OpenSSL
+	vi)  the evp script also makes a call to the speedtest 
+	     integrated into OpenSSL
     
     e) for completeness sake
 	i) run 'make test' in the root directory of openssl to 
