@@ -1,0 +1,39 @@
+Nightingale Cipher
+
+=================================================
+DESCRIPTION:
+=================================================
+To be added...
+
+=================================================
+Insert into OpenSSL and OpenSSL's EVP
+=================================================
+1) Download...
+	OpenSSL: 	wget https://github.com/openssl/openssl/archive/master.zip
+	Nightingale:	wget https://github.com/rschmicker/Encryption/archive/master.zip
+
+2) Move some files around...
+	a) nightgale folder under Nightingale/openssl_migration to openssl/crypto/
+	b) e_night.c under Nightingale/openssl_migration to openssl/crypto/evp
+	c) nightgale.h under Nightingale/openssl_migration to openssl/include/openssl
+
+3) Time to edit some files...
+	a) crypto/evp/build.info to include compiling of e_night.c
+	b) crypto/evp/c_allc.c to include loading of cipher:
+		EVP_add_cipher(EVP_nightgale());
+		EVP_add_cipher_alias(SN_nightgale, "nightgale");
+	c) crypto/objects/objects.txt to include nightgale cipher before aes as such around line 864:
+		#Nightgale
+				: NIGHTGALE : nightgale
+	d) Configure in openssl directory to include nightgale in compilation as such around line 315:
+		"md2", "md4", "md5", "nightgale", "sha",
+	e) util/mkdef.pl to include header file for nightgale as such around line 270:
+		$crypto.=" include/openssl/nightgale.h";
+	f) include/openssl/evp.h to add in EVP_nightgale() as such around line 727:
+		const EVP_CIPHER *EVP_nightgale(void);
+
+4) Let's give it a test!
+	a) move compile_night_evp_test.sh and compile_night_test.sh to the root directory of OpenSSL
+	b) edit make -j <thread count> in both scripts to account for your number of threads
+	c) make excutable with chmod
+	d) run 'em both!
