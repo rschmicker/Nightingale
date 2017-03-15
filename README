@@ -33,7 +33,15 @@ Insert into OpenSSL and OpenSSL's EVP
 		const EVP_CIPHER *EVP_nightgale(void);
 
 4) Let's give it a test!
-	a) move compile_night_evp_test.sh and compile_night_test.sh to the root directory of OpenSSL
+	a) move compile_night_evp_test.sh, compile_night_test.sh, night_evp_test.c, and night_test.c to the root directory of openssl
 	b) edit make -j <thread count> in both scripts to account for your number of threads
-	c) make excutable with chmod
+	c) make shell scripts excutable with chmod
 	d) run 'em both!
+		i) both scripts will create a 1GB random buffer
+		ii) encrypt and decrypt the buffer
+		iii) compare the original buffer and the decrypted buffer to make sure they are equal
+		iv) compare the original and the encrypted buffer and make sure they are not equal
+		v) the evp script uses the EVP interface and the other script simply directly calls the nightgale functions
+		vi) the evp script also makes a call to the speedtest integrated into OpenSSL
+	e) for completeness sake
+		i) run 'make test' in the root directory of openssl to perform OpenSSL's unit test
