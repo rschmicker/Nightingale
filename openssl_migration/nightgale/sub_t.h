@@ -1,11 +1,7 @@
-#pragma once
+#ifndef HEADER_SUB_H
+#define HEADER_SUB_G
 
-#if defined(UNIT_TEST)
-#include "unit_test_rand.h"
-#else
 #include "pcg_variants.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,3 +91,6 @@ void generate_hash(SUB *s, const char* key_file);
 // Generate 2048 bit RSA key
 //-----------------------------------------------------------------------------
 void generate_key();
+
+#endif
+

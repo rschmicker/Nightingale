@@ -10,7 +10,7 @@ Insert into OpenSSL and OpenSSL's EVP
 =================================================
 1) Download...
     OpenSSL:	 wget https://github.com/openssl/openssl/archive/master.zip
-    Nightingale: wget https://github.com/rschmicker/Encryption/archive/master.zip
+    Nightingale: wget https://github.com/rschmicker/Nightingale/archive/master.zip
 
 2) Move some files around...
     a) nightgale folder under Nightingale/openssl_migration to openssl/crypto/

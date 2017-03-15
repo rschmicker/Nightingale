@@ -1,15 +1,13 @@
 #include "nightgale_c.h"
 
 //-----------------------------------------------------------------------------
-void encrypt_night(SUB *s, size_t len, const unsigned char *in, 
-			unsigned char *out){
+void encrypt_night(SUB *s, size_t len, const unsigned char* in, 
+                    unsigned char * out){
 
     size_t word_count = len / WORD_SIZE;
     if( len % WORD_SIZE != 0 ) ++word_count;
-    size_t pad = WORD_SIZE - len % WORD_SIZE;
-    if( pad == 8 ) pad = 0;
-
-    uint64_t *enc_message = (uint64_t *)out;//malloc(sizeof(uint64_t)word_count);
+    
+    uint64_t *enc_message = (uint64_t *)out;
     uint64_t *plain_text = (uint64_t *)in;
 
     // PNRG initialization
@@ -37,21 +35,18 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
         uint64_t key = pcg64_random_r(&rng_unique);
         anchor = rotr64(anchor, key&MASK);
         enc_message[i] = decimal_word ^ key ^ anchor;
-	root = decimal_word;
+        root = decimal_word;
     }
  }
 
-//-----------------------------------------------------------------------------
-void decrypt_night(SUB *s, size_t len, const unsigned char *in, 
-			unsigned char *out){
-
+void decrypt_night(SUB *s, size_t len, const unsigned char *in,
+                                unsigned char *out){
+    
     size_t word_count = len / WORD_SIZE;
     if( len % WORD_SIZE != 0 ) ++word_count;
-    size_t pad = WORD_SIZE - len % WORD_SIZE;
-    if( pad == 8 ) pad = 0;
-
+    
     uint64_t *enc_message = (uint64_t *)in;
-    uint64_t *dec_message = (uint64_t *)out;//malloc(sizeof(uint64_t)*n->word_count);
+    uint64_t *dec_message = (uint64_t *)out;
 
     // PNRG initialization
     pcg64_random_t rng_unique, rng_anch, rng_ham;
@@ -72,7 +67,7 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
     // Decrypt here
     root = anchor;
     for(int i = 0; i < word_count; ++i) {
-	uint64_t key = pcg64_random_r(&rng_unique);
+        uint64_t key = pcg64_random_r(&rng_unique);
         anchor = rotr64(anchor, key&MASK);
         decimal_word = enc_message[i] ^ key ^ anchor;
 	pre_sub_decimal_word = decimal_word;
@@ -82,3 +77,4 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
         root = pre_sub_decimal_word;
     }
 }
+

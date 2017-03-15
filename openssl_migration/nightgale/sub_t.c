@@ -10,7 +10,7 @@ void nightgale_dec_set_key(SUB *s){
 
 //-----------------------------------------------------------------------------
 void nightgale_enc_set_key(SUB *s){
-    generate_key();
+    generate_key(s);
     generate_hash(s, RSA_KEY);
     generate_seeds(s);
     generate_rands(s);
@@ -158,3 +158,4 @@ void generate_key(){
 
     free_r(bp_private, r, bne);
 }
+
