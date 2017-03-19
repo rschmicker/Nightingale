@@ -10,14 +10,12 @@
 double mysecond()
 {
     struct timeval tp;
-    int i;
-
-    i = gettimeofday(&tp, (void *)NULL);
+    gettimeofday(&tp, (void *)NULL);
     return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
 }
 
 
-void unit_test2(){
+void system_test(){
     printf("1GB random check\n");
     size_t length = 1024 * 1024 * 1024;
 
@@ -36,7 +34,7 @@ void unit_test2(){
 
     printf("Encrypting...\n");
 
-    double t1, elapsed;
+    double t1;
     t1 = mysecond();
     encrypt_night(&s_enc, length, plain, enc);
     t1 = mysecond() - t1;
@@ -53,11 +51,11 @@ void unit_test2(){
 
     int check = memcmp( plain, dec, length );       assert(check == 0);
 
-check = memcmp( plain, enc, length );       assert(check != 0);
+    check = memcmp( plain, enc, length );       assert(check != 0);
 
-FILE *f = fopen("encrypt7.bin", "wb");
-fwrite(enc, length, 1, f);
-fclose(f);
+    FILE *f = fopen("encrypt7.bin", "wb");
+    fwrite(enc, length, 1, f);
+    fclose(f);
 
     free(plain);
     free(enc);
@@ -66,9 +64,7 @@ fclose(f);
 
 
 int main(){
-
-	unit_test2();
-
-	return 0;
+    system_test();
+    return 0;
 }
 

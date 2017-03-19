@@ -3,13 +3,13 @@
 #include <openssl/err.h>
 #include <string.h>
 #include <assert.h> 
+#include <sys/time.h>
+
 
 double mysecond()
 {
     struct timeval tp;
-    int i;
-
-    i = gettimeofday(&tp, (void *)NULL);
+    gettimeofday(&tp, (void *)NULL);
     return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
 }
 
@@ -104,15 +104,13 @@ int main (void)
    * real application? :-)
    */
 
-    int length = 1024*1024*1024;
-    printf("Creating 1GB random buffer...\n");
-    unsigned char* plaintext = calloc(sizeof(unsigned char), length);
-    FILE *fp;
-    fp = fopen("/dev/urandom", "r");
-    fread(plaintext, 1, length, fp);
-    fclose(fp);
-    //int length = 12;
-    //unsigned char* plaintext = "Hello World!";
+  int length = 1024*1024*1024;
+  printf("Creating 1GB random buffer...\n");
+  unsigned char* plaintext = calloc(sizeof(unsigned char), length);
+  FILE *fp;
+  fp = fopen("/dev/urandom", "r");
+  fread(plaintext, 1, length, fp);
+  fclose(fp);
 
   /* A 256 bit key */
   unsigned char *key = (unsigned char *)"0";
@@ -129,54 +127,32 @@ int main (void)
   /* Buffer for the decrypted text */
   unsigned char *decryptedtext = calloc(sizeof(unsigned char), length+8);
 
-
-  int decryptedtext_len, ciphertext_len;
-
   /* Initialise the library */
   ERR_load_crypto_strings();
   OpenSSL_add_all_algorithms();
   OPENSSL_config(NULL);
 
-   //printf("Plaintext: %s\n", plaintext);
 
-      printf("Encrypting....\n");
-    // encrypt
-    double t1, elapsed;
-    t1 = mysecond();
+  printf("Encrypting....\n");
+  // encrypt
+  double t1;
+  t1 = mysecond();
 
   /* Encrypt the plaintext */
-  ciphertext_len = encrypt (plaintext, length, key, iv,
-                            ciphertext);
-    t1 = mysecond() - t1;
-    double rate = (((double)length)/1000000000.)/t1;
+  int ciphertext_len = encrypt (plaintext, length, key, iv, ciphertext);
+  t1 = mysecond() - t1;
+  double rate = (((double)length)/1000000000.)/t1;
 
-    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    printf("Encrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
-    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-
-  // /* Do something useful with the ciphertext here */
-  // printf("Ciphertext is:\n");
-  // BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+  printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("Encrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
+  printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
   /* Decrypt the ciphertext */
-  decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-    decryptedtext);
-
-//printf("p: %d\n", (int)plaintext[0]);
-
-//printf("d: %d\n", (int)decryptedtext[0]);
+  decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
 
   int check;
-  
   check = memcmp( plaintext, decryptedtext, length ); assert(check == 0);
-
   check = memcmp( plaintext, ciphertext, length ); assert(check != 0);
-
-
-
-  // /* Show the decrypted text */
-   //printf("Decrypted text is:\n");
-   //printf("%s\n", decryptedtext);
 
   /* Clean up */
   EVP_cleanup();
