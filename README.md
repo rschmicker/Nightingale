@@ -5,6 +5,11 @@
 
 ## Automated integration into OpenSSL
   - Run install.sh
+    * Downloads Openssl
+    * Applies a patch file to add in all Nightingale components
+    * Runs make for openssl
+    * Runs a couple test programs and OpenSSL's speedtest
+        * If the output matches the example output below then you are good to run a make install of OpenSSL
 
 ## Manual integration into OpenSSL
   - This is helpful incase the structure of OpenSSL changes
