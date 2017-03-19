@@ -51,11 +51,11 @@
         "md2", "md4", "md5", "nightgale", "sha",
         ```
     * util/mkdef.pl to include header file for nightgale around line 270:
-        ```
+        ```perl
         $crypto.=" include/openssl/nightgale.h";
         ```
     * include/openssl/evp.h to add in EVP\_nightgale() around line 727:
-        ```
+        ```C
         const EVP_CIPHER *EVP_nightgale(void);
         ```
   
