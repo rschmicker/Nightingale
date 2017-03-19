@@ -1,16 +1,14 @@
-.PHONY: clean distclean
+#.PHONY: clean distclean
 #DEBUG=-g -O0
-DEBUG=-O3
+WDEBUG=-O3
 
-COPTIONS=-std=c99 -I/usr/local/openssl/include/openssl/ -Wall -Wextra
+COPTIONS=-std=c99 -I/usr/local/openssl/include/openssl/ -Wall -Wextra -O3
 COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/ -Dpcg64_random_t=char -Dpcg128_t=char -DUNIT_TEST=1
 
 LDOPTIONS=-lcrypto
-LDOPTIONS_UT=-lcrypto -lssl -Wall $(DEBUG)
+#LDOPTIONS_UT=-lcrypto -lssl -Wall $(DEBUG)
 
-LIBS=
-LDOPTIONS+=$(DEBUG)
-RANDLIB=randlib/src/libpcg_random.so
+#RANDLIB=randlib/src/libpcg_random.so
 #RANDLIB=randlib/src/libpcg_random.a
 
 # Give this some color!
@@ -18,7 +16,7 @@ RED=\033[0;31m
 NC=\033[0m
 GREEN=\033[0;32m
 
-CMD=test
+CMD=nightgale
 
 TEST=unit_test
 

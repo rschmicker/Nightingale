@@ -3,7 +3,7 @@
 #include "mysecond.h"
 #include <assert.h>
 
-int main(int argc, char *argv[]){
+int main(){
 
     printf("1GB random check\n");
     size_t length = 1024 * 1024 * 1024;
@@ -13,9 +13,11 @@ int main(int argc, char *argv[]){
     unsigned char *plain = calloc(sizeof(unsigned char), length);
     unsigned char *enc = calloc(sizeof(unsigned char), length);
     unsigned char *dec = calloc(sizeof(unsigned char), length);
+    
     FILE *fp;
     fp = fopen("/dev/urandom", "r");
-    fread(plain, 1, length, fp);
+    size_t i = fread(plain, 1, length, fp);
+    if(i != length) {printf("Error reading from /dev/urandom\n"); exit(1);}
     fclose(fp);
 
     SUB s_enc;
@@ -23,7 +25,7 @@ int main(int argc, char *argv[]){
 
     printf("Encrypting....\n");
     // encrypt
-    double t1, elapsed;
+    double t1;
     t1 = mysecond();
     encrypt_night(&s_enc, length, plain, enc);
     t1 = mysecond() - t1;

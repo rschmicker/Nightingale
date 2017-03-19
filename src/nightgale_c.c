@@ -30,7 +30,7 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
 
     // Encrypt buffers
     root = anchor;
-    for(int i = 0; i < word_count; ++i){
+    for(size_t i = 0; i < word_count; ++i){
         decimal_word = root ^ plain_text[i] ^ hamming_mask;
         pre_sub = (unsigned char *)&decimal_word;
         for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = s->sub[(int)pre_sub[k]];
@@ -71,7 +71,7 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
 
     // Decrypt here
     root = anchor;
-    for(int i = 0; i < word_count; ++i) {
+    for(size_t i = 0; i < word_count; ++i) {
 	uint64_t key = pcg64_random_r(&rng_unique);
         anchor = rotr64(anchor, key&MASK);
         decimal_word = enc_message[i] ^ key ^ anchor;
