@@ -76,33 +76,33 @@
           directly calls the nightgale functions
         * Finally, a call to OpenSSL's speedtest is done                                                
     * The final output of the script should be something like this...
-    ```bash
-    1GB random check
-    Creating 1GB random buffer...
-    Encrypting...
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Encrypt Time:   1319.684ms  Rate:   0.814GB/s
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Creating 1GB random buffer...
-    Encrypting....
-    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Encrypt Time:   1419.162ms  Rate:   0.757GB/s
-    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    You have chosen to measure elapsed time instead of user CPU time.
-    Doing nightgale for 3s on 16 size blocks: 82622879 nightgale's in 2.92s
-    Doing nightgale for 3s on 64 size blocks: 34945044 nightgale's in 2.96s
-    Doing nightgale for 3s on 256 size blocks: 10332545 nightgale's in 2.92s
-    Doing nightgale for 3s on 1024 size blocks: 2708537 nightgale's in 2.97s
-    Doing nightgale for 3s on 8192 size blocks: 346215 nightgale's in 2.96s
-    Doing nightgale for 3s on 16384 size blocks: 173719 nightgale's in 2.96s
-    OpenSSL 1.1.1-dev  xx XXX xxxx
-    built on: reproducible build, date unspecified
-    options:bn(64,64) rc4(16x,int) des(int) aes(partial) idea(int) blowfish(ptr) 
-    compiler: gcc -DDSO_DLFCN -DHAVE_DLFCN_H -DNDEBUG -DOPENSSL_THREADS -DOPENSSL_NO_STATIC_ENGINE -DOPENSSL_PIC -DOPENSSL_IA32_SSE2 -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_BN_ASM_GF2m -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DRC4_ASM -DMD5_ASM -DAES_ASM -DVPAES_ASM -DBSAES_ASM -DGHASH_ASM -DECP_NISTZ256_ASM -DPADLOCK_ASM -DPOLY1305_ASM -DOPENSSLDIR="\"/usr/local/ssl\"" -DENGINESDIR="\"/usr/local/lib/engines-1.1\""  -Wa,--noexecstack
-    The 'numbers' are in 1000s of bytes per second processed.
-    type             16 bytes     64 bytes    256 bytes   1024 bytes   8192 bytes  16384 bytes
-    nightgale       452728.10k   755568.52k   905866.96k   933852.49k   958173.41k   961558.14k
-    ```
+        ```
+        1GB random check
+        Creating 1GB random buffer...
+        Encrypting...
+        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        Encrypt Time:   1319.684ms  Rate:   0.814GB/s
+        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        Creating 1GB random buffer...
+        Encrypting....
+        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        Encrypt Time:   1419.162ms  Rate:   0.757GB/s
+        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        You have chosen to measure elapsed time instead of user CPU time.
+        Doing nightgale for 3s on 16 size blocks: 82622879 nightgale's in 2.92s
+        Doing nightgale for 3s on 64 size blocks: 34945044 nightgale's in 2.96s
+        Doing nightgale for 3s on 256 size blocks: 10332545 nightgale's in 2.92s
+        Doing nightgale for 3s on 1024 size blocks: 2708537 nightgale's in 2.97s
+        Doing nightgale for 3s on 8192 size blocks: 346215 nightgale's in 2.96s
+        Doing nightgale for 3s on 16384 size blocks: 173719 nightgale's in 2.96s
+        OpenSSL 1.1.1-dev  xx XXX xxxx
+        built on: reproducible build, date unspecified
+        options:bn(64,64) rc4(16x,int) des(int) aes(partial) idea(int) blowfish(ptr) 
+        compiler: gcc -DDSO_DLFCN -DHAVE_DLFCN_H -DNDEBUG -DOPENSSL_THREADS -DOPENSSL_NO_STATIC_ENGINE -DOPENSSL_PIC -DOPENSSL_IA32_SSE2 -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_BN_ASM_GF2m -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DRC4_ASM -DMD5_ASM -DAES_ASM -DVPAES_ASM -DBSAES_ASM -DGHASH_ASM -DECP_NISTZ256_ASM -DPADLOCK_ASM -DPOLY1305_ASM -DOPENSSLDIR="\"/usr/local/ssl\"" -DENGINESDIR="\"/usr/local/lib/engines-1.1\""  -Wa,--noexecstack
+        The 'numbers' are in 1000s of bytes per second processed.
+        type             16 bytes     64 bytes    256 bytes   1024 bytes   8192 bytes  16384 bytes
+        nightgale       452728.10k   755568.52k   905866.96k   933852.49k   958173.41k   961558.14k
+        ```
   5. For completeness sake
     * Run 'make test' in the root directory of openssl to 
       perform OpenSSL's unit test
