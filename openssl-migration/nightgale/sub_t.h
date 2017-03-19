@@ -1,5 +1,5 @@
 #ifndef HEADER_SUB_H
-#define HEADER_SUB_G
+#define HEADER_SUB_H
 
 #include "pcg_variants.h"
 #include <stdio.h>
