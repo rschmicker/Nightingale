@@ -60,11 +60,10 @@
         ```
   
   4. Let's give it a test!
-    * move:
+    * move the following to the root directory of OpenSSL:
         * Nightingale/openssl-migration/compile_night_test.sh 
         * Nightingale/openssl-migration/night_evp_test.c 
         * Nightingale/openssl-migration/night_test.c  
-      to the root directory of openssl
     * make shell scripts excutable with chmod +x
     * run it!
         * the test creates a 1GB random buffer
