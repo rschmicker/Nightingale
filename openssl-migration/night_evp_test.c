@@ -130,8 +130,6 @@ int main (void)
   /* Initialise the library */
   ERR_load_crypto_strings();
   OpenSSL_add_all_algorithms();
-  OPENSSL_config(NULL);
-
 
   printf("Encrypting....\n");
   // encrypt
