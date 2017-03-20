@@ -6,10 +6,8 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
 
     size_t word_count = len / WORD_SIZE;
     if( len % WORD_SIZE != 0 ) ++word_count;
-    size_t pad = WORD_SIZE - len % WORD_SIZE;
-    if( pad == 8 ) pad = 0;
 
-    uint64_t *enc_message = (uint64_t *)out;//malloc(sizeof(uint64_t)word_count);
+    uint64_t *enc_message = (uint64_t *)out;
     uint64_t *plain_text = (uint64_t *)in;
 
     // PNRG initialization
@@ -47,11 +45,9 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
 
     size_t word_count = len / WORD_SIZE;
     if( len % WORD_SIZE != 0 ) ++word_count;
-    size_t pad = WORD_SIZE - len % WORD_SIZE;
-    if( pad == 8 ) pad = 0;
 
     uint64_t *enc_message = (uint64_t *)in;
-    uint64_t *dec_message = (uint64_t *)out;//malloc(sizeof(uint64_t)*n->word_count);
+    uint64_t *dec_message = (uint64_t *)out;
 
     // PNRG initialization
     pcg64_random_t rng_unique, rng_anch, rng_ham;
