@@ -72,11 +72,20 @@ void generate_rands(SUB *s){
     pcg64_random_t rng1, rng2, rng3, rng4;
     pcg128_t round = 5;
     pcg128_t s1, s2, s3, s4;
+    
+    void *temp;
 
-    s1 = *(pcg128_t *)s->seed1;
-    s2 = *(pcg128_t *)s->seed2;
-    s3 = *(pcg128_t *)s->seed3;
-    s4 = *(pcg128_t *)s->seed4;
+    temp = s->seed1;
+    s1 = *(pcg128_t *)temp;
+    
+    temp = s->seed2;
+    s2 = *(pcg128_t *)temp;
+
+    temp = s->seed3;
+    s3 = *(pcg128_t *)temp;
+
+    temp = s->seed4;
+    s4 = *(pcg128_t *)temp;
 
     pcg64_srandom_r(&rng1, s1, round);
     pcg64_srandom_r(&rng2, s2, round);

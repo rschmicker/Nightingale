@@ -11,10 +11,19 @@ void encrypt_night(SUB *s, size_t len, const unsigned char* in,
     uint64_t *plain_text = (uint64_t *)in;
 
     // PNRG initialization
+    void *temp;
     pcg64_random_t rng_unique, rng_anch, rng_ham;
-    pcg128_t s1_unique = *(pcg128_t *)s->seed1;
-    pcg128_t anchor_seed = *(pcg128_t *)&s->digest[0];
-    pcg128_t ham_seed = *(pcg128_t *)&s->digest[SHA256_DIGEST_LENGTH/2];
+    pcg128_t s1_unique, anchor_seed, ham_seed;
+    
+    temp = s->seed1;
+    s1_unique = *(pcg128_t *)temp;
+
+    temp = &s->digest[0];
+    anchor_seed = *(pcg128_t *)temp;
+
+    temp = &s->digest[SHA256_DIGEST_LENGTH/2];
+    ham_seed = *(pcg128_t *)temp;
+
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
     pcg64_srandom_r(&rng_anch, anchor_seed, 6);
     pcg64_srandom_r(&rng_ham, ham_seed, 7);
@@ -49,10 +58,19 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
     uint64_t *dec_message = (uint64_t *)out;
 
     // PNRG initialization
+    void *temp;
     pcg64_random_t rng_unique, rng_anch, rng_ham;
-    pcg128_t s1_unique = *(pcg128_t *)s->seed1;
-    pcg128_t anchor_seed = *(pcg128_t *)&s->digest[0];
-    pcg128_t ham_seed = *(pcg128_t *)&s->digest[SHA256_DIGEST_LENGTH/2];
+    pcg128_t s1_unique, anchor_seed, ham_seed;
+    
+    temp = s->seed1;
+    s1_unique = *(pcg128_t *)temp;
+
+    temp = &s->digest[0];
+    anchor_seed = *(pcg128_t *)temp;
+
+    temp = &s->digest[SHA256_DIGEST_LENGTH/2];
+    ham_seed = *(pcg128_t *)temp;
+
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
     pcg64_srandom_r(&rng_anch, anchor_seed, 6);
     pcg64_srandom_r(&rng_ham, ham_seed, 7);
