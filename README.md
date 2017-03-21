@@ -22,7 +22,7 @@
   2. Move some files around...
 ```
 cp -r Nightingale/openssl-migration/nightgale/ openssl/crypto/nightgale
-cp Nightingale/openssl-migration/e\_night.c openssl/crypto/evp/e\_night.c
+cp Nightingale/openssl-migration/e_night.c openssl/crypto/evp/e_night.c
 cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
 ```
   3. Time to edit some files...
@@ -72,7 +72,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
       cp Nightingale/openssl-migration/night_evp_test.c openssl/
       cp Nightingale/openssl-migration/night_test.c openssl/
       ```
-    * Make the shell script excutable with chmod +x
+    * Make the shell script excutable
       ```
       chmod +x Nightingale/openssl-migration/compile_night_test.sh
       ```
