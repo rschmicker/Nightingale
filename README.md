@@ -20,16 +20,17 @@
     * Nightingale:  wget https://github.com/rschmicker/Nightingale/archive/master.zip
   
   2. Move some files around...
-    * Nightingale/openssl-migration/nightgale/  -> openssl/crypto/nightgale
-    * Nightingale/openssl-migration/e\_night.c  -> openssl/crypto/evp/e\_night.c
-    * Nightingale/openssl-migration/nightgale.h -> openssl/include/openssl/nightgale.h
-
+    ```
+    cp -r Nightingale/openssl-migration/nightgale/ openssl/crypto/nightgale
+    cp Nightingale/openssl-migration/e\_night.c openssl/crypto/evp/e\_night.c
+    cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
+    ```
   3. Time to edit some files...
-    * crypto/evp/build.info to include compiling of e\_night.c
+    * openssl/crypto/evp/build.info to include compiling of e\_night.c
         ```
         e_night.c e_xcbc_d.c e_rc2.c e_cast.c e_rc5.c \
         ```
-    * crypto/evp/c\_allc.c to include loading of cipher:
+    * openssl/crypto/evp/c\_allc.c to include loading of cipher:
         ```C
         void openssl_add_all_ciphers_int(void)
         {
@@ -40,7 +41,7 @@
             EVP_add_cipher(EVP_des_cfb());
             EVP_add_cipher(EVP_des_cfb1());
         ```
-    * crypto/objects/objects.txt to include nightgale cipher around line 864:
+    * openssl/crypto/objects/objects.txt to include nightgale cipher around line 864:
         ```
         #Nightgale
                     : NIGHTGALE : nightgale
@@ -51,26 +52,31 @@
         !Alias nistAlgorithms csor 4
         !Alias aes nistAlgorithms 1
         ```
-    * Configure in openssl root directory to include nightgale in compilation around line 315:
+    * openssl/Configure to include nightgale in compilation around line 315:
         ```
         "md2", "md4", "md5", "nightgale", "sha",
         ```
-    * util/mkdef.pl to include header file for nightgale around line 270:
+    * openssl/util/mkdef.pl to include header file for nightgale around line 270:
         ```perl
         $crypto.=" include/openssl/nightgale.h";
         ```
-    * include/openssl/evp.h to add in EVP\_nightgale() around line 727:
+    * openssl/include/openssl/evp.h to add in EVP\_nightgale() around line 727:
         ```C
         const EVP_CIPHER *EVP_nightgale(void);
         ```
   
   4. Let's give it a test!
-    * Move the following to the root directory of OpenSSL:
-        * Nightingale/openssl-migration/compile_night_test.sh 
-        * Nightingale/openssl-migration/night_evp_test.c 
-        * Nightingale/openssl-migration/night_test.c  
+    * Move the test files into the root directory of openssl:
+	```
+	cp Nightingale/openssl-migration/compile_night_test.sh openssl/
+	cp Nightingale/openssl-migration/night_evp_test.c openssl/
+	cp Nightingale/openssl-migration/night_test.c openssl/
+	```
     * Make the shell script excutable with chmod +x
-    * Run it!
+	```
+	chmod +x Nightingale/openssl-migration/compile_night_test.sh
+	```
+    * Run Nightingale/openssl-migration/compile\_night\_test.sh
         * The test creates a 1GB random buffer
         * Then encrypts and decrypts the buffer
         * Once finished it will compare the original buffer 
