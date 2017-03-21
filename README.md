@@ -20,11 +20,11 @@
     * Nightingale:  wget https://github.com/rschmicker/Nightingale/archive/master.zip
   
   2. Move some files around...
-	```
-    	cp -r Nightingale/openssl-migration/nightgale/ openssl/crypto/nightgale
-    	cp Nightingale/openssl-migration/e\_night.c openssl/crypto/evp/e\_night.c
-    	cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
-    	```
+    ```
+    cp -r Nightingale/openssl-migration/nightgale/ openssl/crypto/nightgale
+    cp Nightingale/openssl-migration/e\_night.c openssl/crypto/evp/e\_night.c
+    cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
+    ```
   3. Time to edit some files...
     * openssl/crypto/evp/build.info to include compiling of e\_night.c
         ```
@@ -73,9 +73,9 @@
       cp Nightingale/openssl-migration/night_test.c openssl/
       ```
     * Make the shell script excutable with chmod +x
-	```
-	chmod +x Nightingale/openssl-migration/compile_night_test.sh
-	```
+      ```
+      chmod +x Nightingale/openssl-migration/compile_night_test.sh
+      ```
     * Run Nightingale/openssl-migration/compile\_night\_test.sh
         * The test creates a 1GB random buffer
         * Then encrypts and decrypts the buffer
