@@ -1,6 +1,6 @@
 diff -rupN openssl-master/compile_night_test.sh openssl/compile_night_test.sh
---- openssl-master/compile_night_test.sh	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/compile_night_test.sh	2017-03-20 19:42:41.933099766 -0400
+--- openssl-master/compile_night_test.sh	1969-12-31 16:00:00.000000000 -0800
++++ openssl/compile_night_test.sh	2017-03-27 12:52:08.594761777 -0700
 @@ -0,0 +1,8 @@
 +rm -f night_test
 +rm -f night_evp_test
@@ -11,8 +11,8 @@ diff -rupN openssl-master/compile_night_test.sh openssl/compile_night_test.sh
 +LD_LIBRARY_PATH=. ./night_evp_test && \
 +LD_LIBRARY_PATH=. ./apps/openssl speed -elapsed -evp nightgale
 diff -rupN openssl-master/Configure openssl/Configure
---- openssl-master/Configure	2017-03-20 17:09:57.000000000 -0400
-+++ openssl/Configure	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/Configure	2017-03-27 12:09:06.000000000 -0700
++++ openssl/Configure	2017-03-27 12:52:08.598761694 -0700
 @@ -310,7 +310,7 @@ $config{dirs} = [ "crypto", "ssl", "engi
  # crypto/ subdirectories to build
  $config{sdirs} = [
@@ -23,8 +23,8 @@ diff -rupN openssl-master/Configure openssl/Configure
      "bn", "ec", "rsa", "dsa", "dh", "dso", "engine",
      "buffer", "bio", "stack", "lhash", "rand", "err",
 diff -rupN openssl-master/crypto/evp/build.info openssl/crypto/evp/build.info
---- openssl-master/crypto/evp/build.info	2017-03-20 17:09:57.000000000 -0400
-+++ openssl/crypto/evp/build.info	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/evp/build.info	2017-03-27 12:09:06.000000000 -0700
++++ openssl/crypto/evp/build.info	2017-03-27 12:52:08.598761694 -0700
 @@ -3,7 +3,7 @@ SOURCE[../../libcrypto]=\
          encode.c digest.c evp_enc.c evp_key.c evp_cnf.c \
          e_des.c e_bf.c e_idea.c e_des3.c e_camellia.c\
@@ -35,8 +35,8 @@ diff -rupN openssl-master/crypto/evp/build.info openssl/crypto/evp/build.info
          m_md5_sha1.c m_mdc2.c m_ripemd.c \
          p_open.c p_seal.c p_sign.c p_verify.c p_lib.c p_enc.c p_dec.c \
 diff -rupN openssl-master/crypto/evp/c_allc.c openssl/crypto/evp/c_allc.c
---- openssl-master/crypto/evp/c_allc.c	2017-03-20 17:09:57.000000000 -0400
-+++ openssl/crypto/evp/c_allc.c	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/evp/c_allc.c	2017-03-27 12:09:06.000000000 -0700
++++ openssl/crypto/evp/c_allc.c	2017-03-27 12:52:08.598761694 -0700
 @@ -16,7 +16,8 @@
  
  void openssl_add_all_ciphers_int(void)
@@ -48,8 +48,8 @@ diff -rupN openssl-master/crypto/evp/c_allc.c openssl/crypto/evp/c_allc.c
      EVP_add_cipher(EVP_des_cfb());
      EVP_add_cipher(EVP_des_cfb1());
 diff -rupN openssl-master/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
---- openssl-master/crypto/evp/e_night.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/evp/e_night.c	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/evp/e_night.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/evp/e_night.c	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,58 @@
 +#include <stdio.h>
 +#include <openssl/evp.h>
@@ -110,15 +110,15 @@ diff -rupN openssl-master/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
 +}
 +
 diff -rupN openssl-master/crypto/nightgale/build.info openssl/crypto/nightgale/build.info
---- openssl-master/crypto/nightgale/build.info	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/build.info	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/nightgale/build.info	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/build.info	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,3 @@
 +LIBS=../../libcrypto
 +SOURCE[../../libcrypto]=\
 +sub_t.c nightgale_c.c
 diff -rupN openssl-master/crypto/nightgale/nightgale_c.c openssl/crypto/nightgale/nightgale_c.c
---- openssl-master/crypto/nightgale/nightgale_c.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/nightgale_c.c	2017-03-20 19:43:06.729491768 -0400
+--- openssl-master/crypto/nightgale/nightgale_c.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/nightgale_c.c	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,98 @@
 +#include "nightgale_c.h"
 +
@@ -219,8 +219,8 @@ diff -rupN openssl-master/crypto/nightgale/nightgale_c.c openssl/crypto/nightgal
 +}
 +
 diff -rupN openssl-master/crypto/nightgale/nightgale_c.h openssl/crypto/nightgale/nightgale_c.h
---- openssl-master/crypto/nightgale/nightgale_c.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/nightgale_c.h	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/nightgale/nightgale_c.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/nightgale_c.h	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,32 @@
 +#ifndef HEADER_NIGHTGALE_H
 +#define HEADER_NIGHTGALE_H
@@ -255,8 +255,8 @@ diff -rupN openssl-master/crypto/nightgale/nightgale_c.h openssl/crypto/nightgal
 +#endif
 +
 diff -rupN openssl-master/crypto/nightgale/pcg_variants.h openssl/crypto/nightgale/pcg_variants.h
---- openssl-master/crypto/nightgale/pcg_variants.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/pcg_variants.h	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/nightgale/pcg_variants.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/pcg_variants.h	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,351 @@
 +/*
 + * PCG Random Number Generation for C.
@@ -610,8 +610,8 @@ diff -rupN openssl-master/crypto/nightgale/pcg_variants.h openssl/crypto/nightga
 +#endif // PCG_VARIANTS_H_INCLUDED
 +
 diff -rupN openssl-master/crypto/nightgale/sub_t.c openssl/crypto/nightgale/sub_t.c
---- openssl-master/crypto/nightgale/sub_t.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/sub_t.c	2017-03-20 19:43:19.695971767 -0400
+--- openssl-master/crypto/nightgale/sub_t.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/sub_t.c	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,170 @@
 +#include "sub_t.h"
 +
@@ -784,8 +784,8 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.c openssl/crypto/nightgale/sub_
 +}
 +
 diff -rupN openssl-master/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_t.h
---- openssl-master/crypto/nightgale/sub_t.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/sub_t.h	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/nightgale/sub_t.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/sub_t.h	2017-03-27 12:52:08.598761694 -0700
 @@ -0,0 +1,96 @@
 +#ifndef HEADER_SUB_H
 +#define HEADER_SUB_H
@@ -883,9 +883,58 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_
 +
 +#endif
 +
+diff -rupN openssl-master/crypto/objects/obj_dat.h openssl/crypto/objects/obj_dat.h
+--- openssl-master/crypto/objects/obj_dat.h	2017-03-27 12:09:06.000000000 -0700
++++ openssl/crypto/objects/obj_dat.h	2017-03-27 12:53:04.161620848 -0700
+@@ -978,7 +978,7 @@ static const unsigned char so[6900] = {
+     0x2A,0x83,0x1A,0x8C,0x9A,0x6E,0x01,0x01,0x0F,  /* [ 6890] OBJ_aria_256_ctr */
+ };
+ 
+-#define NUM_NID 1086
++#define NUM_NID 1087
+ static const ASN1_OBJECT nid_objs[NUM_NID] = {
+     {"UNDEF", "undefined", NID_undef},
+     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
+@@ -2066,9 +2066,10 @@ static const ASN1_OBJECT nid_objs[NUM_NI
+     {"ARIA-128-CFB8", "aria-128-cfb8", NID_aria_128_cfb8},
+     {"ARIA-192-CFB8", "aria-192-cfb8", NID_aria_192_cfb8},
+     {"ARIA-256-CFB8", "aria-256-cfb8", NID_aria_256_cfb8},
++    {"NIGHTGALE", "nightgale", NID_nightgale},
+ };
+ 
+-#define NUM_SN 1077
++#define NUM_SN 1078
+ static const unsigned int sn_objs[NUM_SN] = {
+      364,    /* "AD_DVCS" */
+      419,    /* "AES-128-CBC" */
+@@ -2242,6 +2243,7 @@ static const unsigned int sn_objs[NUM_SN
+       95,    /* "MDC2" */
+      911,    /* "MGF1" */
+      388,    /* "Mail" */
++    1086,    /* "NIGHTGALE" */
+      393,    /* "NULL" */
+      404,    /* "NULL" */
+       57,    /* "Netscape" */
+@@ -3149,7 +3151,7 @@ static const unsigned int sn_objs[NUM_SN
+      160,    /* "x509Crl" */
+ };
+ 
+-#define NUM_LN 1077
++#define NUM_LN 1078
+ static const unsigned int ln_objs[NUM_LN] = {
+      363,    /* "AD Time Stamping" */
+      405,    /* "ANSI X9.62" */
+@@ -3903,6 +3905,7 @@ static const unsigned int ln_objs[NUM_LN
+      488,    /* "mobileTelephoneNumber" */
+      481,    /* "nSRecord" */
+      173,    /* "name" */
++    1086,    /* "nightgale" */
+      681,    /* "onBasis" */
+      379,    /* "org" */
+       17,    /* "organizationName" */
 diff -rupN openssl-master/crypto/objects/objects.txt openssl/crypto/objects/objects.txt
---- openssl-master/crypto/objects/objects.txt	2017-03-20 17:09:57.000000000 -0400
-+++ openssl/crypto/objects/objects.txt	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/crypto/objects/objects.txt	2017-03-27 12:09:06.000000000 -0700
++++ openssl/crypto/objects/objects.txt	2017-03-27 12:52:08.598761694 -0700
 @@ -861,6 +861,9 @@ mime-mhs-headings 2	: id-hex-multipart-m
  !Cname zlib-compression
  id-smime-alg 8		: ZLIB			: zlib compression
@@ -896,9 +945,18 @@ diff -rupN openssl-master/crypto/objects/objects.txt openssl/crypto/objects/obje
  # AES aka Rijndael
  
  !Alias csor 2 16 840 1 101 3
+diff -rupN openssl-master/crypto/objects/obj_mac.num openssl/crypto/objects/obj_mac.num
+--- openssl-master/crypto/objects/obj_mac.num	2017-03-27 12:09:06.000000000 -0700
++++ openssl/crypto/objects/obj_mac.num	2017-03-27 12:53:04.113621834 -0700
+@@ -1083,3 +1083,4 @@ aria_256_cfb1		1082
+ aria_128_cfb8		1083
+ aria_192_cfb8		1084
+ aria_256_cfb8		1085
++nightgale		1086
+Binary files openssl-master/encrypt7.bin and openssl/encrypt7.bin differ
 diff -rupN openssl-master/include/openssl/evp.h openssl/include/openssl/evp.h
---- openssl-master/include/openssl/evp.h	2017-03-20 17:09:57.000000000 -0400
-+++ openssl/include/openssl/evp.h	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/include/openssl/evp.h	2017-03-27 12:09:06.000000000 -0700
++++ openssl/include/openssl/evp.h	2017-03-27 12:52:08.602761613 -0700
 @@ -664,6 +664,9 @@ __owur int BIO_set_cipher(BIO *b, const
                            const unsigned char *i, int enc);
  
@@ -910,8 +968,8 @@ diff -rupN openssl-master/include/openssl/evp.h openssl/include/openssl/evp.h
  const EVP_MD *EVP_md2(void);
  # endif
 diff -rupN openssl-master/include/openssl/nightgale.h openssl/include/openssl/nightgale.h
---- openssl-master/include/openssl/nightgale.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/include/openssl/nightgale.h	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/include/openssl/nightgale.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/include/openssl/nightgale.h	2017-03-27 12:52:08.602761613 -0700
 @@ -0,0 +1,62 @@
 +/*
 + * Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
@@ -975,9 +1033,23 @@ diff -rupN openssl-master/include/openssl/nightgale.h openssl/include/openssl/ni
 +}
 +#endif
 +
+diff -rupN openssl-master/include/openssl/obj_mac.h openssl/include/openssl/obj_mac.h
+--- openssl-master/include/openssl/obj_mac.h	2017-03-27 12:09:06.000000000 -0700
++++ openssl/include/openssl/obj_mac.h	2017-03-27 12:53:04.117621751 -0700
+@@ -2603,6 +2603,10 @@
+ #define NID_zlib_compression            125
+ #define OBJ_zlib_compression            OBJ_id_smime_alg,8L
+ 
++#define SN_nightgale            "NIGHTGALE"
++#define LN_nightgale            "nightgale"
++#define NID_nightgale           1086
++
+ #define OBJ_csor                2L,16L,840L,1L,101L,3L
+ 
+ #define OBJ_nistAlgorithms              OBJ_csor,4L
 diff -rupN openssl-master/night_evp_test.c openssl/night_evp_test.c
---- openssl-master/night_evp_test.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/night_evp_test.c	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/night_evp_test.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/night_evp_test.c	2017-03-27 12:52:08.602761613 -0700
 @@ -0,0 +1,162 @@
 +#include <openssl/conf.h>
 +#include <openssl/evp.h>
@@ -1142,8 +1214,8 @@ diff -rupN openssl-master/night_evp_test.c openssl/night_evp_test.c
 +
 +
 diff -rupN openssl-master/night_test.c openssl/night_test.c
---- openssl-master/night_test.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/night_test.c	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/night_test.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/night_test.c	2017-03-27 12:52:13.778655354 -0700
 @@ -0,0 +1,70 @@
 +#include <string.h>
 +#include <assert.h>
@@ -1215,9 +1287,65 @@ diff -rupN openssl-master/night_test.c openssl/night_test.c
 +    return 0;
 +}
 +
+diff -rupN openssl-master/private.pem openssl/private.pem
+--- openssl-master/private.pem	1969-12-31 16:00:00.000000000 -0800
++++ openssl/private.pem	2017-03-27 12:55:51.354186102 -0700
+@@ -0,0 +1,27 @@
++-----BEGIN RSA PRIVATE KEY-----
++MIIEpAIBAAKCAQEAsFPmw/3txZi/Y78r56z9yaW/30rURYEYcdqEDn/MVnEo8NSQ
++bHdwi0WHXhvyxpd4YFAgegAtx1Eufz8XcurMSkooDulAhrKmG4VYhzlOtxtx0Fsb
++AzO0HjK2TqGUMGZb/WrVA40p600jXP1hCXWUKWkU99CML3YIVWppNNRb0fM8cNUh
++7PEb+BdQMi+dFjepT+CrW8NdVmXUs4xa+799WndGdA+LP5lHk+iQw/0PVv10Ucta
++QJJ/Cb5U4xUwHJ2ROdXyV4a1K93UxU8zT9wXlVIajX0C3fvATTNoNW1aACLOyhac
++vZ8Dqt7dkwyqMk/en2MM247poYCs8B0CT3HnJQIDAQABAoIBABIDUDS/cRXZh9vB
++wNN3Caoa46IE+/BpwryGzSzKA27lOoB3xpU+EmI35R9JDaEaAjMcnGS6NfMBqRVY
++taWItPv13WfAjlX0VCHFmoid4xuzkwns9LJ8Cq93EMaxnPjgzA70ZfRp7FlcVPt/
++6vTTbSJZ2MmEJX4Hucw4Ba1e8E5fNjODZikYs/oOq4nVSs1mzBOsylN7uS/1XY52
++4LGheUMSKAS1Sjoj9e4Uud/7iPWZnwfOwpK98TbqfP1X0hq4cVJyG4aZsqoYNwOx
++4k2NnlJaRARQRdJ2hz7dKD81O29dEpY1r/DDmM4VtL1k6PulYA8WFrCj8BYLNpAo
++RysHUsECgYEA6oJKpgzV46puykYQPt0ztGJv4a77iGm8SeZPIQ7pIdexKIFIYyhL
++iEkTVQZDhMhGvQuBotWJIBzKf2J6K/RFY8R8sUvYg3j39YfiOnpVqxgxTTEga1O3
++2x0P6TLTya5ptVHeaP8DWDnIA1LvwtX5AC/hDFvuCmDfQespgp/nHJECgYEAwHyl
++kYmA7cmjQwaW38h1qCDpzzV6THeO1S4dyfwMqKc8iPry8OXa/mu690TXI6e8sfFy
++bMJjukfHI1J1y0cazgWaLrPqtsXx39ruBgwrYpYc7RNkuznM1bmgEdQCHmMQPqAq
++0DHzNjfAcUjh9yGrWMcke0ocMs1VQ5UTCEIgO1UCgYAyj5jsqEPNbEeq0ORbyXGG
++aNrae9G7naB9Bmz1IbPeGhUWOJmU13FBlw/V+x2/mTa3N63hn8yK4eo/AMp6g5Ya
++ZpjD2Sh7YC+F/qAmH44s73Bhxj/JJCm10lRF4TGMgFBGSbp8RM9BzGN1ZAJRrbSb
++97a75W4zSqOYIM24XiWEIQKBgQCMg/HR9pEaBVKbgVnub0YEwFIuo5lt7PFmCk5Q
++vyD2lW8JiDiFRybBCB/qlmR/cNm9BMdFQfrPZ8qlrHK1PGkC8PAHG+xCFOpnQkj0
++PToGtBLVtoyYaK9xbhq+KQiK6kJXlVDrvysO71Aa4tuiLwAIxQeKwSUoqOCPf2nv
++Y2ZoKQKBgQCpJ7MA4oQFF9Xe+dssnaMjJJCICnA3tC9VL7q6eGYoIUV4/WC+HVGh
++HwYEX9yg3mWMeRnoML2tWYQ9D/H819kFpvsC1/SL1eg+z2NwlrVn73qp2KLpDsAs
++6FK1V7y35JjSfwf6+u8YWGZuM8t/DYpwFMS8F3rEKvTRuhH9wm/ORg==
++-----END RSA PRIVATE KEY-----
+diff -rupN openssl-master/ssl/ssl_init.c openssl/ssl/ssl_init.c
+--- openssl-master/ssl/ssl_init.c	2017-03-27 12:09:06.000000000 -0700
++++ openssl/ssl/ssl_init.c	2017-03-27 12:52:13.778655354 -0700
+@@ -28,6 +28,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_bas
+     fprintf(stderr, "OPENSSL_INIT: ossl_init_ssl_base: "
+             "Adding SSL ciphers and digests\n");
+ #endif
++
++    EVP_add_cipher(EVP_nightgale());
++
+ #ifndef OPENSSL_NO_DES
+     EVP_add_cipher(EVP_des_cbc());
+     EVP_add_cipher(EVP_des_ede3_cbc());
+diff -rupN openssl-master/util/libcrypto.num openssl/util/libcrypto.num
+--- openssl-master/util/libcrypto.num	2017-03-27 12:09:06.000000000 -0700
++++ openssl/util/libcrypto.num	2017-03-27 12:53:05.449594397 -0700
+@@ -4254,3 +4254,8 @@ EVP_aria_128_ctr
+ EVP_aria_192_ctr                        4205	1_1_1	EXIST::FUNCTION:ARIA
+ UI_null                                 4206	1_1_1	EXIST::FUNCTION:UI
+ EC_KEY_get0_engine                      4207	1_1_1	EXIST::FUNCTION:EC
++nightgale_enc_set_key                   4208	1_1_1	EXIST::FUNCTION:
++nightgale_dec_set_key                   4209	1_1_1	EXIST::FUNCTION:
++encrypt_night                           4210	1_1_1	EXIST::FUNCTION:
++EVP_nightgale                           4211	1_1_1	EXIST::FUNCTION:
++decrypt_night                           4212	1_1_1	EXIST::FUNCTION:
 diff -rupN openssl-master/util/mkdef.pl openssl/util/mkdef.pl
---- openssl-master/util/mkdef.pl	2017-03-20 17:09:57.000000000 -0400
-+++ openssl/util/mkdef.pl	2017-03-20 19:42:41.937101767 -0400
+--- openssl-master/util/mkdef.pl	2017-03-27 12:09:06.000000000 -0700
++++ openssl/util/mkdef.pl	2017-03-27 12:52:13.778655354 -0700
 @@ -257,6 +257,8 @@ $crypto.=" include/openssl/aes.h" ; # un
  $crypto.=" include/openssl/camellia.h" ; # unless $no_camellia;
  $crypto.=" include/openssl/seed.h"; # unless $no_seed;
