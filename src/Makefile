@@ -1,8 +1,11 @@
 #.PHONY: clean distclean
 #DEBUG=-g -O0
-DEBUG=-O3
+DEBUG=-g -O3
+#DEBUG=-O3
+#DEBUG=-O1
 
-COPTIONS=-std=c99 -I/usr/local/openssl/include/openssl/ -Wall -Wextra
+#COPTIONS=-std=c99 -I/usr/local/openssl/include/openssl/ -Wall -Wextra
+COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/ -Dpcg64_random_t=char -Dpcg128_t=char -DUNIT_TEST=1
 COPTIONS_UT=-std=c99 -I/usr/local/openssl/include/openssl/ -Dpcg64_random_t=char -Dpcg128_t=char -DUNIT_TEST=1
 
 LDOPTIONS=-lcrypto

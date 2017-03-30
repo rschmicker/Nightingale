@@ -34,7 +34,7 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
 
     unsigned char *pre_sub;
     uint64_t decimal_word;
-
+    
     // Encrypt buffers
     root = anchor;
     for(size_t i = 0; i < word_count; ++i){

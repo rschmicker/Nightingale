@@ -1,0 +1,3 @@
+LIBS=../../libcrypto
+SOURCE[../../libcrypto]=\
+sub_t.c nightgale_c.c
