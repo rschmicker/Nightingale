@@ -598,6 +598,10 @@ int ssl_cipher_get_evp(const SSL_SESSION *s, const EVP_CIPHER **enc,
                  c->algorithm_mac == SSL_SHA256 &&
                  (evp = EVP_get_cipherbyname("AES-256-CBC-HMAC-SHA256")))
             *enc = evp, *md = NULL;
+        else if (c->algorithm_enc == SSL_NIGHTGALE &&
+                 c->algorithm_mac == SSL_SHA384 &&
+                 (evp = EVP_get_cipherbyname("NIGHTGALE")))
+            *enc = evp, *md = NULL;
         return (1);
     } else
         return (0);
