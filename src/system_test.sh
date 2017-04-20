@@ -5,6 +5,8 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 GREEN='\033[0;32m'
 
+PROG=nightgale
+
 # Remove the previous performance data to avoid confusion
 rm perf.txt 2>/dev/null 1>&2
 
@@ -53,7 +55,7 @@ echo "Hello!" > under.txt
 echo "Testing 1GB random file..."
 echo "=========================================================" >> perf.txt
 echo "Testing 1GB random file..." >> perf.txt
-./main randomfile1GB >> perf.txt
+./${PROG} randomfile1GB >> perf.txt
 if ! diff -q randomfile1GB decrypted_file.txt > /dev/null  2>&1; then
   echo "	${RED}1GB random file failed!${NC}"
 else
@@ -64,7 +66,7 @@ echo "=========================================================" >> perf.txt
 echo "Testing zero file..."
 echo "=========================================================" >> perf.txt
 echo "Testing zero file..." >> perf.txt
-./main zerofile1GB >> perf.txt
+./${PROG} zerofile1GB >> perf.txt
 if ! diff -q zerofile1GB decrypted_file.txt > /dev/null  2>&1; then
   echo "	${RED}1GB zero file failed!${NC}"
 else
@@ -75,7 +77,7 @@ echo "=========================================================" >> perf.txt
 echo "Testing empty file..."
 echo "=========================================================" >> perf.txt
 echo "Testing empty file..." >> perf.txt
-./main empty.txt >> perf.txt
+./${PROG} empty.txt >> perf.txt
 if ! diff -q empty.txt decrypted_file.txt > /dev/null  2>&1; then
   echo "	${RED}empty file failed!${NC}"
 else
@@ -86,7 +88,7 @@ echo "=========================================================" >> perf.txt
 echo "Testing over file..."
 echo "=========================================================" >> perf.txt
 echo "Testing over file..." >> perf.txt
-./main over.txt >> perf.txt
+./${PROG} over.txt >> perf.txt
 if ! diff -q over.txt decrypted_file.txt > /dev/null  2>&1; then
   echo "	${RED}over file failed!${NC}"
 else
@@ -97,7 +99,7 @@ echo "=========================================================" >> perf.txt
 echo "Testing under file..."
 echo "=========================================================" >> perf.txt
 echo "Testing under file..." >> perf.txt
-./main under.txt >> perf.txt
+./${PROG} under.txt >> perf.txt
 if ! diff -q under.txt decrypted_file.txt > /dev/null  2>&1; then
   echo "	${RED}under file failed!${NC}"
 else
@@ -107,7 +109,7 @@ echo "=========================================================" >> perf.txt
 
 # Cleanup
 echo "Cleaning up..."
-rm empty.txt randomfile1GB zerofile1GB private.pem over.txt under.txt
+rm empty.txt randomfile1GB zerofile1GB private.pem over.txt under.txt ${PROG}
 make clean
 
 echo "Done!"

@@ -60,7 +60,7 @@ int OpenConnection(const char *hostname, int port)
 }
 
 SSL_CTX* InitCTX(void)
-{   SSL_METHOD *method;
+{   const SSL_METHOD *method;
     SSL_CTX *ctx;
 
     OpenSSL_add_all_algorithms();  /* Load cryptos, et.al. */
@@ -69,7 +69,7 @@ SSL_CTX* InitCTX(void)
     ctx = SSL_CTX_new(method);   /* Create new context */
 
     /* Set Nightingale as the cipher to use */
-    if (SSL_CTX_set_cipher_list(ctx, "ECDHE-ECDSA-NIGHTGALE-SHA384") <= 0) {
+    if (SSL_CTX_set_cipher_list(ctx, "TLS13-AES-256-GCM-SHA384") <= 0) {//"TLS13-NIGHTGALE-SHA384") <= 0) {
         printf("Error setting the cipher list.\n");
         exit(0);
     }
