@@ -1,11 +1,11 @@
-PATCH=nightgale-0.9.patch
+PATCH=nightgale-ssl-0.9.patch
 
 wget https://github.com/openssl/openssl/archive/master.zip && \
 unzip master.zip && \
 cp $PATCH openssl-master/ && \
 cd openssl-master/ && \
 patch -p1 < $PATCH && \
-./config no-asm -g3 -O1 -fno-omit-frame-pointer && \
+./config && \
 make update && \
 make -j 12 && \
 gcc -I./include -L. -Wextra -Wall -o night_evp_test night_evp_test.c -lcrypto && \
