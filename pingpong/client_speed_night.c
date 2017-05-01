@@ -9,8 +9,19 @@
 #include <netdb.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include "mysecond.h"
+#include <stdlib.h>
+#include <sys/time.h>
 
 #define FAIL    -1
+
+
+double mysecond()
+{
+    struct timeval tp;
+    gettimeofday(&tp, (void *)NULL);
+    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+}
 
     //Added the LoadCertificates how in the server-side makes.    
 void LoadCertificates(SSL_CTX* ctx, char* CertFile, char* KeyFile)
@@ -69,7 +80,7 @@ SSL_CTX* InitCTX(void)
     ctx = SSL_CTX_new(method);   /* Create new context */
 
     /* Set Nightingale as the cipher to use */
-    if (SSL_CTX_set_cipher_list(ctx, "ECDHE-RSA-NIGHTGALE-SHA384") <= 0) {//"TLS13-NIGHTGALE-SHA384") <= 0) {
+    if (SSL_CTX_set_cipher_list(ctx, "ECDHE-RSA-NIGHTGALE-SHA384") <= 0) {
         printf("Error setting the cipher list.\n");
         exit(0);
     }
@@ -107,7 +118,8 @@ int main(int argc, char **argv)
 {   SSL_CTX *ctx;
     int server;
     SSL *ssl;
-    char buf[1024];
+    size_t length = 1024 * 1024 * 1024;
+    unsigned char *buf = calloc(sizeof(unsigned char), length);
     int bytes;
     char hostname[]="127.0.0.1";
     char* portnum=argv[1];
@@ -129,9 +141,34 @@ int main(int argc, char **argv)
         printf("Connected with %s encryption\n", SSL_get_cipher(ssl));
         ShowCerts(ssl);        /* get any certs */
         SSL_write(ssl, msg, strlen(msg));   /* encrypt & send message */
-        bytes = SSL_read(ssl, buf, sizeof(buf)); /* get reply & decrypt */
-        buf[bytes] = 0;
-        printf("Received: \"%s\"\n", buf);
+        printf("Receiving...\n");
+	double t1;
+	
+	int current_length = 0;
+	int counter = 0;
+	int chunk_size = 16 * 1024;
+
+	t1 = mysecond();
+	while(current_length < length){
+	    bytes = SSL_read(ssl, (buf + (counter * chunk_size)), chunk_size); /* get reply & decrypt */
+	    int check = bytes;
+	    if (check <= 0) {
+		ERR_print_errors_fp(stderr);
+		exit(0);
+	    }
+	    else {
+		current_length += check;
+		counter++;
+	    }
+	    
+	}        
+        t1 = mysecond() - t1;
+	double rate = (((double)length)/1000000000.)/t1;
+	buf[bytes] = 0;
+        printf("Received \"%d\" bytes!\n", current_length);
+	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    	printf("Transfer Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
+    	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
         SSL_free(ssl);        /* release connection state */
     }
     close(server);         /* close socket */
