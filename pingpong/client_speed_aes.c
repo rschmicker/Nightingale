@@ -79,6 +79,12 @@ SSL_CTX* InitCTX(void)
     method = SSLv23_client_method();  /* Create new client-method instance */
     ctx = SSL_CTX_new(method);   /* Create new context */
 
+    /* Set the cipher to use */
+    if (SSL_CTX_set_cipher_list(ctx, "ECDHE-RSA-AES256-SHA384") <= 0) {
+        printf("Error setting the cipher list.\n");
+        exit(0);
+    }
+
     if ( ctx == NULL )
     {
         ERR_print_errors_fp(stderr);
