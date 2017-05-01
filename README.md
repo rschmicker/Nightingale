@@ -97,129 +97,129 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         const EVP_CIPHER *EVP_nightgale(void);
         ```
     * openssl/ssl/ssl\_ciph.c to begin integrating Nightingale around line 71:
-	```
-	#define SSL_ENC_CHACHA_IDX      19
-	#define SSL_ENC_NIGHTGALE       20
-	#define SSL_ENC_NUM_IDX         21
-	``` 
+        ```
+        #define SSL_ENC_CHACHA_IDX      19
+        #define SSL_ENC_NIGHTGALE       20
+        #define SSL_ENC_NUM_IDX         21
+        ``` 
     * openssl/ssl/ssl\_ciph.c to add mapping of SSL\_NIGHTGALE to its NID around line 103:
-	```
-	{SSL_CHACHA20POLY1305, NID_chacha20_poly1305},
-    	{SSL_NIGHTGALE, NID_nightgale},
-	};
-	```
+        ```
+        {SSL_CHACHA20POLY1305, NID_chacha20_poly1305},
+        {SSL_NIGHTGALE, NID_nightgale},
+        };
+        ```
 
     * openssl/ssl/ssl\_ciph.c to include Nightingale's alias around line 301:
-	```
-	{0, SSL_TXT_CHACHA20, 0, 0, 0, SSL_CHACHA20},
-    	{0, SSL_TXT_NIGHTGALE, 0, 0, 0, SSL_NIGHTGALE},
-	``` 
+        ```
+        {0, SSL_TXT_CHACHA20, 0, 0, 0, SSL_CHACHA20},
+        {0, SSL_TXT_NIGHTGALE, 0, 0, 0, SSL_NIGHTGALE},
+        ``` 
  
     * openssl/ssl/ssl\_ciph.c to add Nightingale's cipher description around line 1669:
-	```
-	case SSL_CHACHA20POLY1305:
+        ```
+        case SSL_CHACHA20POLY1305:
             enc = "CHACHA20/POLY1305(256)";
             break;
-    	case SSL_NIGHTGALE:
+        case SSL_NIGHTGALE:
             enc = "NIGHTGALE";
             break;
-    	default:
+        default:
             enc = "unknown";
             break;
-    	}
-	```
+        }
+        ```
 
     * openssl/ssl/ssl\_init.c to load the EVP instance around line 32:
-	```
-	static int ssl_base_inited = 0;
-	DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_base)
-	{
-	#ifdef OPENSSL_INIT_DEBUG
-    	    fprintf(stderr, "OPENSSL_INIT: ossl_init_ssl_base: "
+        ```
+        static int ssl_base_inited = 0;
+        DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_base)
+        {
+        #ifdef OPENSSL_INIT_DEBUG
+            fprintf(stderr, "OPENSSL_INIT: ossl_init_ssl_base: "
                     "Adding SSL ciphers and digests\n");
-	#endif
+        #endif
 
-    	    EVP_add_cipher(EVP_nightgale());
+            EVP_add_cipher(EVP_nightgale());
 
-	#ifndef OPENSSL_NO_DES
-    	    EVP_add_cipher(EVP_des_cbc());
-    	    EVP_add_cipher(EVP_des_ede3_cbc());
-	```
+        #ifndef OPENSSL_NO_DES
+            EVP_add_cipher(EVP_des_cbc());
+            EVP_add_cipher(EVP_des_ede3_cbc());
+        ```
 
     * openssl/include/openssl/ssl.h to create the cipher's SSL macro around line 160:
-	```
-	# define SSL_TXT_GOST            "GOST89"
+        ```
+        # define SSL_TXT_GOST            "GOST89"
 
-	# define SSL_TXT_NIGHTGALE       "NIGHTGALE"
+        # define SSL_TXT_NIGHTGALE       "NIGHTGALE"
 
-	# define SSL_TXT_MD5             "MD5"
-	```
+        # define SSL_TXT_MD5             "MD5"
+        ```
 
     * openssl/include/openssl/tls1.h to define Nightingale's CK macro around line 605:
-	```
-	# define TLS1_CK_ECDHE_PSK_WITH_NULL_SHA384              0x0300C03B
+        ```
+        # define TLS1_CK_ECDHE_PSK_WITH_NULL_SHA384              0x0300C03B
 
-	/* Nightingale ciphersuite */
-	# define TLS1_CK_ECDHE_RSA_WITH_NIGHTGALE_SHA384         0x0300C03C
+        /* Nightingale ciphersuite */
+        # define TLS1_CK_ECDHE_RSA_WITH_NIGHTGALE_SHA384         0x0300C03C
 
-	/* Camellia-CBC ciphersuites from RFC6367 */
-	# define TLS1_CK_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 0x0300C072
-	```
+        /* Camellia-CBC ciphersuites from RFC6367 */
+        # define TLS1_CK_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 0x0300C072
+        ```
 
     * openssl/include/openssl/tls1.h to define Nightgale's TXT macro around line 739:
-	```
-	# define TLS1_TXT_RSA_PSK_WITH_NULL_SHA384               "RSA-PSK-NULL-SHA384"
+        ```
+        # define TLS1_TXT_RSA_PSK_WITH_NULL_SHA384               "RSA-PSK-NULL-SHA384"
 
-	/* Nightgale ciphersuite */
-	# define TLS1_TXT_ECDHE_RSA_WITH_NIGHTGALE_SHA384        "ECDHE-RSA-NIGHTGALE-SHA384"
+        /* Nightgale ciphersuite */
+        # define TLS1_TXT_ECDHE_RSA_WITH_NIGHTGALE_SHA384        "ECDHE-RSA-NIGHTGALE-SHA384"
 
-	/* SRP ciphersuite from RFC 5054 */
-	# define TLS1_TXT_SRP_SHA_WITH_3DES_EDE_CBC_SHA          "SRP-3DES-EDE-CBC-SHA"
-	```
+        /* SRP ciphersuite from RFC 5054 */
+        # define TLS1_TXT_SRP_SHA_WITH_3DES_EDE_CBC_SHA          "SRP-3DES-EDE-CBC-SHA"
+        ```
 
     * openssl/ssl/s3\_lib.c to add the heart of the ciphersuite around line 1232:
-	```
-	{
-     	1,
-     	TLS1_TXT_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-     	TLS1_CK_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-     	SSL_kECDHE,
-     	SSL_aRSA,
-     	SSL_AES256GCM,
-     	SSL_AEAD,
-     	TLS1_2_VERSION, TLS1_2_VERSION,
-     	DTLS1_2_VERSION, DTLS1_2_VERSION,
-     	SSL_HIGH | SSL_FIPS,
-     	SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
-     	256,
-     	256,
-     	},
-    	{
-     	1,
-     	TLS1_TXT_ECDHE_RSA_WITH_NIGHTGALE_SHA384,
-     	TLS1_CK_ECDHE_RSA_WITH_NIGHTGALE_SHA384,
-     	SSL_kECDHE,
-    	SSL_aRSA,
-     	SSL_NIGHTGALE,
-     	SSL_SHA384,
-     	TLS1_VERSION, TLS1_2_VERSION,
-     	DTLS1_VERSION, DTLS1_2_VERSION,
-     	SSL_HIGH | SSL_FIPS,
-     	SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
-     	512,
-     	512,
-     	},
+        ```
+        {
+        1,
+        TLS1_TXT_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+        TLS1_CK_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+        SSL_kECDHE,
+        SSL_aRSA,
+        SSL_AES256GCM,
+        SSL_AEAD,
+        TLS1_2_VERSION, TLS1_2_VERSION,
+        DTLS1_2_VERSION, DTLS1_2_VERSION,
+        SSL_HIGH | SSL_FIPS,
+        SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
+        256,
+        256,
+        },
+        {
+        1,
+        TLS1_TXT_ECDHE_RSA_WITH_NIGHTGALE_SHA384,
+        TLS1_CK_ECDHE_RSA_WITH_NIGHTGALE_SHA384,
+        SSL_kECDHE,
+        SSL_aRSA,
+        SSL_NIGHTGALE,
+        SSL_SHA384,
+        TLS1_VERSION, TLS1_2_VERSION,
+        DTLS1_VERSION, DTLS1_2_VERSION,
+        SSL_HIGH | SSL_FIPS,
+        SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
+        512,
+        512,
+        },
 
-	#endif                          /* OPENSSL_NO_EC */
-	```
+        #endif                          /* OPENSSL_NO_EC */
+        ```
 
     * openssl/ssl/ssl\_locl.h to define Nightingale's SSL macro around line 261:
-	```
-	# define SSL_CHACHA20POLY1305    0x00080000U
-	# define SSL_NIGHTGALE           0x00100000U
+        ```
+        # define SSL_CHACHA20POLY1305    0x00080000U
+        # define SSL_NIGHTGALE           0x00100000U
 
-	# define SSL_AESGCM              (SSL_AES128GCM | SSL_AES256GCM)
-	```
+        # define SSL_AESGCM              (SSL_AES128GCM | SSL_AES256GCM)
+        ```
 
   4. Let's give it a test!
     * Move the test files into the root directory of openssl:
