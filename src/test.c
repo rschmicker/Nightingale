@@ -8,7 +8,6 @@ int main(){
     printf("1GB random check\n");
     size_t length = 1024 * 1024 * 1024;
 
-    // Create buffer for message if padding is necessary
     printf("Creating 1GB random buffer...\n");
     unsigned char *plain = calloc(sizeof(unsigned char), length);
     unsigned char *enc = calloc(sizeof(unsigned char), length);
@@ -24,7 +23,6 @@ int main(){
     nightgale_enc_set_key(&s_enc);
 
     printf("Encrypting....\n");
-    // encrypt
     double t1;
     t1 = mysecond();
     encrypt_night(&s_enc, length, plain, enc);
@@ -41,6 +39,9 @@ int main(){
     decrypt_night(&s_dec, length, enc, dec);
 
     int check = memcmp( plain, dec, length );      assert(check == 0);
+    check = memcmp( plain, enc, length );	   assert(check != 0);    
+
+    printf("Pass!\n");
 
     free(plain);
     free(enc);
