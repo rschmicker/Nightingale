@@ -286,7 +286,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
             ```
             LD_LIBRARY_PATH=<compiled openssl dir> ./server 5000
             ```
-        * In the second termail launch the client to connect to the server:
+        * In the second terminal launch the client to connect to the server:
             ```
             LD_LIBRARY_PATH=<compiled openssl dir> ./client 5000
             ```
