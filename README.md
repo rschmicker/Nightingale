@@ -278,17 +278,17 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
 
     * To test the integrated ciphersuite into libssl do the following:
         * Open two terminals and navigate both to the pingpong directory in Nightingale's source
-        * Run as this will compile the example SSL programs
+        * Run the following to compile the example SSL programs:
             ```
             ./compile.sh
             ```
         * In one terminal start the server with the following (password is hello):
             ```
-            LD_LIBRARY_PATH=../install/openssl ./server 5000
+            LD_LIBRARY_PATH=<compiled openssl dir> ./server 5000
             ```
         * In the second termail launch the client to connect to the server:
             ```
-            LD_LIBRARY_PATH=../install/openssl ./client 5000
+            LD_LIBRARY_PATH=<compiled openssl dir> ./client 5000
             ```
         * The output of the server should be the following:
             ```
