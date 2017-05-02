@@ -97,26 +97,26 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         const EVP_CIPHER *EVP_nightgale(void);
         ```
     * openssl/ssl/ssl\_ciph.c to begin integrating Nightingale around line 71:
-        ```
+        ```C
         #define SSL_ENC_CHACHA_IDX      19
         #define SSL_ENC_NIGHTGALE       20
         #define SSL_ENC_NUM_IDX         21
         ``` 
     * openssl/ssl/ssl\_ciph.c to add mapping of SSL\_NIGHTGALE to its NID around line 103:
-        ```
+        ```C
         {SSL_CHACHA20POLY1305, NID_chacha20_poly1305},
         {SSL_NIGHTGALE, NID_nightgale},
         };
         ```
 
     * openssl/ssl/ssl\_ciph.c to include Nightingale's alias around line 301:
-        ```
+        ```C
         {0, SSL_TXT_CHACHA20, 0, 0, 0, SSL_CHACHA20},
         {0, SSL_TXT_NIGHTGALE, 0, 0, 0, SSL_NIGHTGALE},
         ``` 
  
     * openssl/ssl/ssl\_ciph.c to add Nightingale's cipher description around line 1669:
-        ```
+        ```C
         case SSL_CHACHA20POLY1305:
             enc = "CHACHA20/POLY1305(256)";
             break;
@@ -130,7 +130,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         ```
 
     * openssl/ssl/ssl\_init.c to load the EVP instance around line 32:
-        ```
+        ```C
         static int ssl_base_inited = 0;
         DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_base)
         {
@@ -147,7 +147,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         ```
 
     * openssl/include/openssl/ssl.h to create the cipher's SSL macro around line 160:
-        ```
+        ```C
         # define SSL_TXT_GOST            "GOST89"
 
         # define SSL_TXT_NIGHTGALE       "NIGHTGALE"
@@ -156,7 +156,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         ```
 
     * openssl/include/openssl/tls1.h to define Nightingale's CK macro around line 605:
-        ```
+        ```C
         # define TLS1_CK_ECDHE_PSK_WITH_NULL_SHA384              0x0300C03B
 
         /* Nightingale ciphersuite */
@@ -167,7 +167,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         ```
 
     * openssl/include/openssl/tls1.h to define Nightgale's TXT macro around line 739:
-        ```
+        ```C
         # define TLS1_TXT_RSA_PSK_WITH_NULL_SHA384               "RSA-PSK-NULL-SHA384"
 
         /* Nightgale ciphersuite */
@@ -178,7 +178,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         ```
 
     * openssl/ssl/s3\_lib.c to add the heart of the ciphersuite around line 1232:
-        ```
+        ```C
         {
         1,
         TLS1_TXT_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
@@ -214,7 +214,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         ```
 
     * openssl/ssl/ssl\_locl.h to define Nightingale's SSL macro around line 261:
-        ```
+        ```C
         # define SSL_CHACHA20POLY1305    0x00080000U
         # define SSL_NIGHTGALE           0x00100000U
 
@@ -275,6 +275,41 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
         type             16 bytes     64 bytes    256 bytes   1024 bytes   8192 bytes  16384 bytes
         nightgale       452728.10k   755568.52k   905866.96k   933852.49k   958173.41k   961558.14k
         ```
+
+    * To test the integrated ciphersuite into libssl do the following:
+        * Open two terminals and navigate both to the pingpong directory in Nightingale's source
+        * Run as this will compile the example SSL programs
+            ```
+            ./compile.sh
+            ```
+        * In one terminal start the server with the following (password is hello):
+            ```
+            LD_LIBRARY_PATH=../install/openssl ./server 5000
+            ```
+        * In the second termail launch the client to connect to the server:
+            ```
+            LD_LIBRARY_PATH=../install/openssl ./client 5000
+            ```
+        * The output of the server should be the following:
+            ```
+            Enter PEM pass phrase:
+            Connection: 127.0.0.1:42830
+            Server certificates:
+            Subject: /C=AU/ST=Some-State/O=Internet Widgits Pty Ltd
+            Issuer: /C=AU/ST=Some-State/O=Internet Widgits Pty Ltd
+            Client msg: "Hello???"
+            ```
+        * And the output of the client should be:
+            ```
+            Enter PEM pass phrase:
+            Connected with ECDHE-RSA-NIGHTGALE-SHA384 encryption
+            Server certificates:
+            Subject: /C=AU/ST=Some-State/O=Internet Widgits Pty Ltd
+            Issuer: /C=AU/ST=Some-State/O=Internet Widgits Pty Ltd
+            Received: "<html><body><pre>Hello???</pre></body></html>
+            
+            "
+            ```
   5. For completeness sake
     * Run 'make test' in the root directory of openssl to 
       perform OpenSSL's unit test
