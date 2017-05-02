@@ -310,7 +310,3 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
             
             "
             ```
-  5. For completeness sake
-    * Run 'make test' in the root directory of openssl to 
-      perform OpenSSL's unit test
-
