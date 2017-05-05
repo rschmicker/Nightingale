@@ -45,7 +45,7 @@ SSL_CTX* InitServerCTX(void)
     ctx = SSL_CTX_new(method);   /* create new context from method */
 
     /* Set the cipher to use */
-    if (SSL_CTX_set_cipher_list(ctx, "ECDHE-RSA-AES256-SHA384") <= 0) {
+    if (SSL_CTX_set_cipher_list(ctx, "ECDHE-RSA-AES128-SHA384") <= 0) {
         printf("Error setting the cipher list.\n");
         exit(0);
     }
