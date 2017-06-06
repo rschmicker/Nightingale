@@ -1,55 +1,56 @@
-diff -rupN openssl-master/compile_night_test.sh openssl/compile_night_test.sh
---- openssl-master/compile_night_test.sh	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/compile_night_test.sh	2017-04-30 18:00:43.057917771 -0400
+diff -rupN openssl-1.1.0f/compile_night_test.sh openssl/compile_night_test.sh
+--- openssl-1.1.0f/compile_night_test.sh	1969-12-31 16:00:00.000000000 -0800
++++ openssl/compile_night_test.sh	2017-06-05 18:33:49.652024646 -0700
 @@ -0,0 +1,8 @@
 +rm -f night_test
 +rm -f night_evp_test
-+./config && make update && make -j 2 && \
++./config && make update && make -j 12 && \
 +gcc -I./include -L. -Wextra -Wall -o night_evp_test night_evp_test.c -lcrypto && \
 +gcc -I./include -L. -Wextra -Wall -o night_test night_test.c -lcrypto && \
 +LD_LIBRARY_PATH=. ./night_test && \
 +LD_LIBRARY_PATH=. ./night_evp_test && \
 +LD_LIBRARY_PATH=. ./apps/openssl speed -elapsed -evp nightgale
-diff -rupN openssl-master/Configure openssl/Configure
---- openssl-master/Configure	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/Configure	2017-04-30 18:00:43.057917771 -0400
-@@ -310,7 +310,7 @@ $config{dirs} = [ "crypto", "ssl", "engi
- # crypto/ subdirectories to build
+diff -rupN openssl-1.1.0f/Configure openssl/Configure
+--- openssl-1.1.0f/Configure	2017-05-25 05:46:17.000000000 -0700
++++ openssl/Configure	2017-06-05 18:23:55.221677432 -0700
+@@ -308,7 +308,7 @@ $config{dirs} = [ "crypto", "ssl", "engi
  $config{sdirs} = [
      "objects",
--    "md2", "md4", "md5", "sha", "mdc2", "hmac", "ripemd", "whrlpool", "poly1305", "blake2", "siphash",
-+    "md2", "md4", "nightgale", "md5", "sha", "mdc2", "hmac", "ripemd", "whrlpool", "poly1305", "blake2", "siphash",
-     "des", "aes", "rc2", "rc4", "rc5", "idea", "aria", "bf", "cast", "camellia", "seed", "chacha", "modes",
+     "md2", "md4", "md5", "sha", "mdc2", "hmac", "ripemd", "whrlpool", "poly1305", "blake2",
+-    "des", "aes", "rc2", "rc4", "rc5", "idea", "bf", "cast", "camellia", "seed", "chacha", "modes",
++    "des", "aes", "nightgale", "rc2", "rc4", "rc5", "idea", "bf", "cast", "camellia", "seed", "chacha", "modes",
      "bn", "ec", "rsa", "dsa", "dh", "dso", "engine",
      "buffer", "bio", "stack", "lhash", "rand", "err",
-diff -rupN openssl-master/crypto/evp/build.info openssl/crypto/evp/build.info
---- openssl-master/crypto/evp/build.info	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/crypto/evp/build.info	2017-04-30 18:00:43.057917771 -0400
+     "evp", "asn1", "pem", "x509", "x509v3", "conf", "txt_db", "pkcs7", "pkcs12", "comp", "ocsp", "ui",
+diff -rupN openssl-1.1.0f/crypto/evp/build.info openssl/crypto/evp/build.info
+--- openssl-1.1.0f/crypto/evp/build.info	2017-05-25 05:46:18.000000000 -0700
++++ openssl/crypto/evp/build.info	2017-06-05 18:21:58.978214262 -0700
 @@ -3,7 +3,7 @@ SOURCE[../../libcrypto]=\
          encode.c digest.c evp_enc.c evp_key.c evp_cnf.c \
          e_des.c e_bf.c e_idea.c e_des3.c e_camellia.c\
-         e_rc4.c e_aes.c names.c e_seed.c e_aria.c \
+         e_rc4.c e_aes.c names.c e_seed.c \
 -        e_xcbc_d.c e_rc2.c e_cast.c e_rc5.c \
 +        e_night.c e_xcbc_d.c e_rc2.c e_cast.c e_rc5.c \
          m_null.c m_md2.c m_md4.c m_md5.c m_sha1.c m_wp.c \
          m_md5_sha1.c m_mdc2.c m_ripemd.c \
          p_open.c p_seal.c p_sign.c p_verify.c p_lib.c p_enc.c p_dec.c \
-diff -rupN openssl-master/crypto/evp/c_allc.c openssl/crypto/evp/c_allc.c
---- openssl-master/crypto/evp/c_allc.c	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/crypto/evp/c_allc.c	2017-04-30 18:00:43.057917771 -0400
-@@ -16,6 +16,8 @@
- 
+diff -rupN openssl-1.1.0f/crypto/evp/c_allc.c openssl/crypto/evp/c_allc.c
+--- openssl-1.1.0f/crypto/evp/c_allc.c	2017-05-25 05:46:18.000000000 -0700
++++ openssl/crypto/evp/c_allc.c	2017-06-05 18:22:30.781517173 -0700
+@@ -17,6 +17,9 @@
  void openssl_add_all_ciphers_int(void)
  {
+ 
 +    EVP_add_cipher(EVP_nightgale());
 +    EVP_add_cipher_alias(SN_nightgale, "nightgale");
- 
++
  #ifndef OPENSSL_NO_DES
      EVP_add_cipher(EVP_des_cfb());
-diff -rupN openssl-master/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
---- openssl-master/crypto/evp/e_night.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/evp/e_night.c	2017-04-30 18:00:43.057917771 -0400
-@@ -0,0 +1,57 @@
+     EVP_add_cipher(EVP_des_cfb1());
+diff -rupN openssl-1.1.0f/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
+--- openssl-1.1.0f/crypto/evp/e_night.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/evp/e_night.c	2017-06-05 18:19:55.291950715 -0700
+@@ -0,0 +1,58 @@
 +#include <stdio.h>
 +#include <openssl/evp.h>
 +#include <openssl/objects.h>
@@ -75,7 +76,7 @@ diff -rupN openssl-master/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
 +
 +static const EVP_CIPHER nightgale_cipher = {
 +	NID_nightgale,
-+	1, 256, 0, // block_size, key size, iv size 
++	1, 1, 0, // block_size, key size, iv size 
 +	0,
 +	nightgale_init_key, // function pointer to key init
 +	nightgale_c, // function pointer to cipher operation
@@ -95,8 +96,8 @@ diff -rupN openssl-master/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
 +static int nightgale_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 +                                const unsigned char *iv, int enc)
 +{
-+	enc ? nightgale_enc_set_key(&data(ctx)->s, key) : 
-+			nightgale_dec_set_key(&data(ctx)->s, key);
++	enc ? nightgale_enc_set_key(&data(ctx)->s) : 
++			nightgale_dec_set_key(&data(ctx)->s);
 +	data(ctx)->stream.cipher = enc ? encrypt_night : decrypt_night;
 +	return 1;
 +}
@@ -107,16 +108,17 @@ diff -rupN openssl-master/crypto/evp/e_night.c openssl/crypto/evp/e_night.c
 +	(*data(ctx)->stream.cipher) (&data(ctx)->s, inl, in, out);
 +	return 1;
 +}
-diff -rupN openssl-master/crypto/nightgale/build.info openssl/crypto/nightgale/build.info
---- openssl-master/crypto/nightgale/build.info	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/build.info	2017-04-30 18:00:43.057917771 -0400
++
+diff -rupN openssl-1.1.0f/crypto/nightgale/build.info openssl/crypto/nightgale/build.info
+--- openssl-1.1.0f/crypto/nightgale/build.info	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/build.info	2017-06-05 18:19:46.922137515 -0700
 @@ -0,0 +1,3 @@
 +LIBS=../../libcrypto
 +SOURCE[../../libcrypto]=\
 +sub_t.c nightgale_c.c
-diff -rupN openssl-master/crypto/nightgale/nightgale_c.c openssl/crypto/nightgale/nightgale_c.c
---- openssl-master/crypto/nightgale/nightgale_c.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/nightgale_c.c	2017-04-30 18:00:43.057917771 -0400
+diff -rupN openssl-1.1.0f/crypto/nightgale/nightgale_c.c openssl/crypto/nightgale/nightgale_c.c
+--- openssl-1.1.0f/crypto/nightgale/nightgale_c.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/nightgale_c.c	2017-06-05 18:19:46.922137515 -0700
 @@ -0,0 +1,98 @@
 +#include "nightgale_c.h"
 +
@@ -166,7 +168,7 @@ diff -rupN openssl-master/crypto/nightgale/nightgale_c.c openssl/crypto/nightgal
 +        enc_message[i] = decimal_word ^ key ^ anchor;
 +        root = decimal_word;
 +    }
-+}
++ }
 +
 +void decrypt_night(SUB *s, size_t len, const unsigned char *in,
 +                                unsigned char *out){
@@ -216,9 +218,9 @@ diff -rupN openssl-master/crypto/nightgale/nightgale_c.c openssl/crypto/nightgal
 +    }
 +}
 +
-diff -rupN openssl-master/crypto/nightgale/nightgale_c.h openssl/crypto/nightgale/nightgale_c.h
---- openssl-master/crypto/nightgale/nightgale_c.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/nightgale_c.h	2017-04-30 18:00:43.057917771 -0400
+diff -rupN openssl-1.1.0f/crypto/nightgale/nightgale_c.h openssl/crypto/nightgale/nightgale_c.h
+--- openssl-1.1.0f/crypto/nightgale/nightgale_c.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/nightgale_c.h	2017-06-05 18:19:46.922137515 -0700
 @@ -0,0 +1,32 @@
 +#ifndef HEADER_NIGHTGALE_H
 +#define HEADER_NIGHTGALE_H
@@ -242,7 +244,7 @@ diff -rupN openssl-master/crypto/nightgale/nightgale_c.h openssl/crypto/nightgal
 +                    unsigned char *out);
 +
 +//-----------------------------------------------------------------------------
-+// Anchor rotation based off the last 6 bits of the key
++// Anchor rotation
 +//-----------------------------------------------------------------------------
 +inline uint64_t rotr64 (uint64_t n, unsigned int c){
 +    const unsigned int mask = (CHAR_BIT*sizeof(n)-1);
@@ -252,9 +254,9 @@ diff -rupN openssl-master/crypto/nightgale/nightgale_c.h openssl/crypto/nightgal
 +
 +#endif
 +
-diff -rupN openssl-master/crypto/nightgale/pcg_variants.h openssl/crypto/nightgale/pcg_variants.h
---- openssl-master/crypto/nightgale/pcg_variants.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/pcg_variants.h	2017-04-30 18:00:43.057917771 -0400
+diff -rupN openssl-1.1.0f/crypto/nightgale/pcg_variants.h openssl/crypto/nightgale/pcg_variants.h
+--- openssl-1.1.0f/crypto/nightgale/pcg_variants.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/pcg_variants.h	2017-06-05 18:19:46.923137493 -0700
 @@ -0,0 +1,351 @@
 +/*
 + * PCG Random Number Generation for C.
@@ -607,24 +609,24 @@ diff -rupN openssl-master/crypto/nightgale/pcg_variants.h openssl/crypto/nightga
 +
 +#endif // PCG_VARIANTS_H_INCLUDED
 +
-diff -rupN openssl-master/crypto/nightgale/sub_t.c openssl/crypto/nightgale/sub_t.c
---- openssl-master/crypto/nightgale/sub_t.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/sub_t.c	2017-04-30 18:00:43.057917771 -0400
-@@ -0,0 +1,158 @@
+diff -rupN openssl-1.1.0f/crypto/nightgale/sub_t.c openssl/crypto/nightgale/sub_t.c
+--- openssl-1.1.0f/crypto/nightgale/sub_t.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/sub_t.c	2017-06-05 18:19:46.923137493 -0700
+@@ -0,0 +1,170 @@
 +#include "sub_t.h"
 +
 +//-----------------------------------------------------------------------------
-+void nightgale_dec_set_key(SUB *s, unsigned char *key){
-+    generate_hash(s, key);
++void nightgale_dec_set_key(SUB *s){
++    generate_hash(s, RSA_KEY);
 +    generate_seeds(s);
 +    generate_rands(s);
 +    shuffle(s);
 +}
 +
 +//-----------------------------------------------------------------------------
-+void nightgale_enc_set_key(SUB *s, unsigned char *key){
++void nightgale_enc_set_key(SUB *s){
 +    generate_key(s);
-+    generate_hash(s, key);
++    generate_hash(s, RSA_KEY);
 +    generate_seeds(s);
 +    generate_rands(s);
 +    shuffle(s);
@@ -732,10 +734,22 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.c openssl/crypto/nightgale/sub_
 +//-----------------------------------------------------------------------------
 +// Generate Hash from private key file from RSA
 +//-----------------------------------------------------------------------------
-+void generate_hash(SUB *s, const unsigned char* key){
++void generate_hash(SUB *s, const char* key_file){
++    FILE *fp = fopen(key_file, "rb");
++    if( !fp ) perror("Error reading private key from RSA."),exit(EXIT_FAILURE);
 +
-+    SHA512(key, 255, s->hash);
++    size_t filesize = get_file_length(fp);
++    unsigned char *buffer = malloc(filesize);
++    size_t nread = fread(buffer, sizeof(unsigned char), filesize, fp);
++
++    if( ferror(fp) || nread != filesize) perror("Error reading private key from RSA."),
++                        exit(EXIT_FAILURE);
++
++    SHA512(buffer, filesize, s->hash);
 +    SHA256(s->hash, SHA512_DIGEST_LENGTH, s->digest);
++
++    free(buffer);
++    fclose(fp);
 +}
 +
 +//-----------------------------------------------------------------------------
@@ -769,9 +783,9 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.c openssl/crypto/nightgale/sub_
 +    free_r(bp_private, r, bne);
 +}
 +
-diff -rupN openssl-master/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_t.h
---- openssl-master/crypto/nightgale/sub_t.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/crypto/nightgale/sub_t.h	2017-04-30 18:00:43.057917771 -0400
+diff -rupN openssl-1.1.0f/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_t.h
+--- openssl-1.1.0f/crypto/nightgale/sub_t.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/nightgale/sub_t.h	2017-06-05 18:19:46.923137493 -0700
 @@ -0,0 +1,96 @@
 +#ifndef HEADER_SUB_H
 +#define HEADER_SUB_H
@@ -814,8 +828,8 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_
 +//-----------------------------------------------------------------------------
 +// Set the sub table for nightgale
 +//-----------------------------------------------------------------------------
-+void nightgale_enc_set_key(SUB *s, unsigned char *key);
-+void nightgale_dec_set_key(SUB *s, unsigned char *key);
++void nightgale_enc_set_key(SUB *s);
++void nightgale_dec_set_key(SUB *s);
 +
 +//-----------------------------------------------------------------------------
 +// Get the file length with fseek()
@@ -858,9 +872,9 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_
 +void generate_seeds(SUB *s);
 +
 +//-----------------------------------------------------------------------------
-+// Generate Hash from key
++// Generate Hash from private key file from RSA
 +//-----------------------------------------------------------------------------
-+void generate_hash(SUB *s, const unsigned char* key);
++void generate_hash(SUB *s, const char* key_file);
 +
 +//-----------------------------------------------------------------------------
 +// Generate 2048 bit RSA key
@@ -869,1756 +883,93 @@ diff -rupN openssl-master/crypto/nightgale/sub_t.h openssl/crypto/nightgale/sub_
 +
 +#endif
 +
-diff -rupN openssl-master/crypto/objects/obj_dat.h openssl/crypto/objects/obj_dat.h
---- openssl-master/crypto/objects/obj_dat.h	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/crypto/objects/obj_dat.h	2017-04-30 18:23:19.712645059 -0400
-@@ -978,7 +978,7 @@ static const unsigned char so[6900] = {
-     0x2A,0x83,0x1A,0x8C,0x9A,0x6E,0x01,0x01,0x0F,  /* [ 6890] OBJ_aria_256_ctr */
+diff -rupN openssl-1.1.0f/crypto/objects/obj_dat.h openssl/crypto/objects/obj_dat.h
+--- openssl-1.1.0f/crypto/objects/obj_dat.h	2017-05-25 05:46:19.000000000 -0700
++++ openssl/crypto/objects/obj_dat.h	2017-06-05 18:40:22.367813692 -0700
+@@ -963,7 +963,7 @@ static const unsigned char so[6765] = {
+     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,0x09,0x10,0x01,0x1C,  /* [ 6753] OBJ_id_ct_xml */
  };
  
--#define NUM_NID 1086
-+#define NUM_NID 1087
+-#define NUM_NID 1061
++#define NUM_NID 1062
  static const ASN1_OBJECT nid_objs[NUM_NID] = {
      {"UNDEF", "undefined", NID_undef},
      {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
-@@ -2066,9 +2066,10 @@ static const ASN1_OBJECT nid_objs[NUM_NI
-     {"ARIA-128-CFB8", "aria-128-cfb8", NID_aria_128_cfb8},
-     {"ARIA-192-CFB8", "aria-192-cfb8", NID_aria_192_cfb8},
-     {"ARIA-256-CFB8", "aria-256-cfb8", NID_aria_256_cfb8},
+@@ -2026,9 +2026,10 @@ static const ASN1_OBJECT nid_objs[NUM_NI
+     {"id-smime-ct-contentCollection", "id-smime-ct-contentCollection", NID_id_smime_ct_contentCollection, 11, &so[6731]},
+     {"id-smime-ct-authEnvelopedData", "id-smime-ct-authEnvelopedData", NID_id_smime_ct_authEnvelopedData, 11, &so[6742]},
+     {"id-ct-xml", "id-ct-xml", NID_id_ct_xml, 11, &so[6753]},
 +    {"NIGHTGALE", "nightgale", NID_nightgale},
  };
  
--#define NUM_SN 1077
-+#define NUM_SN 1078
+-#define NUM_SN 1052
++#define NUM_SN 1053
  static const unsigned int sn_objs[NUM_SN] = {
       364,    /* "AD_DVCS" */
       419,    /* "AES-128-CBC" */
-@@ -2242,6 +2243,7 @@ static const unsigned int sn_objs[NUM_SN
+@@ -2179,6 +2180,7 @@ static const unsigned int sn_objs[NUM_SN
        95,    /* "MDC2" */
       911,    /* "MGF1" */
       388,    /* "Mail" */
-+    1086,    /* "NIGHTGALE" */
++    1061,    /* "NIGHTGALE" */
       393,    /* "NULL" */
       404,    /* "NULL" */
        57,    /* "Netscape" */
-@@ -3149,7 +3151,7 @@ static const unsigned int sn_objs[NUM_SN
+@@ -3084,7 +3086,7 @@ static const unsigned int sn_objs[NUM_SN
       160,    /* "x509Crl" */
  };
  
--#define NUM_LN 1077
-+#define NUM_LN 1078
+-#define NUM_LN 1052
++#define NUM_LN 1053
  static const unsigned int ln_objs[NUM_LN] = {
       363,    /* "AD Time Stamping" */
       405,    /* "ANSI X9.62" */
-@@ -3903,6 +3905,7 @@ static const unsigned int ln_objs[NUM_LN
+@@ -3815,6 +3817,7 @@ static const unsigned int ln_objs[NUM_LN
       488,    /* "mobileTelephoneNumber" */
       481,    /* "nSRecord" */
       173,    /* "name" */
-+    1086,    /* "nightgale" */
++    1061,    /* "nightgale" */
       681,    /* "onBasis" */
       379,    /* "org" */
        17,    /* "organizationName" */
-diff -rupN openssl-master/crypto/objects/objects.txt openssl/crypto/objects/objects.txt
---- openssl-master/crypto/objects/objects.txt	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/crypto/objects/objects.txt	2017-04-30 18:00:43.057917771 -0400
+diff -rupN openssl-1.1.0f/crypto/objects/objects.txt openssl/crypto/objects/objects.txt
+--- openssl-1.1.0f/crypto/objects/objects.txt	2017-05-25 05:46:19.000000000 -0700
++++ openssl/crypto/objects/objects.txt	2017-06-05 18:23:18.406477665 -0700
 @@ -861,6 +861,9 @@ mime-mhs-headings 2	: id-hex-multipart-m
  !Cname zlib-compression
  id-smime-alg 8		: ZLIB			: zlib compression
  
 +#Nightgale
-+			: NIGHTGALE 		: nightgale
++            		: NIGHTGALE 		: nightgale
 +
  # AES aka Rijndael
  
  !Alias csor 2 16 840 1 101 3
-diff -rupN openssl-master/crypto/objects/obj_mac.num openssl/crypto/objects/obj_mac.num
---- openssl-master/crypto/objects/obj_mac.num	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/crypto/objects/obj_mac.num	2017-04-30 18:23:19.628644642 -0400
-@@ -1083,3 +1083,6 @@ aria_256_cfb1		1082
- aria_128_cfb8		1083
- aria_192_cfb8		1084
- aria_256_cfb8		1085
-+nightgale		1086
-+nightgale512		1087
-+nightgale128		1088
-diff -rupN openssl-master/include/openssl/evp.h openssl/include/openssl/evp.h
---- openssl-master/include/openssl/evp.h	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/include/openssl/evp.h	2017-04-30 18:00:43.057917771 -0400
-@@ -667,6 +667,9 @@ __owur int BIO_set_cipher(BIO *b, const
-                           const unsigned char *i, int enc);
- 
- const EVP_MD *EVP_md_null(void);
+diff -rupN openssl-1.1.0f/crypto/objects/obj_mac.num openssl/crypto/objects/obj_mac.num
+--- openssl-1.1.0f/crypto/objects/obj_mac.num	2017-05-25 05:46:19.000000000 -0700
++++ openssl/crypto/objects/obj_mac.num	2017-06-05 18:40:22.312814839 -0700
+@@ -1058,3 +1058,4 @@ blake2s256		1057
+ id_smime_ct_contentCollection		1058
+ id_smime_ct_authEnvelopedData		1059
+ id_ct_xml		1060
++nightgale		1061
+diff -rupN openssl-1.1.0f/include/openssl/evp.h openssl/include/openssl/evp.h
+--- openssl-1.1.0f/include/openssl/evp.h	2017-05-25 05:46:20.000000000 -0700
++++ openssl/include/openssl/evp.h	2017-06-05 18:25:47.679248838 -0700
+@@ -746,6 +746,9 @@ const EVP_CIPHER *EVP_rc5_32_12_16_cfb64
+ #  define EVP_rc5_32_12_16_cfb EVP_rc5_32_12_16_cfb64
+ const EVP_CIPHER *EVP_rc5_32_12_16_ofb(void);
+ # endif
 +
 +const EVP_CIPHER *EVP_nightgale(void);
 +
- # ifndef OPENSSL_NO_MD2
- const EVP_MD *EVP_md2(void);
- # endif
-diff -rupN openssl-master/include/openssl/evp.h.orig openssl/include/openssl/evp.h.orig
---- openssl-master/include/openssl/evp.h.orig	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/include/openssl/evp.h.orig	2017-04-30 09:18:47.000000000 -0400
-@@ -0,0 +1,1657 @@
-+/*
-+ * Copyright 1995-2017 The OpenSSL Project Authors. All Rights Reserved.
-+ *
-+ * Licensed under the OpenSSL license (the "License").  You may not use
-+ * this file except in compliance with the License.  You can obtain a copy
-+ * in the file LICENSE in the source distribution or at
-+ * https://www.openssl.org/source/license.html
-+ */
-+
-+#ifndef HEADER_ENVELOPE_H
-+# define HEADER_ENVELOPE_H
-+
-+# include <openssl/opensslconf.h>
-+# include <openssl/ossl_typ.h>
-+# include <openssl/symhacks.h>
-+# include <openssl/bio.h>
-+
-+# define EVP_MAX_MD_SIZE                 64/* longest known is SHA512 */
-+# define EVP_MAX_KEY_LENGTH              64
-+# define EVP_MAX_IV_LENGTH               16
-+# define EVP_MAX_BLOCK_LENGTH            32
-+
-+# define PKCS5_SALT_LEN                  8
-+/* Default PKCS#5 iteration count */
-+# define PKCS5_DEFAULT_ITER              2048
-+
-+# include <openssl/objects.h>
-+
-+# define EVP_PK_RSA      0x0001
-+# define EVP_PK_DSA      0x0002
-+# define EVP_PK_DH       0x0004
-+# define EVP_PK_EC       0x0008
-+# define EVP_PKT_SIGN    0x0010
-+# define EVP_PKT_ENC     0x0020
-+# define EVP_PKT_EXCH    0x0040
-+# define EVP_PKS_RSA     0x0100
-+# define EVP_PKS_DSA     0x0200
-+# define EVP_PKS_EC      0x0400
-+
-+# define EVP_PKEY_NONE   NID_undef
-+# define EVP_PKEY_RSA    NID_rsaEncryption
-+# define EVP_PKEY_RSA2   NID_rsa
-+# define EVP_PKEY_RSA_PSS NID_rsassaPss
-+# define EVP_PKEY_DSA    NID_dsa
-+# define EVP_PKEY_DSA1   NID_dsa_2
-+# define EVP_PKEY_DSA2   NID_dsaWithSHA
-+# define EVP_PKEY_DSA3   NID_dsaWithSHA1
-+# define EVP_PKEY_DSA4   NID_dsaWithSHA1_2
-+# define EVP_PKEY_DH     NID_dhKeyAgreement
-+# define EVP_PKEY_DHX    NID_dhpublicnumber
-+# define EVP_PKEY_EC     NID_X9_62_id_ecPublicKey
-+# define EVP_PKEY_HMAC   NID_hmac
-+# define EVP_PKEY_CMAC   NID_cmac
-+# define EVP_PKEY_TLS1_PRF NID_tls1_prf
-+# define EVP_PKEY_HKDF   NID_hkdf
-+# define EVP_PKEY_POLY1305 NID_poly1305
-+# define EVP_PKEY_SIPHASH NID_siphash
-+
-+#ifdef  __cplusplus
-+extern "C" {
-+#endif
-+
-+# define EVP_PKEY_MO_SIGN        0x0001
-+# define EVP_PKEY_MO_VERIFY      0x0002
-+# define EVP_PKEY_MO_ENCRYPT     0x0004
-+# define EVP_PKEY_MO_DECRYPT     0x0008
-+
-+# ifndef EVP_MD
-+EVP_MD *EVP_MD_meth_new(int md_type, int pkey_type);
-+EVP_MD *EVP_MD_meth_dup(const EVP_MD *md);
-+void EVP_MD_meth_free(EVP_MD *md);
-+
-+int EVP_MD_meth_set_input_blocksize(EVP_MD *md, int blocksize);
-+int EVP_MD_meth_set_result_size(EVP_MD *md, int resultsize);
-+int EVP_MD_meth_set_app_datasize(EVP_MD *md, int datasize);
-+int EVP_MD_meth_set_flags(EVP_MD *md, unsigned long flags);
-+int EVP_MD_meth_set_init(EVP_MD *md, int (*init)(EVP_MD_CTX *ctx));
-+int EVP_MD_meth_set_update(EVP_MD *md, int (*update)(EVP_MD_CTX *ctx,
-+                                                     const void *data,
-+                                                     size_t count));
-+int EVP_MD_meth_set_final(EVP_MD *md, int (*final)(EVP_MD_CTX *ctx,
-+                                                   unsigned char *md));
-+int EVP_MD_meth_set_copy(EVP_MD *md, int (*copy)(EVP_MD_CTX *to,
-+                                                 const EVP_MD_CTX *from));
-+int EVP_MD_meth_set_cleanup(EVP_MD *md, int (*cleanup)(EVP_MD_CTX *ctx));
-+int EVP_MD_meth_set_ctrl(EVP_MD *md, int (*ctrl)(EVP_MD_CTX *ctx, int cmd,
-+                                                 int p1, void *p2));
-+
-+int EVP_MD_meth_get_input_blocksize(const EVP_MD *md);
-+int EVP_MD_meth_get_result_size(const EVP_MD *md);
-+int EVP_MD_meth_get_app_datasize(const EVP_MD *md);
-+unsigned long EVP_MD_meth_get_flags(const EVP_MD *md);
-+int (*EVP_MD_meth_get_init(const EVP_MD *md))(EVP_MD_CTX *ctx);
-+int (*EVP_MD_meth_get_update(const EVP_MD *md))(EVP_MD_CTX *ctx,
-+                                                const void *data,
-+                                                size_t count);
-+int (*EVP_MD_meth_get_final(const EVP_MD *md))(EVP_MD_CTX *ctx,
-+                                               unsigned char *md);
-+int (*EVP_MD_meth_get_copy(const EVP_MD *md))(EVP_MD_CTX *to,
-+                                              const EVP_MD_CTX *from);
-+int (*EVP_MD_meth_get_cleanup(const EVP_MD *md))(EVP_MD_CTX *ctx);
-+int (*EVP_MD_meth_get_ctrl(const EVP_MD *md))(EVP_MD_CTX *ctx, int cmd,
-+                                              int p1, void *p2);
-+
-+/* digest can only handle a single block */
-+#  define EVP_MD_FLAG_ONESHOT     0x0001
-+
-+/* DigestAlgorithmIdentifier flags... */
-+
-+#  define EVP_MD_FLAG_DIGALGID_MASK               0x0018
-+
-+/* NULL or absent parameter accepted. Use NULL */
-+
-+#  define EVP_MD_FLAG_DIGALGID_NULL               0x0000
-+
-+/* NULL or absent parameter accepted. Use NULL for PKCS#1 otherwise absent */
-+
-+#  define EVP_MD_FLAG_DIGALGID_ABSENT             0x0008
-+
-+/* Custom handling via ctrl */
-+
-+#  define EVP_MD_FLAG_DIGALGID_CUSTOM             0x0018
-+
-+/* Note if suitable for use in FIPS mode */
-+#  define EVP_MD_FLAG_FIPS        0x0400
-+
-+/* Digest ctrls */
-+
-+#  define EVP_MD_CTRL_DIGALGID                    0x1
-+#  define EVP_MD_CTRL_MICALG                      0x2
-+
-+/* Minimum Algorithm specific ctrl value */
-+
-+#  define EVP_MD_CTRL_ALG_CTRL                    0x1000
-+
-+# endif                         /* !EVP_MD */
-+
-+/* values for EVP_MD_CTX flags */
-+
-+# define EVP_MD_CTX_FLAG_ONESHOT         0x0001/* digest update will be
-+                                                * called once only */
-+# define EVP_MD_CTX_FLAG_CLEANED         0x0002/* context has already been
-+                                                * cleaned */
-+# define EVP_MD_CTX_FLAG_REUSE           0x0004/* Don't free up ctx->md_data
-+                                                * in EVP_MD_CTX_reset */
-+/*
-+ * FIPS and pad options are ignored in 1.0.0, definitions are here so we
-+ * don't accidentally reuse the values for other purposes.
-+ */
-+
-+# define EVP_MD_CTX_FLAG_NON_FIPS_ALLOW  0x0008/* Allow use of non FIPS
-+                                                * digest in FIPS mode */
-+
-+/*
-+ * The following PAD options are also currently ignored in 1.0.0, digest
-+ * parameters are handled through EVP_DigestSign*() and EVP_DigestVerify*()
-+ * instead.
-+ */
-+# define EVP_MD_CTX_FLAG_PAD_MASK        0xF0/* RSA mode to use */
-+# define EVP_MD_CTX_FLAG_PAD_PKCS1       0x00/* PKCS#1 v1.5 mode */
-+# define EVP_MD_CTX_FLAG_PAD_X931        0x10/* X9.31 mode */
-+# define EVP_MD_CTX_FLAG_PAD_PSS         0x20/* PSS mode */
-+
-+# define EVP_MD_CTX_FLAG_NO_INIT         0x0100/* Don't initialize md_data */
-+/*
-+ * Some functions such as EVP_DigestSign only finalise copies of internal
-+ * contexts so additional data can be included after the finalisation call.
-+ * This is inefficient if this functionality is not required: it is disabled
-+ * if the following flag is set.
-+ */
-+# define EVP_MD_CTX_FLAG_FINALISE        0x0200
-+
-+EVP_CIPHER *EVP_CIPHER_meth_new(int cipher_type, int block_size, int key_len);
-+EVP_CIPHER *EVP_CIPHER_meth_dup(const EVP_CIPHER *cipher);
-+void EVP_CIPHER_meth_free(EVP_CIPHER *cipher);
-+
-+int EVP_CIPHER_meth_set_iv_length(EVP_CIPHER *cipher, int iv_len);
-+int EVP_CIPHER_meth_set_flags(EVP_CIPHER *cipher, unsigned long flags);
-+int EVP_CIPHER_meth_set_impl_ctx_size(EVP_CIPHER *cipher, int ctx_size);
-+int EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
-+                             int (*init) (EVP_CIPHER_CTX *ctx,
-+                                          const unsigned char *key,
-+                                          const unsigned char *iv,
-+                                          int enc));
-+int EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
-+                                  int (*do_cipher) (EVP_CIPHER_CTX *ctx,
-+                                                    unsigned char *out,
-+                                                    const unsigned char *in,
-+                                                    size_t inl));
-+int EVP_CIPHER_meth_set_cleanup(EVP_CIPHER *cipher,
-+                                int (*cleanup) (EVP_CIPHER_CTX *));
-+int EVP_CIPHER_meth_set_set_asn1_params(EVP_CIPHER *cipher,
-+                                        int (*set_asn1_parameters) (EVP_CIPHER_CTX *,
-+                                                                    ASN1_TYPE *));
-+int EVP_CIPHER_meth_set_get_asn1_params(EVP_CIPHER *cipher,
-+                                        int (*get_asn1_parameters) (EVP_CIPHER_CTX *,
-+                                                                    ASN1_TYPE *));
-+int EVP_CIPHER_meth_set_ctrl(EVP_CIPHER *cipher,
-+                             int (*ctrl) (EVP_CIPHER_CTX *, int type,
-+                                          int arg, void *ptr));
-+
-+int (*EVP_CIPHER_meth_get_init(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-+                                                          const unsigned char *key,
-+                                                          const unsigned char *iv,
-+                                                          int enc);
-+int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-+                                                               unsigned char *out,
-+                                                               const unsigned char *in,
-+                                                               size_t inl);
-+int (*EVP_CIPHER_meth_get_cleanup(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *);
-+int (*EVP_CIPHER_meth_get_set_asn1_params(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *,
-+                                                                     ASN1_TYPE *);
-+int (*EVP_CIPHER_meth_get_get_asn1_params(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *,
-+                                                               ASN1_TYPE *);
-+int (*EVP_CIPHER_meth_get_ctrl(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *,
-+                                                          int type, int arg,
-+                                                          void *ptr);
-+
-+/* Values for cipher flags */
-+
-+/* Modes for ciphers */
-+
-+# define         EVP_CIPH_STREAM_CIPHER          0x0
-+# define         EVP_CIPH_ECB_MODE               0x1
-+# define         EVP_CIPH_CBC_MODE               0x2
-+# define         EVP_CIPH_CFB_MODE               0x3
-+# define         EVP_CIPH_OFB_MODE               0x4
-+# define         EVP_CIPH_CTR_MODE               0x5
-+# define         EVP_CIPH_GCM_MODE               0x6
-+# define         EVP_CIPH_CCM_MODE               0x7
-+# define         EVP_CIPH_XTS_MODE               0x10001
-+# define         EVP_CIPH_WRAP_MODE              0x10002
-+# define         EVP_CIPH_OCB_MODE               0x10003
-+# define         EVP_CIPH_MODE                   0xF0007
-+/* Set if variable length cipher */
-+# define         EVP_CIPH_VARIABLE_LENGTH        0x8
-+/* Set if the iv handling should be done by the cipher itself */
-+# define         EVP_CIPH_CUSTOM_IV              0x10
-+/* Set if the cipher's init() function should be called if key is NULL */
-+# define         EVP_CIPH_ALWAYS_CALL_INIT       0x20
-+/* Call ctrl() to init cipher parameters */
-+# define         EVP_CIPH_CTRL_INIT              0x40
-+/* Don't use standard key length function */
-+# define         EVP_CIPH_CUSTOM_KEY_LENGTH      0x80
-+/* Don't use standard block padding */
-+# define         EVP_CIPH_NO_PADDING             0x100
-+/* cipher handles random key generation */
-+# define         EVP_CIPH_RAND_KEY               0x200
-+/* cipher has its own additional copying logic */
-+# define         EVP_CIPH_CUSTOM_COPY            0x400
-+/* Allow use default ASN1 get/set iv */
-+# define         EVP_CIPH_FLAG_DEFAULT_ASN1      0x1000
-+/* Buffer length in bits not bytes: CFB1 mode only */
-+# define         EVP_CIPH_FLAG_LENGTH_BITS       0x2000
-+/* Note if suitable for use in FIPS mode */
-+# define         EVP_CIPH_FLAG_FIPS              0x4000
-+/* Allow non FIPS cipher in FIPS mode */
-+# define         EVP_CIPH_FLAG_NON_FIPS_ALLOW    0x8000
-+/*
-+ * Cipher handles any and all padding logic as well as finalisation.
-+ */
-+# define         EVP_CIPH_FLAG_CUSTOM_CIPHER     0x100000
-+# define         EVP_CIPH_FLAG_AEAD_CIPHER       0x200000
-+# define         EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK 0x400000
-+/* Cipher can handle pipeline operations */
-+# define         EVP_CIPH_FLAG_PIPELINE          0X800000
-+
-+/*
-+ * Cipher context flag to indicate we can handle wrap mode: if allowed in
-+ * older applications it could overflow buffers.
-+ */
-+
-+# define         EVP_CIPHER_CTX_FLAG_WRAP_ALLOW  0x1
-+
-+/* ctrl() values */
-+
-+# define         EVP_CTRL_INIT                   0x0
-+# define         EVP_CTRL_SET_KEY_LENGTH         0x1
-+# define         EVP_CTRL_GET_RC2_KEY_BITS       0x2
-+# define         EVP_CTRL_SET_RC2_KEY_BITS       0x3
-+# define         EVP_CTRL_GET_RC5_ROUNDS         0x4
-+# define         EVP_CTRL_SET_RC5_ROUNDS         0x5
-+# define         EVP_CTRL_RAND_KEY               0x6
-+# define         EVP_CTRL_PBE_PRF_NID            0x7
-+# define         EVP_CTRL_COPY                   0x8
-+# define         EVP_CTRL_AEAD_SET_IVLEN         0x9
-+# define         EVP_CTRL_AEAD_GET_TAG           0x10
-+# define         EVP_CTRL_AEAD_SET_TAG           0x11
-+# define         EVP_CTRL_AEAD_SET_IV_FIXED      0x12
-+# define         EVP_CTRL_GCM_SET_IVLEN          EVP_CTRL_AEAD_SET_IVLEN
-+# define         EVP_CTRL_GCM_GET_TAG            EVP_CTRL_AEAD_GET_TAG
-+# define         EVP_CTRL_GCM_SET_TAG            EVP_CTRL_AEAD_SET_TAG
-+# define         EVP_CTRL_GCM_SET_IV_FIXED       EVP_CTRL_AEAD_SET_IV_FIXED
-+# define         EVP_CTRL_GCM_IV_GEN             0x13
-+# define         EVP_CTRL_CCM_SET_IVLEN          EVP_CTRL_AEAD_SET_IVLEN
-+# define         EVP_CTRL_CCM_GET_TAG            EVP_CTRL_AEAD_GET_TAG
-+# define         EVP_CTRL_CCM_SET_TAG            EVP_CTRL_AEAD_SET_TAG
-+# define         EVP_CTRL_CCM_SET_IV_FIXED       EVP_CTRL_AEAD_SET_IV_FIXED
-+# define         EVP_CTRL_CCM_SET_L              0x14
-+# define         EVP_CTRL_CCM_SET_MSGLEN         0x15
-+/*
-+ * AEAD cipher deduces payload length and returns number of bytes required to
-+ * store MAC and eventual padding. Subsequent call to EVP_Cipher even
-+ * appends/verifies MAC.
-+ */
-+# define         EVP_CTRL_AEAD_TLS1_AAD          0x16
-+/* Used by composite AEAD ciphers, no-op in GCM, CCM... */
-+# define         EVP_CTRL_AEAD_SET_MAC_KEY       0x17
-+/* Set the GCM invocation field, decrypt only */
-+# define         EVP_CTRL_GCM_SET_IV_INV         0x18
-+
-+# define         EVP_CTRL_TLS1_1_MULTIBLOCK_AAD  0x19
-+# define         EVP_CTRL_TLS1_1_MULTIBLOCK_ENCRYPT      0x1a
-+# define         EVP_CTRL_TLS1_1_MULTIBLOCK_DECRYPT      0x1b
-+# define         EVP_CTRL_TLS1_1_MULTIBLOCK_MAX_BUFSIZE  0x1c
-+
-+# define         EVP_CTRL_SSL3_MASTER_SECRET             0x1d
-+
-+/* EVP_CTRL_SET_SBOX takes the char * specifying S-boxes */
-+# define         EVP_CTRL_SET_SBOX                       0x1e
-+/*
-+ * EVP_CTRL_SBOX_USED takes a 'size_t' and 'char *', pointing at a
-+ * pre-allocated buffer with specified size
-+ */
-+# define         EVP_CTRL_SBOX_USED                      0x1f
-+/* EVP_CTRL_KEY_MESH takes 'size_t' number of bytes to mesh the key after,
-+ * 0 switches meshing off
-+ */
-+# define         EVP_CTRL_KEY_MESH                       0x20
-+/* EVP_CTRL_BLOCK_PADDING_MODE takes the padding mode */
-+# define         EVP_CTRL_BLOCK_PADDING_MODE             0x21
-+
-+/* Set the output buffers to use for a pipelined operation */
-+# define         EVP_CTRL_SET_PIPELINE_OUTPUT_BUFS       0x22
-+/* Set the input buffers to use for a pipelined operation */
-+# define         EVP_CTRL_SET_PIPELINE_INPUT_BUFS        0x23
-+/* Set the input buffer lengths to use for a pipelined operation */
-+# define         EVP_CTRL_SET_PIPELINE_INPUT_LENS        0x24
-+
-+/* Padding modes */
-+#define EVP_PADDING_PKCS7       1
-+#define EVP_PADDING_ISO7816_4   2
-+#define EVP_PADDING_ANSI923     3
-+#define EVP_PADDING_ISO10126    4
-+#define EVP_PADDING_ZERO        5
-+
-+/* RFC 5246 defines additional data to be 13 bytes in length */
-+# define         EVP_AEAD_TLS1_AAD_LEN           13
-+
-+typedef struct {
-+    unsigned char *out;
-+    const unsigned char *inp;
-+    size_t len;
-+    unsigned int interleave;
-+} EVP_CTRL_TLS1_1_MULTIBLOCK_PARAM;
-+
-+/* GCM TLS constants */
-+/* Length of fixed part of IV derived from PRF */
-+# define EVP_GCM_TLS_FIXED_IV_LEN                        4
-+/* Length of explicit part of IV part of TLS records */
-+# define EVP_GCM_TLS_EXPLICIT_IV_LEN                     8
-+/* Length of tag for TLS */
-+# define EVP_GCM_TLS_TAG_LEN                             16
-+
-+/* CCM TLS constants */
-+/* Length of fixed part of IV derived from PRF */
-+# define EVP_CCM_TLS_FIXED_IV_LEN                        4
-+/* Length of explicit part of IV part of TLS records */
-+# define EVP_CCM_TLS_EXPLICIT_IV_LEN                     8
-+/* Total length of CCM IV length for TLS */
-+# define EVP_CCM_TLS_IV_LEN                              12
-+/* Length of tag for TLS */
-+# define EVP_CCM_TLS_TAG_LEN                             16
-+/* Length of CCM8 tag for TLS */
-+# define EVP_CCM8_TLS_TAG_LEN                            8
-+
-+/* Length of tag for TLS */
-+# define EVP_CHACHAPOLY_TLS_TAG_LEN                      16
-+
-+typedef struct evp_cipher_info_st {
-+    const EVP_CIPHER *cipher;
-+    unsigned char iv[EVP_MAX_IV_LENGTH];
-+} EVP_CIPHER_INFO;
-+
-+
-+/* Password based encryption function */
-+typedef int (EVP_PBE_KEYGEN) (EVP_CIPHER_CTX *ctx, const char *pass,
-+                              int passlen, ASN1_TYPE *param,
-+                              const EVP_CIPHER *cipher, const EVP_MD *md,
-+                              int en_de);
-+
-+# ifndef OPENSSL_NO_RSA
-+#  define EVP_PKEY_assign_RSA(pkey,rsa) EVP_PKEY_assign((pkey),EVP_PKEY_RSA,\
-+                                        (char *)(rsa))
-+# endif
-+
-+# ifndef OPENSSL_NO_DSA
-+#  define EVP_PKEY_assign_DSA(pkey,dsa) EVP_PKEY_assign((pkey),EVP_PKEY_DSA,\
-+                                        (char *)(dsa))
-+# endif
-+
-+# ifndef OPENSSL_NO_DH
-+#  define EVP_PKEY_assign_DH(pkey,dh) EVP_PKEY_assign((pkey),EVP_PKEY_DH,\
-+                                        (char *)(dh))
-+# endif
-+
-+# ifndef OPENSSL_NO_EC
-+#  define EVP_PKEY_assign_EC_KEY(pkey,eckey) EVP_PKEY_assign((pkey),EVP_PKEY_EC,\
-+                                        (char *)(eckey))
-+# endif
-+# ifndef OPENSSL_NO_SIPHASH
-+#  define EVP_PKEY_assign_SIPHASH(pkey,shkey) EVP_PKEY_assign((pkey),EVP_PKEY_SIPHASH,\
-+                                        (char *)(shkey))
-+# endif
-+
-+# ifndef OPENSSL_NO_POLY1305
-+#  define EVP_PKEY_assign_POLY1305(pkey,polykey) EVP_PKEY_assign((pkey),EVP_PKEY_POLY1305,\
-+                                        (char *)(polykey))
-+# endif
-+
-+/* Add some extra combinations */
-+# define EVP_get_digestbynid(a) EVP_get_digestbyname(OBJ_nid2sn(a))
-+# define EVP_get_digestbyobj(a) EVP_get_digestbynid(OBJ_obj2nid(a))
-+# define EVP_get_cipherbynid(a) EVP_get_cipherbyname(OBJ_nid2sn(a))
-+# define EVP_get_cipherbyobj(a) EVP_get_cipherbynid(OBJ_obj2nid(a))
-+
-+int EVP_MD_type(const EVP_MD *md);
-+# define EVP_MD_nid(e)                   EVP_MD_type(e)
-+# define EVP_MD_name(e)                  OBJ_nid2sn(EVP_MD_nid(e))
-+int EVP_MD_pkey_type(const EVP_MD *md);
-+int EVP_MD_size(const EVP_MD *md);
-+int EVP_MD_block_size(const EVP_MD *md);
-+unsigned long EVP_MD_flags(const EVP_MD *md);
-+
-+const EVP_MD *EVP_MD_CTX_md(const EVP_MD_CTX *ctx);
-+int (*EVP_MD_CTX_update_fn(EVP_MD_CTX *ctx))(EVP_MD_CTX *ctx,
-+                                             const void *data, size_t count);
-+void EVP_MD_CTX_set_update_fn(EVP_MD_CTX *ctx,
-+                              int (*update) (EVP_MD_CTX *ctx,
-+                                             const void *data, size_t count));
-+# define EVP_MD_CTX_size(e)              EVP_MD_size(EVP_MD_CTX_md(e))
-+# define EVP_MD_CTX_block_size(e)        EVP_MD_block_size(EVP_MD_CTX_md(e))
-+# define EVP_MD_CTX_type(e)              EVP_MD_type(EVP_MD_CTX_md(e))
-+EVP_PKEY_CTX *EVP_MD_CTX_pkey_ctx(const EVP_MD_CTX *ctx);
-+void *EVP_MD_CTX_md_data(const EVP_MD_CTX *ctx);
-+
-+int EVP_CIPHER_nid(const EVP_CIPHER *cipher);
-+# define EVP_CIPHER_name(e)              OBJ_nid2sn(EVP_CIPHER_nid(e))
-+int EVP_CIPHER_block_size(const EVP_CIPHER *cipher);
-+int EVP_CIPHER_impl_ctx_size(const EVP_CIPHER *cipher);
-+int EVP_CIPHER_key_length(const EVP_CIPHER *cipher);
-+int EVP_CIPHER_iv_length(const EVP_CIPHER *cipher);
-+unsigned long EVP_CIPHER_flags(const EVP_CIPHER *cipher);
-+# define EVP_CIPHER_mode(e)              (EVP_CIPHER_flags(e) & EVP_CIPH_MODE)
-+
-+const EVP_CIPHER *EVP_CIPHER_CTX_cipher(const EVP_CIPHER_CTX *ctx);
-+int EVP_CIPHER_CTX_encrypting(const EVP_CIPHER_CTX *ctx);
-+int EVP_CIPHER_CTX_nid(const EVP_CIPHER_CTX *ctx);
-+int EVP_CIPHER_CTX_block_size(const EVP_CIPHER_CTX *ctx);
-+int EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX *ctx);
-+int EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX *ctx);
-+const unsigned char *EVP_CIPHER_CTX_iv(const EVP_CIPHER_CTX *ctx);
-+const unsigned char *EVP_CIPHER_CTX_original_iv(const EVP_CIPHER_CTX *ctx);
-+unsigned char *EVP_CIPHER_CTX_iv_noconst(EVP_CIPHER_CTX *ctx);
-+unsigned char *EVP_CIPHER_CTX_buf_noconst(EVP_CIPHER_CTX *ctx);
-+int EVP_CIPHER_CTX_num(const EVP_CIPHER_CTX *ctx);
-+void EVP_CIPHER_CTX_set_num(EVP_CIPHER_CTX *ctx, int num);
-+int EVP_CIPHER_CTX_copy(EVP_CIPHER_CTX *out, const EVP_CIPHER_CTX *in);
-+void *EVP_CIPHER_CTX_get_app_data(const EVP_CIPHER_CTX *ctx);
-+void EVP_CIPHER_CTX_set_app_data(EVP_CIPHER_CTX *ctx, void *data);
-+void *EVP_CIPHER_CTX_get_cipher_data(const EVP_CIPHER_CTX *ctx);
-+void *EVP_CIPHER_CTX_set_cipher_data(EVP_CIPHER_CTX *ctx, void *cipher_data);
-+# define EVP_CIPHER_CTX_type(c)         EVP_CIPHER_type(EVP_CIPHER_CTX_cipher(c))
-+# if OPENSSL_API_COMPAT < 0x10100000L
-+#  define EVP_CIPHER_CTX_flags(c)       EVP_CIPHER_flags(EVP_CIPHER_CTX_cipher(c))
-+# endif
-+# define EVP_CIPHER_CTX_mode(c)         EVP_CIPHER_mode(EVP_CIPHER_CTX_cipher(c))
-+
-+# define EVP_ENCODE_LENGTH(l)    ((((l)+2)/3*4)+((l)/48+1)*2+80)
-+# define EVP_DECODE_LENGTH(l)    (((l)+3)/4*3+80)
-+
-+# define EVP_SignInit_ex(a,b,c)          EVP_DigestInit_ex(a,b,c)
-+# define EVP_SignInit(a,b)               EVP_DigestInit(a,b)
-+# define EVP_SignUpdate(a,b,c)           EVP_DigestUpdate(a,b,c)
-+# define EVP_VerifyInit_ex(a,b,c)        EVP_DigestInit_ex(a,b,c)
-+# define EVP_VerifyInit(a,b)             EVP_DigestInit(a,b)
-+# define EVP_VerifyUpdate(a,b,c)         EVP_DigestUpdate(a,b,c)
-+# define EVP_OpenUpdate(a,b,c,d,e)       EVP_DecryptUpdate(a,b,c,d,e)
-+# define EVP_SealUpdate(a,b,c,d,e)       EVP_EncryptUpdate(a,b,c,d,e)
-+# define EVP_DigestSignUpdate(a,b,c)     EVP_DigestUpdate(a,b,c)
-+# define EVP_DigestVerifyUpdate(a,b,c)   EVP_DigestUpdate(a,b,c)
-+
-+# ifdef CONST_STRICT
-+void BIO_set_md(BIO *, const EVP_MD *md);
-+# else
-+#  define BIO_set_md(b,md)          BIO_ctrl(b,BIO_C_SET_MD,0,(char *)(md))
-+# endif
-+# define BIO_get_md(b,mdp)          BIO_ctrl(b,BIO_C_GET_MD,0,(char *)(mdp))
-+# define BIO_get_md_ctx(b,mdcp)     BIO_ctrl(b,BIO_C_GET_MD_CTX,0, \
-+                                             (char *)(mdcp))
-+# define BIO_set_md_ctx(b,mdcp)     BIO_ctrl(b,BIO_C_SET_MD_CTX,0, \
-+                                             (char *)(mdcp))
-+# define BIO_get_cipher_status(b)   BIO_ctrl(b,BIO_C_GET_CIPHER_STATUS,0,NULL)
-+# define BIO_get_cipher_ctx(b,c_pp) BIO_ctrl(b,BIO_C_GET_CIPHER_CTX,0, \
-+                                             (char *)(c_pp))
-+
-+/*__owur*/ int EVP_Cipher(EVP_CIPHER_CTX *c,
-+                          unsigned char *out,
-+                          const unsigned char *in, unsigned int inl);
-+
-+# define EVP_add_cipher_alias(n,alias) \
-+        OBJ_NAME_add((alias),OBJ_NAME_TYPE_CIPHER_METH|OBJ_NAME_ALIAS,(n))
-+# define EVP_add_digest_alias(n,alias) \
-+        OBJ_NAME_add((alias),OBJ_NAME_TYPE_MD_METH|OBJ_NAME_ALIAS,(n))
-+# define EVP_delete_cipher_alias(alias) \
-+        OBJ_NAME_remove(alias,OBJ_NAME_TYPE_CIPHER_METH|OBJ_NAME_ALIAS);
-+# define EVP_delete_digest_alias(alias) \
-+        OBJ_NAME_remove(alias,OBJ_NAME_TYPE_MD_METH|OBJ_NAME_ALIAS);
-+
-+int EVP_MD_CTX_ctrl(EVP_MD_CTX *ctx, int cmd, int p1, void *p2);
-+EVP_MD_CTX *EVP_MD_CTX_new(void);
-+int EVP_MD_CTX_reset(EVP_MD_CTX *ctx);
-+void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
-+# define EVP_MD_CTX_create()     EVP_MD_CTX_new()
-+# define EVP_MD_CTX_init(ctx)    EVP_MD_CTX_reset((ctx))
-+# define EVP_MD_CTX_destroy(ctx) EVP_MD_CTX_free((ctx))
-+__owur int EVP_MD_CTX_copy_ex(EVP_MD_CTX *out, const EVP_MD_CTX *in);
-+void EVP_MD_CTX_set_flags(EVP_MD_CTX *ctx, int flags);
-+void EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags);
-+int EVP_MD_CTX_test_flags(const EVP_MD_CTX *ctx, int flags);
-+__owur int EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *type,
-+                                 ENGINE *impl);
-+__owur int EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *d,
-+                                size_t cnt);
-+__owur int EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md,
-+                                  unsigned int *s);
-+__owur int EVP_Digest(const void *data, size_t count,
-+                          unsigned char *md, unsigned int *size,
-+                          const EVP_MD *type, ENGINE *impl);
-+
-+__owur int EVP_MD_CTX_copy(EVP_MD_CTX *out, const EVP_MD_CTX *in);
-+__owur int EVP_DigestInit(EVP_MD_CTX *ctx, const EVP_MD *type);
-+__owur int EVP_DigestFinal(EVP_MD_CTX *ctx, unsigned char *md,
-+                           unsigned int *s);
-+
-+#ifndef OPENSSL_NO_UI
-+int EVP_read_pw_string(char *buf, int length, const char *prompt, int verify);
-+int EVP_read_pw_string_min(char *buf, int minlen, int maxlen,
-+                           const char *prompt, int verify);
-+void EVP_set_pw_prompt(const char *prompt);
-+char *EVP_get_pw_prompt(void);
-+#endif
-+
-+__owur int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
-+                          const unsigned char *salt,
-+                          const unsigned char *data, int datal, int count,
-+                          unsigned char *key, unsigned char *iv);
-+
-+void EVP_CIPHER_CTX_set_flags(EVP_CIPHER_CTX *ctx, int flags);
-+void EVP_CIPHER_CTX_clear_flags(EVP_CIPHER_CTX *ctx, int flags);
-+int EVP_CIPHER_CTX_test_flags(const EVP_CIPHER_CTX *ctx, int flags);
-+
-+__owur int EVP_EncryptInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
-+                           const unsigned char *key, const unsigned char *iv);
-+/*__owur*/ int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx,
-+                                  const EVP_CIPHER *cipher, ENGINE *impl,
-+                                  const unsigned char *key,
-+                                  const unsigned char *iv);
-+/*__owur*/ int EVP_EncryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+                                 int *outl, const unsigned char *in, int inl);
-+/*__owur*/ int EVP_EncryptFinal_ex(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+                                   int *outl);
-+/*__owur*/ int EVP_EncryptFinal(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+                                int *outl);
-+
-+__owur int EVP_DecryptInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
-+                           const unsigned char *key, const unsigned char *iv);
-+/*__owur*/ int EVP_DecryptInit_ex(EVP_CIPHER_CTX *ctx,
-+                                  const EVP_CIPHER *cipher, ENGINE *impl,
-+                                  const unsigned char *key,
-+                                  const unsigned char *iv);
-+/*__owur*/ int EVP_DecryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+                                 int *outl, const unsigned char *in, int inl);
-+__owur int EVP_DecryptFinal(EVP_CIPHER_CTX *ctx, unsigned char *outm,
-+                            int *outl);
-+/*__owur*/ int EVP_DecryptFinal_ex(EVP_CIPHER_CTX *ctx, unsigned char *outm,
-+                                   int *outl);
-+
-+__owur int EVP_CipherInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
-+                          const unsigned char *key, const unsigned char *iv,
-+                          int enc);
-+/*__owur*/ int EVP_CipherInit_ex(EVP_CIPHER_CTX *ctx,
-+                                 const EVP_CIPHER *cipher, ENGINE *impl,
-+                                 const unsigned char *key,
-+                                 const unsigned char *iv, int enc);
-+__owur int EVP_CipherUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+                            int *outl, const unsigned char *in, int inl);
-+__owur int EVP_CipherFinal(EVP_CIPHER_CTX *ctx, unsigned char *outm,
-+                           int *outl);
-+__owur int EVP_CipherFinal_ex(EVP_CIPHER_CTX *ctx, unsigned char *outm,
-+                              int *outl);
-+
-+__owur int EVP_SignFinal(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s,
-+                         EVP_PKEY *pkey);
-+
-+__owur int EVP_VerifyFinal(EVP_MD_CTX *ctx, const unsigned char *sigbuf,
-+                           unsigned int siglen, EVP_PKEY *pkey);
-+
-+/*__owur*/ int EVP_DigestSignInit(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
-+                                  const EVP_MD *type, ENGINE *e,
-+                                  EVP_PKEY *pkey);
-+__owur int EVP_DigestSignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
-+                               size_t *siglen);
-+
-+__owur int EVP_DigestVerifyInit(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
-+                                const EVP_MD *type, ENGINE *e,
-+                                EVP_PKEY *pkey);
-+__owur int EVP_DigestVerifyFinal(EVP_MD_CTX *ctx, const unsigned char *sig,
-+                                 size_t siglen);
-+
-+# ifndef OPENSSL_NO_RSA
-+__owur int EVP_OpenInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-+                        const unsigned char *ek, int ekl,
-+                        const unsigned char *iv, EVP_PKEY *priv);
-+__owur int EVP_OpenFinal(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl);
-+
-+__owur int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-+                        unsigned char **ek, int *ekl, unsigned char *iv,
-+                        EVP_PKEY **pubk, int npubk);
-+__owur int EVP_SealFinal(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl);
-+# endif
-+
-+EVP_ENCODE_CTX *EVP_ENCODE_CTX_new(void);
-+void EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx);
-+int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx);
-+int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx);
-+void EVP_EncodeInit(EVP_ENCODE_CTX *ctx);
-+int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
-+                     const unsigned char *in, int inl);
-+void EVP_EncodeFinal(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl);
-+int EVP_EncodeBlock(unsigned char *t, const unsigned char *f, int n);
-+
-+void EVP_DecodeInit(EVP_ENCODE_CTX *ctx);
-+int EVP_DecodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
-+                     const unsigned char *in, int inl);
-+int EVP_DecodeFinal(EVP_ENCODE_CTX *ctx, unsigned
-+                    char *out, int *outl);
-+int EVP_DecodeBlock(unsigned char *t, const unsigned char *f, int n);
-+
-+# if OPENSSL_API_COMPAT < 0x10100000L
-+#  define EVP_CIPHER_CTX_init(c)      EVP_CIPHER_CTX_reset(c)
-+#  define EVP_CIPHER_CTX_cleanup(c)   EVP_CIPHER_CTX_reset(c)
-+# endif
-+EVP_CIPHER_CTX *EVP_CIPHER_CTX_new(void);
-+int EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c);
-+void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *c);
-+int EVP_CIPHER_CTX_set_key_length(EVP_CIPHER_CTX *x, int keylen);
-+int EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX *c, int pad);
-+int EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr);
-+int EVP_CIPHER_CTX_rand_key(EVP_CIPHER_CTX *ctx, unsigned char *key);
-+
-+const BIO_METHOD *BIO_f_md(void);
-+const BIO_METHOD *BIO_f_base64(void);
-+const BIO_METHOD *BIO_f_cipher(void);
-+const BIO_METHOD *BIO_f_reliable(void);
-+__owur int BIO_set_cipher(BIO *b, const EVP_CIPHER *c, const unsigned char *k,
-+                          const unsigned char *i, int enc);
-+
-+const EVP_MD *EVP_md_null(void);
-+# ifndef OPENSSL_NO_MD2
-+const EVP_MD *EVP_md2(void);
-+# endif
-+# ifndef OPENSSL_NO_MD4
-+const EVP_MD *EVP_md4(void);
-+# endif
-+# ifndef OPENSSL_NO_MD5
-+const EVP_MD *EVP_md5(void);
-+const EVP_MD *EVP_md5_sha1(void);
-+# endif
-+# ifndef OPENSSL_NO_BLAKE2
-+const EVP_MD *EVP_blake2b512(void);
-+const EVP_MD *EVP_blake2s256(void);
-+# endif
-+const EVP_MD *EVP_sha1(void);
-+const EVP_MD *EVP_sha224(void);
-+const EVP_MD *EVP_sha256(void);
-+const EVP_MD *EVP_sha384(void);
-+const EVP_MD *EVP_sha512(void);
-+# ifndef OPENSSL_NO_MDC2
-+const EVP_MD *EVP_mdc2(void);
-+# endif
-+# ifndef OPENSSL_NO_RMD160
-+const EVP_MD *EVP_ripemd160(void);
-+# endif
-+# ifndef OPENSSL_NO_WHIRLPOOL
-+const EVP_MD *EVP_whirlpool(void);
-+# endif
-+const EVP_CIPHER *EVP_enc_null(void); /* does nothing :-) */
-+# ifndef OPENSSL_NO_DES
-+const EVP_CIPHER *EVP_des_ecb(void);
-+const EVP_CIPHER *EVP_des_ede(void);
-+const EVP_CIPHER *EVP_des_ede3(void);
-+const EVP_CIPHER *EVP_des_ede_ecb(void);
-+const EVP_CIPHER *EVP_des_ede3_ecb(void);
-+const EVP_CIPHER *EVP_des_cfb64(void);
-+#  define EVP_des_cfb EVP_des_cfb64
-+const EVP_CIPHER *EVP_des_cfb1(void);
-+const EVP_CIPHER *EVP_des_cfb8(void);
-+const EVP_CIPHER *EVP_des_ede_cfb64(void);
-+#  define EVP_des_ede_cfb EVP_des_ede_cfb64
-+const EVP_CIPHER *EVP_des_ede3_cfb64(void);
-+#  define EVP_des_ede3_cfb EVP_des_ede3_cfb64
-+const EVP_CIPHER *EVP_des_ede3_cfb1(void);
-+const EVP_CIPHER *EVP_des_ede3_cfb8(void);
-+const EVP_CIPHER *EVP_des_ofb(void);
-+const EVP_CIPHER *EVP_des_ede_ofb(void);
-+const EVP_CIPHER *EVP_des_ede3_ofb(void);
-+const EVP_CIPHER *EVP_des_cbc(void);
-+const EVP_CIPHER *EVP_des_ede_cbc(void);
-+const EVP_CIPHER *EVP_des_ede3_cbc(void);
-+const EVP_CIPHER *EVP_desx_cbc(void);
-+const EVP_CIPHER *EVP_des_ede3_wrap(void);
-+/*
-+ * This should now be supported through the dev_crypto ENGINE. But also, why
-+ * are rc4 and md5 declarations made here inside a "NO_DES" precompiler
-+ * branch?
-+ */
-+# endif
-+# ifndef OPENSSL_NO_RC4
-+const EVP_CIPHER *EVP_rc4(void);
-+const EVP_CIPHER *EVP_rc4_40(void);
-+#  ifndef OPENSSL_NO_MD5
-+const EVP_CIPHER *EVP_rc4_hmac_md5(void);
-+#  endif
-+# endif
-+# ifndef OPENSSL_NO_IDEA
-+const EVP_CIPHER *EVP_idea_ecb(void);
-+const EVP_CIPHER *EVP_idea_cfb64(void);
-+#  define EVP_idea_cfb EVP_idea_cfb64
-+const EVP_CIPHER *EVP_idea_ofb(void);
-+const EVP_CIPHER *EVP_idea_cbc(void);
-+# endif
-+# ifndef OPENSSL_NO_RC2
-+const EVP_CIPHER *EVP_rc2_ecb(void);
-+const EVP_CIPHER *EVP_rc2_cbc(void);
-+const EVP_CIPHER *EVP_rc2_40_cbc(void);
-+const EVP_CIPHER *EVP_rc2_64_cbc(void);
-+const EVP_CIPHER *EVP_rc2_cfb64(void);
-+#  define EVP_rc2_cfb EVP_rc2_cfb64
-+const EVP_CIPHER *EVP_rc2_ofb(void);
-+# endif
-+# ifndef OPENSSL_NO_BF
-+const EVP_CIPHER *EVP_bf_ecb(void);
-+const EVP_CIPHER *EVP_bf_cbc(void);
-+const EVP_CIPHER *EVP_bf_cfb64(void);
-+#  define EVP_bf_cfb EVP_bf_cfb64
-+const EVP_CIPHER *EVP_bf_ofb(void);
-+# endif
-+# ifndef OPENSSL_NO_CAST
-+const EVP_CIPHER *EVP_cast5_ecb(void);
-+const EVP_CIPHER *EVP_cast5_cbc(void);
-+const EVP_CIPHER *EVP_cast5_cfb64(void);
-+#  define EVP_cast5_cfb EVP_cast5_cfb64
-+const EVP_CIPHER *EVP_cast5_ofb(void);
-+# endif
-+# ifndef OPENSSL_NO_RC5
-+const EVP_CIPHER *EVP_rc5_32_12_16_cbc(void);
-+const EVP_CIPHER *EVP_rc5_32_12_16_ecb(void);
-+const EVP_CIPHER *EVP_rc5_32_12_16_cfb64(void);
-+#  define EVP_rc5_32_12_16_cfb EVP_rc5_32_12_16_cfb64
-+const EVP_CIPHER *EVP_rc5_32_12_16_ofb(void);
-+# endif
-+const EVP_CIPHER *EVP_aes_128_ecb(void);
-+const EVP_CIPHER *EVP_aes_128_cbc(void);
-+const EVP_CIPHER *EVP_aes_128_cfb1(void);
-+const EVP_CIPHER *EVP_aes_128_cfb8(void);
-+const EVP_CIPHER *EVP_aes_128_cfb128(void);
-+# define EVP_aes_128_cfb EVP_aes_128_cfb128
-+const EVP_CIPHER *EVP_aes_128_ofb(void);
-+const EVP_CIPHER *EVP_aes_128_ctr(void);
-+const EVP_CIPHER *EVP_aes_128_ccm(void);
-+const EVP_CIPHER *EVP_aes_128_gcm(void);
-+const EVP_CIPHER *EVP_aes_128_xts(void);
-+const EVP_CIPHER *EVP_aes_128_wrap(void);
-+const EVP_CIPHER *EVP_aes_128_wrap_pad(void);
-+# ifndef OPENSSL_NO_OCB
-+const EVP_CIPHER *EVP_aes_128_ocb(void);
-+# endif
-+const EVP_CIPHER *EVP_aes_192_ecb(void);
-+const EVP_CIPHER *EVP_aes_192_cbc(void);
-+const EVP_CIPHER *EVP_aes_192_cfb1(void);
-+const EVP_CIPHER *EVP_aes_192_cfb8(void);
-+const EVP_CIPHER *EVP_aes_192_cfb128(void);
-+# define EVP_aes_192_cfb EVP_aes_192_cfb128
-+const EVP_CIPHER *EVP_aes_192_ofb(void);
-+const EVP_CIPHER *EVP_aes_192_ctr(void);
-+const EVP_CIPHER *EVP_aes_192_ccm(void);
-+const EVP_CIPHER *EVP_aes_192_gcm(void);
-+const EVP_CIPHER *EVP_aes_192_wrap(void);
-+const EVP_CIPHER *EVP_aes_192_wrap_pad(void);
-+# ifndef OPENSSL_NO_OCB
-+const EVP_CIPHER *EVP_aes_192_ocb(void);
-+# endif
-+const EVP_CIPHER *EVP_aes_256_ecb(void);
-+const EVP_CIPHER *EVP_aes_256_cbc(void);
-+const EVP_CIPHER *EVP_aes_256_cfb1(void);
-+const EVP_CIPHER *EVP_aes_256_cfb8(void);
-+const EVP_CIPHER *EVP_aes_256_cfb128(void);
-+# define EVP_aes_256_cfb EVP_aes_256_cfb128
-+const EVP_CIPHER *EVP_aes_256_ofb(void);
-+const EVP_CIPHER *EVP_aes_256_ctr(void);
-+const EVP_CIPHER *EVP_aes_256_ccm(void);
-+const EVP_CIPHER *EVP_aes_256_gcm(void);
-+const EVP_CIPHER *EVP_aes_256_xts(void);
-+const EVP_CIPHER *EVP_aes_256_wrap(void);
-+const EVP_CIPHER *EVP_aes_256_wrap_pad(void);
-+# ifndef OPENSSL_NO_OCB
-+const EVP_CIPHER *EVP_aes_256_ocb(void);
-+# endif
-+const EVP_CIPHER *EVP_aes_128_cbc_hmac_sha1(void);
-+const EVP_CIPHER *EVP_aes_256_cbc_hmac_sha1(void);
-+const EVP_CIPHER *EVP_aes_128_cbc_hmac_sha256(void);
-+const EVP_CIPHER *EVP_aes_256_cbc_hmac_sha256(void);
-+# ifndef OPENSSL_NO_ARIA
-+const EVP_CIPHER *EVP_aria_128_ecb(void);
-+const EVP_CIPHER *EVP_aria_128_cbc(void);
-+const EVP_CIPHER *EVP_aria_128_cfb1(void);
-+const EVP_CIPHER *EVP_aria_128_cfb8(void);
-+const EVP_CIPHER *EVP_aria_128_cfb128(void);
-+#  define EVP_aria_128_cfb EVP_aria_128_cfb128
-+const EVP_CIPHER *EVP_aria_128_ctr(void);
-+const EVP_CIPHER *EVP_aria_128_ofb(void);
-+const EVP_CIPHER *EVP_aria_192_ecb(void);
-+const EVP_CIPHER *EVP_aria_192_cbc(void);
-+const EVP_CIPHER *EVP_aria_192_cfb1(void);
-+const EVP_CIPHER *EVP_aria_192_cfb8(void);
-+const EVP_CIPHER *EVP_aria_192_cfb128(void);
-+#  define EVP_aria_192_cfb EVP_aria_192_cfb128
-+const EVP_CIPHER *EVP_aria_192_ctr(void);
-+const EVP_CIPHER *EVP_aria_192_ofb(void);
-+const EVP_CIPHER *EVP_aria_256_ecb(void);
-+const EVP_CIPHER *EVP_aria_256_cbc(void);
-+const EVP_CIPHER *EVP_aria_256_cfb1(void);
-+const EVP_CIPHER *EVP_aria_256_cfb8(void);
-+const EVP_CIPHER *EVP_aria_256_cfb128(void);
-+#  define EVP_aria_256_cfb EVP_aria_256_cfb128
-+const EVP_CIPHER *EVP_aria_256_ctr(void);
-+const EVP_CIPHER *EVP_aria_256_ofb(void);
-+# endif
-+# ifndef OPENSSL_NO_CAMELLIA
-+const EVP_CIPHER *EVP_camellia_128_ecb(void);
-+const EVP_CIPHER *EVP_camellia_128_cbc(void);
-+const EVP_CIPHER *EVP_camellia_128_cfb1(void);
-+const EVP_CIPHER *EVP_camellia_128_cfb8(void);
-+const EVP_CIPHER *EVP_camellia_128_cfb128(void);
-+#  define EVP_camellia_128_cfb EVP_camellia_128_cfb128
-+const EVP_CIPHER *EVP_camellia_128_ofb(void);
-+const EVP_CIPHER *EVP_camellia_128_ctr(void);
-+const EVP_CIPHER *EVP_camellia_192_ecb(void);
-+const EVP_CIPHER *EVP_camellia_192_cbc(void);
-+const EVP_CIPHER *EVP_camellia_192_cfb1(void);
-+const EVP_CIPHER *EVP_camellia_192_cfb8(void);
-+const EVP_CIPHER *EVP_camellia_192_cfb128(void);
-+#  define EVP_camellia_192_cfb EVP_camellia_192_cfb128
-+const EVP_CIPHER *EVP_camellia_192_ofb(void);
-+const EVP_CIPHER *EVP_camellia_192_ctr(void);
-+const EVP_CIPHER *EVP_camellia_256_ecb(void);
-+const EVP_CIPHER *EVP_camellia_256_cbc(void);
-+const EVP_CIPHER *EVP_camellia_256_cfb1(void);
-+const EVP_CIPHER *EVP_camellia_256_cfb8(void);
-+const EVP_CIPHER *EVP_camellia_256_cfb128(void);
-+#  define EVP_camellia_256_cfb EVP_camellia_256_cfb128
-+const EVP_CIPHER *EVP_camellia_256_ofb(void);
-+const EVP_CIPHER *EVP_camellia_256_ctr(void);
-+# endif
-+# ifndef OPENSSL_NO_CHACHA
-+const EVP_CIPHER *EVP_chacha20(void);
-+#  ifndef OPENSSL_NO_POLY1305
-+const EVP_CIPHER *EVP_chacha20_poly1305(void);
-+#  endif
-+# endif
-+
-+# ifndef OPENSSL_NO_SEED
-+const EVP_CIPHER *EVP_seed_ecb(void);
-+const EVP_CIPHER *EVP_seed_cbc(void);
-+const EVP_CIPHER *EVP_seed_cfb128(void);
-+#  define EVP_seed_cfb EVP_seed_cfb128
-+const EVP_CIPHER *EVP_seed_ofb(void);
-+# endif
-+
-+# if OPENSSL_API_COMPAT < 0x10100000L
-+#  define OPENSSL_add_all_algorithms_conf() \
-+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
-+                        | OPENSSL_INIT_ADD_ALL_DIGESTS \
-+                        | OPENSSL_INIT_LOAD_CONFIG, NULL)
-+#  define OPENSSL_add_all_algorithms_noconf() \
-+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
-+                        | OPENSSL_INIT_ADD_ALL_DIGESTS, NULL)
-+
-+#  ifdef OPENSSL_LOAD_CONF
-+#   define OpenSSL_add_all_algorithms() \
-+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
-+                        | OPENSSL_INIT_ADD_ALL_DIGESTS \
-+                        | OPENSSL_INIT_LOAD_CONFIG, NULL)
-+#  else
-+#   define OpenSSL_add_all_algorithms() \
-+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
-+                        | OPENSSL_INIT_ADD_ALL_DIGESTS, NULL)
-+#  endif
-+
-+#  define OpenSSL_add_all_ciphers() \
-+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL)
-+#  define OpenSSL_add_all_digests() \
-+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL)
-+
-+#  define EVP_cleanup() while(0) continue
-+# endif
-+
-+int EVP_add_cipher(const EVP_CIPHER *cipher);
-+int EVP_add_digest(const EVP_MD *digest);
-+
-+const EVP_CIPHER *EVP_get_cipherbyname(const char *name);
-+const EVP_MD *EVP_get_digestbyname(const char *name);
-+
-+void EVP_CIPHER_do_all(void (*fn) (const EVP_CIPHER *ciph,
-+                                   const char *from, const char *to, void *x),
-+                       void *arg);
-+void EVP_CIPHER_do_all_sorted(void (*fn)
-+                               (const EVP_CIPHER *ciph, const char *from,
-+                                const char *to, void *x), void *arg);
-+
-+void EVP_MD_do_all(void (*fn) (const EVP_MD *ciph,
-+                               const char *from, const char *to, void *x),
-+                   void *arg);
-+void EVP_MD_do_all_sorted(void (*fn)
-+                           (const EVP_MD *ciph, const char *from,
-+                            const char *to, void *x), void *arg);
-+
-+int EVP_PKEY_decrypt_old(unsigned char *dec_key,
-+                         const unsigned char *enc_key, int enc_key_len,
-+                         EVP_PKEY *private_key);
-+int EVP_PKEY_encrypt_old(unsigned char *enc_key,
-+                         const unsigned char *key, int key_len,
-+                         EVP_PKEY *pub_key);
-+int EVP_PKEY_type(int type);
-+int EVP_PKEY_id(const EVP_PKEY *pkey);
-+int EVP_PKEY_base_id(const EVP_PKEY *pkey);
-+int EVP_PKEY_bits(const EVP_PKEY *pkey);
-+int EVP_PKEY_security_bits(const EVP_PKEY *pkey);
-+int EVP_PKEY_size(EVP_PKEY *pkey);
-+int EVP_PKEY_set_type(EVP_PKEY *pkey, int type);
-+int EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len);
-+int EVP_PKEY_assign(EVP_PKEY *pkey, int type, void *key);
-+void *EVP_PKEY_get0(const EVP_PKEY *pkey);
-+const unsigned char *EVP_PKEY_get0_hmac(const EVP_PKEY *pkey, size_t *len);
-+# ifndef OPENSSL_NO_POLY1305
-+const unsigned char *EVP_PKEY_get0_poly1305(const EVP_PKEY *pkey, size_t *len);
-+# endif
-+# ifndef OPENSSL_NO_SIPHASH
-+const unsigned char *EVP_PKEY_get0_siphash(const EVP_PKEY *pkey, size_t *len);
-+# endif
-+
-+# ifndef OPENSSL_NO_RSA
-+struct rsa_st;
-+int EVP_PKEY_set1_RSA(EVP_PKEY *pkey, struct rsa_st *key);
-+struct rsa_st *EVP_PKEY_get0_RSA(EVP_PKEY *pkey);
-+struct rsa_st *EVP_PKEY_get1_RSA(EVP_PKEY *pkey);
-+# endif
-+# ifndef OPENSSL_NO_DSA
-+struct dsa_st;
-+int EVP_PKEY_set1_DSA(EVP_PKEY *pkey, struct dsa_st *key);
-+struct dsa_st *EVP_PKEY_get0_DSA(EVP_PKEY *pkey);
-+struct dsa_st *EVP_PKEY_get1_DSA(EVP_PKEY *pkey);
-+# endif
-+# ifndef OPENSSL_NO_DH
-+struct dh_st;
-+int EVP_PKEY_set1_DH(EVP_PKEY *pkey, struct dh_st *key);
-+struct dh_st *EVP_PKEY_get0_DH(EVP_PKEY *pkey);
-+struct dh_st *EVP_PKEY_get1_DH(EVP_PKEY *pkey);
-+# endif
-+# ifndef OPENSSL_NO_EC
-+struct ec_key_st;
-+int EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, struct ec_key_st *key);
-+struct ec_key_st *EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey);
-+struct ec_key_st *EVP_PKEY_get1_EC_KEY(EVP_PKEY *pkey);
-+# endif
-+
-+EVP_PKEY *EVP_PKEY_new(void);
-+int EVP_PKEY_up_ref(EVP_PKEY *pkey);
-+void EVP_PKEY_free(EVP_PKEY *pkey);
-+
-+EVP_PKEY *d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
-+                        long length);
-+int i2d_PublicKey(EVP_PKEY *a, unsigned char **pp);
-+
-+EVP_PKEY *d2i_PrivateKey(int type, EVP_PKEY **a, const unsigned char **pp,
-+                         long length);
-+EVP_PKEY *d2i_AutoPrivateKey(EVP_PKEY **a, const unsigned char **pp,
-+                             long length);
-+int i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp);
-+
-+int EVP_PKEY_copy_parameters(EVP_PKEY *to, const EVP_PKEY *from);
-+int EVP_PKEY_missing_parameters(const EVP_PKEY *pkey);
-+int EVP_PKEY_save_parameters(EVP_PKEY *pkey, int mode);
-+int EVP_PKEY_cmp_parameters(const EVP_PKEY *a, const EVP_PKEY *b);
-+
-+int EVP_PKEY_cmp(const EVP_PKEY *a, const EVP_PKEY *b);
-+
-+int EVP_PKEY_print_public(BIO *out, const EVP_PKEY *pkey,
-+                          int indent, ASN1_PCTX *pctx);
-+int EVP_PKEY_print_private(BIO *out, const EVP_PKEY *pkey,
-+                           int indent, ASN1_PCTX *pctx);
-+int EVP_PKEY_print_params(BIO *out, const EVP_PKEY *pkey,
-+                          int indent, ASN1_PCTX *pctx);
-+
-+int EVP_PKEY_get_default_digest_nid(EVP_PKEY *pkey, int *pnid);
-+
-+int EVP_PKEY_set1_tls_encodedpoint(EVP_PKEY *pkey,
-+                                   const unsigned char *pt, size_t ptlen);
-+size_t EVP_PKEY_get1_tls_encodedpoint(EVP_PKEY *pkey, unsigned char **ppt);
-+
-+int EVP_CIPHER_type(const EVP_CIPHER *ctx);
-+
-+/* calls methods */
-+int EVP_CIPHER_param_to_asn1(EVP_CIPHER_CTX *c, ASN1_TYPE *type);
-+int EVP_CIPHER_asn1_to_param(EVP_CIPHER_CTX *c, ASN1_TYPE *type);
-+
-+/* These are used by EVP_CIPHER methods */
-+int EVP_CIPHER_set_asn1_iv(EVP_CIPHER_CTX *c, ASN1_TYPE *type);
-+int EVP_CIPHER_get_asn1_iv(EVP_CIPHER_CTX *c, ASN1_TYPE *type);
-+
-+/* PKCS5 password based encryption */
-+int PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
-+                       ASN1_TYPE *param, const EVP_CIPHER *cipher,
-+                       const EVP_MD *md, int en_de);
-+int PKCS5_PBKDF2_HMAC_SHA1(const char *pass, int passlen,
-+                           const unsigned char *salt, int saltlen, int iter,
-+                           int keylen, unsigned char *out);
-+int PKCS5_PBKDF2_HMAC(const char *pass, int passlen,
-+                      const unsigned char *salt, int saltlen, int iter,
-+                      const EVP_MD *digest, int keylen, unsigned char *out);
-+int PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
-+                          ASN1_TYPE *param, const EVP_CIPHER *cipher,
-+                          const EVP_MD *md, int en_de);
-+
-+#ifndef OPENSSL_NO_SCRYPT
-+int EVP_PBE_scrypt(const char *pass, size_t passlen,
-+                   const unsigned char *salt, size_t saltlen,
-+                   uint64_t N, uint64_t r, uint64_t p, uint64_t maxmem,
-+                   unsigned char *key, size_t keylen);
-+
-+int PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
-+                             int passlen, ASN1_TYPE *param,
-+                             const EVP_CIPHER *c, const EVP_MD *md, int en_de);
-+#endif
-+
-+void PKCS5_PBE_add(void);
-+
-+int EVP_PBE_CipherInit(ASN1_OBJECT *pbe_obj, const char *pass, int passlen,
-+                       ASN1_TYPE *param, EVP_CIPHER_CTX *ctx, int en_de);
-+
-+/* PBE type */
-+
-+/* Can appear as the outermost AlgorithmIdentifier */
-+# define EVP_PBE_TYPE_OUTER      0x0
-+/* Is an PRF type OID */
-+# define EVP_PBE_TYPE_PRF        0x1
-+/* Is a PKCS#5 v2.0 KDF */
-+# define EVP_PBE_TYPE_KDF        0x2
-+
-+int EVP_PBE_alg_add_type(int pbe_type, int pbe_nid, int cipher_nid,
-+                         int md_nid, EVP_PBE_KEYGEN *keygen);
-+int EVP_PBE_alg_add(int nid, const EVP_CIPHER *cipher, const EVP_MD *md,
-+                    EVP_PBE_KEYGEN *keygen);
-+int EVP_PBE_find(int type, int pbe_nid, int *pcnid, int *pmnid,
-+                 EVP_PBE_KEYGEN **pkeygen);
-+void EVP_PBE_cleanup(void);
-+int EVP_PBE_get(int *ptype, int *ppbe_nid, size_t num);
-+
-+# define ASN1_PKEY_ALIAS         0x1
-+# define ASN1_PKEY_DYNAMIC       0x2
-+# define ASN1_PKEY_SIGPARAM_NULL 0x4
-+
-+# define ASN1_PKEY_CTRL_PKCS7_SIGN       0x1
-+# define ASN1_PKEY_CTRL_PKCS7_ENCRYPT    0x2
-+# define ASN1_PKEY_CTRL_DEFAULT_MD_NID   0x3
-+# define ASN1_PKEY_CTRL_CMS_SIGN         0x5
-+# define ASN1_PKEY_CTRL_CMS_ENVELOPE     0x7
-+# define ASN1_PKEY_CTRL_CMS_RI_TYPE      0x8
-+
-+# define ASN1_PKEY_CTRL_SET1_TLS_ENCPT   0x9
-+# define ASN1_PKEY_CTRL_GET1_TLS_ENCPT   0xa
-+
-+int EVP_PKEY_asn1_get_count(void);
-+const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_get0(int idx);
-+const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_find(ENGINE **pe, int type);
-+const EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_find_str(ENGINE **pe,
-+                                                   const char *str, int len);
-+int EVP_PKEY_asn1_add0(const EVP_PKEY_ASN1_METHOD *ameth);
-+int EVP_PKEY_asn1_add_alias(int to, int from);
-+int EVP_PKEY_asn1_get0_info(int *ppkey_id, int *pkey_base_id,
-+                            int *ppkey_flags, const char **pinfo,
-+                            const char **ppem_str,
-+                            const EVP_PKEY_ASN1_METHOD *ameth);
-+
-+const EVP_PKEY_ASN1_METHOD *EVP_PKEY_get0_asn1(const EVP_PKEY *pkey);
-+EVP_PKEY_ASN1_METHOD *EVP_PKEY_asn1_new(int id, int flags,
-+                                        const char *pem_str,
-+                                        const char *info);
-+void EVP_PKEY_asn1_copy(EVP_PKEY_ASN1_METHOD *dst,
-+                        const EVP_PKEY_ASN1_METHOD *src);
-+void EVP_PKEY_asn1_free(EVP_PKEY_ASN1_METHOD *ameth);
-+void EVP_PKEY_asn1_set_public(EVP_PKEY_ASN1_METHOD *ameth,
-+                              int (*pub_decode) (EVP_PKEY *pk,
-+                                                 X509_PUBKEY *pub),
-+                              int (*pub_encode) (X509_PUBKEY *pub,
-+                                                 const EVP_PKEY *pk),
-+                              int (*pub_cmp) (const EVP_PKEY *a,
-+                                              const EVP_PKEY *b),
-+                              int (*pub_print) (BIO *out,
-+                                                const EVP_PKEY *pkey,
-+                                                int indent, ASN1_PCTX *pctx),
-+                              int (*pkey_size) (const EVP_PKEY *pk),
-+                              int (*pkey_bits) (const EVP_PKEY *pk));
-+void EVP_PKEY_asn1_set_private(EVP_PKEY_ASN1_METHOD *ameth,
-+                               int (*priv_decode) (EVP_PKEY *pk,
-+                                                   const PKCS8_PRIV_KEY_INFO
-+                                                   *p8inf),
-+                               int (*priv_encode) (PKCS8_PRIV_KEY_INFO *p8,
-+                                                   const EVP_PKEY *pk),
-+                               int (*priv_print) (BIO *out,
-+                                                  const EVP_PKEY *pkey,
-+                                                  int indent,
-+                                                  ASN1_PCTX *pctx));
-+void EVP_PKEY_asn1_set_param(EVP_PKEY_ASN1_METHOD *ameth,
-+                             int (*param_decode) (EVP_PKEY *pkey,
-+                                                  const unsigned char **pder,
-+                                                  int derlen),
-+                             int (*param_encode) (const EVP_PKEY *pkey,
-+                                                  unsigned char **pder),
-+                             int (*param_missing) (const EVP_PKEY *pk),
-+                             int (*param_copy) (EVP_PKEY *to,
-+                                                const EVP_PKEY *from),
-+                             int (*param_cmp) (const EVP_PKEY *a,
-+                                               const EVP_PKEY *b),
-+                             int (*param_print) (BIO *out,
-+                                                 const EVP_PKEY *pkey,
-+                                                 int indent,
-+                                                 ASN1_PCTX *pctx));
-+
-+void EVP_PKEY_asn1_set_free(EVP_PKEY_ASN1_METHOD *ameth,
-+                            void (*pkey_free) (EVP_PKEY *pkey));
-+void EVP_PKEY_asn1_set_ctrl(EVP_PKEY_ASN1_METHOD *ameth,
-+                            int (*pkey_ctrl) (EVP_PKEY *pkey, int op,
-+                                              long arg1, void *arg2));
-+void EVP_PKEY_asn1_set_item(EVP_PKEY_ASN1_METHOD *ameth,
-+                            int (*item_verify) (EVP_MD_CTX *ctx,
-+                                                const ASN1_ITEM *it,
-+                                                void *asn,
-+                                                X509_ALGOR *a,
-+                                                ASN1_BIT_STRING *sig,
-+                                                EVP_PKEY *pkey),
-+                            int (*item_sign) (EVP_MD_CTX *ctx,
-+                                              const ASN1_ITEM *it,
-+                                              void *asn,
-+                                              X509_ALGOR *alg1,
-+                                              X509_ALGOR *alg2,
-+                                              ASN1_BIT_STRING *sig));
-+
-+void EVP_PKEY_asn1_set_security_bits(EVP_PKEY_ASN1_METHOD *ameth,
-+                                     int (*pkey_security_bits) (const EVP_PKEY
-+                                                                *pk));
-+
-+# define EVP_PKEY_OP_UNDEFINED           0
-+# define EVP_PKEY_OP_PARAMGEN            (1<<1)
-+# define EVP_PKEY_OP_KEYGEN              (1<<2)
-+# define EVP_PKEY_OP_SIGN                (1<<3)
-+# define EVP_PKEY_OP_VERIFY              (1<<4)
-+# define EVP_PKEY_OP_VERIFYRECOVER       (1<<5)
-+# define EVP_PKEY_OP_SIGNCTX             (1<<6)
-+# define EVP_PKEY_OP_VERIFYCTX           (1<<7)
-+# define EVP_PKEY_OP_ENCRYPT             (1<<8)
-+# define EVP_PKEY_OP_DECRYPT             (1<<9)
-+# define EVP_PKEY_OP_DERIVE              (1<<10)
-+
-+# define EVP_PKEY_OP_TYPE_SIG    \
-+        (EVP_PKEY_OP_SIGN | EVP_PKEY_OP_VERIFY | EVP_PKEY_OP_VERIFYRECOVER \
-+                | EVP_PKEY_OP_SIGNCTX | EVP_PKEY_OP_VERIFYCTX)
-+
-+# define EVP_PKEY_OP_TYPE_CRYPT \
-+        (EVP_PKEY_OP_ENCRYPT | EVP_PKEY_OP_DECRYPT)
-+
-+# define EVP_PKEY_OP_TYPE_NOGEN \
-+        (EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT | EVP_PKEY_OP_DERIVE)
-+
-+# define EVP_PKEY_OP_TYPE_GEN \
-+                (EVP_PKEY_OP_PARAMGEN | EVP_PKEY_OP_KEYGEN)
-+
-+# define  EVP_PKEY_CTX_set_signature_md(ctx, md) \
-+                EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_TYPE_SIG,  \
-+                                        EVP_PKEY_CTRL_MD, 0, (void *)(md))
-+
-+# define  EVP_PKEY_CTX_get_signature_md(ctx, pmd)        \
-+                EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_TYPE_SIG,  \
-+                                        EVP_PKEY_CTRL_GET_MD, 0, (void *)(pmd))
-+
-+# define  EVP_PKEY_CTX_set_mac_key(ctx, key, len)        \
-+                EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_KEYGEN,  \
-+                                  EVP_PKEY_CTRL_SET_MAC_KEY, len, (void *)(key))
-+
-+# define EVP_PKEY_CTRL_MD                1
-+# define EVP_PKEY_CTRL_PEER_KEY          2
-+
-+# define EVP_PKEY_CTRL_PKCS7_ENCRYPT     3
-+# define EVP_PKEY_CTRL_PKCS7_DECRYPT     4
-+
-+# define EVP_PKEY_CTRL_PKCS7_SIGN        5
-+
-+# define EVP_PKEY_CTRL_SET_MAC_KEY       6
-+
-+# define EVP_PKEY_CTRL_DIGESTINIT        7
-+
-+/* Used by GOST key encryption in TLS */
-+# define EVP_PKEY_CTRL_SET_IV            8
-+
-+# define EVP_PKEY_CTRL_CMS_ENCRYPT       9
-+# define EVP_PKEY_CTRL_CMS_DECRYPT       10
-+# define EVP_PKEY_CTRL_CMS_SIGN          11
-+
-+# define EVP_PKEY_CTRL_CIPHER            12
-+
-+# define EVP_PKEY_CTRL_GET_MD            13
-+
-+# define EVP_PKEY_CTRL_SET_DIGEST_SIZE   14
-+
-+# define EVP_PKEY_ALG_CTRL               0x1000
-+
-+# define EVP_PKEY_FLAG_AUTOARGLEN        2
-+/*
-+ * Method handles all operations: don't assume any digest related defaults.
-+ */
-+# define EVP_PKEY_FLAG_SIGCTX_CUSTOM     4
-+
-+const EVP_PKEY_METHOD *EVP_PKEY_meth_find(int type);
-+EVP_PKEY_METHOD *EVP_PKEY_meth_new(int id, int flags);
-+void EVP_PKEY_meth_get0_info(int *ppkey_id, int *pflags,
-+                             const EVP_PKEY_METHOD *meth);
-+void EVP_PKEY_meth_copy(EVP_PKEY_METHOD *dst, const EVP_PKEY_METHOD *src);
-+void EVP_PKEY_meth_free(EVP_PKEY_METHOD *pmeth);
-+int EVP_PKEY_meth_add0(const EVP_PKEY_METHOD *pmeth);
-+
-+EVP_PKEY_CTX *EVP_PKEY_CTX_new(EVP_PKEY *pkey, ENGINE *e);
-+EVP_PKEY_CTX *EVP_PKEY_CTX_new_id(int id, ENGINE *e);
-+EVP_PKEY_CTX *EVP_PKEY_CTX_dup(EVP_PKEY_CTX *ctx);
-+void EVP_PKEY_CTX_free(EVP_PKEY_CTX *ctx);
-+
-+int EVP_PKEY_CTX_ctrl(EVP_PKEY_CTX *ctx, int keytype, int optype,
-+                      int cmd, int p1, void *p2);
-+int EVP_PKEY_CTX_ctrl_str(EVP_PKEY_CTX *ctx, const char *type,
-+                          const char *value);
-+
-+int EVP_PKEY_CTX_str2ctrl(EVP_PKEY_CTX *ctx, int cmd, const char *str);
-+int EVP_PKEY_CTX_hex2ctrl(EVP_PKEY_CTX *ctx, int cmd, const char *hex);
-+
-+int EVP_PKEY_CTX_md(EVP_PKEY_CTX *ctx, int optype, int cmd, const char *md);
-+
-+int EVP_PKEY_CTX_get_operation(EVP_PKEY_CTX *ctx);
-+void EVP_PKEY_CTX_set0_keygen_info(EVP_PKEY_CTX *ctx, int *dat, int datlen);
-+
-+EVP_PKEY *EVP_PKEY_new_mac_key(int type, ENGINE *e,
-+                               const unsigned char *key, int keylen);
-+
-+void EVP_PKEY_CTX_set_data(EVP_PKEY_CTX *ctx, void *data);
-+void *EVP_PKEY_CTX_get_data(EVP_PKEY_CTX *ctx);
-+EVP_PKEY *EVP_PKEY_CTX_get0_pkey(EVP_PKEY_CTX *ctx);
-+
-+EVP_PKEY *EVP_PKEY_CTX_get0_peerkey(EVP_PKEY_CTX *ctx);
-+
-+void EVP_PKEY_CTX_set_app_data(EVP_PKEY_CTX *ctx, void *data);
-+void *EVP_PKEY_CTX_get_app_data(EVP_PKEY_CTX *ctx);
-+
-+int EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
-+                  unsigned char *sig, size_t *siglen,
-+                  const unsigned char *tbs, size_t tbslen);
-+int EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
-+                    const unsigned char *sig, size_t siglen,
-+                    const unsigned char *tbs, size_t tbslen);
-+int EVP_PKEY_verify_recover_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_verify_recover(EVP_PKEY_CTX *ctx,
-+                            unsigned char *rout, size_t *routlen,
-+                            const unsigned char *sig, size_t siglen);
-+int EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
-+                     unsigned char *out, size_t *outlen,
-+                     const unsigned char *in, size_t inlen);
-+int EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
-+                     unsigned char *out, size_t *outlen,
-+                     const unsigned char *in, size_t inlen);
-+
-+int EVP_PKEY_derive_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_derive_set_peer(EVP_PKEY_CTX *ctx, EVP_PKEY *peer);
-+int EVP_PKEY_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen);
-+
-+typedef int EVP_PKEY_gen_cb(EVP_PKEY_CTX *ctx);
-+
-+int EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey);
-+int EVP_PKEY_keygen_init(EVP_PKEY_CTX *ctx);
-+int EVP_PKEY_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey);
-+
-+void EVP_PKEY_CTX_set_cb(EVP_PKEY_CTX *ctx, EVP_PKEY_gen_cb *cb);
-+EVP_PKEY_gen_cb *EVP_PKEY_CTX_get_cb(EVP_PKEY_CTX *ctx);
-+
-+int EVP_PKEY_CTX_get_keygen_info(EVP_PKEY_CTX *ctx, int idx);
-+
-+void EVP_PKEY_meth_set_init(EVP_PKEY_METHOD *pmeth,
-+                            int (*init) (EVP_PKEY_CTX *ctx));
-+
-+void EVP_PKEY_meth_set_copy(EVP_PKEY_METHOD *pmeth,
-+                            int (*copy) (EVP_PKEY_CTX *dst,
-+                                         EVP_PKEY_CTX *src));
-+
-+void EVP_PKEY_meth_set_cleanup(EVP_PKEY_METHOD *pmeth,
-+                               void (*cleanup) (EVP_PKEY_CTX *ctx));
-+
-+void EVP_PKEY_meth_set_paramgen(EVP_PKEY_METHOD *pmeth,
-+                                int (*paramgen_init) (EVP_PKEY_CTX *ctx),
-+                                int (*paramgen) (EVP_PKEY_CTX *ctx,
-+                                                 EVP_PKEY *pkey));
-+
-+void EVP_PKEY_meth_set_keygen(EVP_PKEY_METHOD *pmeth,
-+                              int (*keygen_init) (EVP_PKEY_CTX *ctx),
-+                              int (*keygen) (EVP_PKEY_CTX *ctx,
-+                                             EVP_PKEY *pkey));
-+
-+void EVP_PKEY_meth_set_sign(EVP_PKEY_METHOD *pmeth,
-+                            int (*sign_init) (EVP_PKEY_CTX *ctx),
-+                            int (*sign) (EVP_PKEY_CTX *ctx,
-+                                         unsigned char *sig, size_t *siglen,
-+                                         const unsigned char *tbs,
-+                                         size_t tbslen));
-+
-+void EVP_PKEY_meth_set_verify(EVP_PKEY_METHOD *pmeth,
-+                              int (*verify_init) (EVP_PKEY_CTX *ctx),
-+                              int (*verify) (EVP_PKEY_CTX *ctx,
-+                                             const unsigned char *sig,
-+                                             size_t siglen,
-+                                             const unsigned char *tbs,
-+                                             size_t tbslen));
-+
-+void EVP_PKEY_meth_set_verify_recover(EVP_PKEY_METHOD *pmeth,
-+                                      int (*verify_recover_init) (EVP_PKEY_CTX
-+                                                                  *ctx),
-+                                      int (*verify_recover) (EVP_PKEY_CTX
-+                                                             *ctx,
-+                                                             unsigned char
-+                                                             *sig,
-+                                                             size_t *siglen,
-+                                                             const unsigned
-+                                                             char *tbs,
-+                                                             size_t tbslen));
-+
-+void EVP_PKEY_meth_set_signctx(EVP_PKEY_METHOD *pmeth,
-+                               int (*signctx_init) (EVP_PKEY_CTX *ctx,
-+                                                    EVP_MD_CTX *mctx),
-+                               int (*signctx) (EVP_PKEY_CTX *ctx,
-+                                               unsigned char *sig,
-+                                               size_t *siglen,
-+                                               EVP_MD_CTX *mctx));
-+
-+void EVP_PKEY_meth_set_verifyctx(EVP_PKEY_METHOD *pmeth,
-+                                 int (*verifyctx_init) (EVP_PKEY_CTX *ctx,
-+                                                        EVP_MD_CTX *mctx),
-+                                 int (*verifyctx) (EVP_PKEY_CTX *ctx,
-+                                                   const unsigned char *sig,
-+                                                   int siglen,
-+                                                   EVP_MD_CTX *mctx));
-+
-+void EVP_PKEY_meth_set_encrypt(EVP_PKEY_METHOD *pmeth,
-+                               int (*encrypt_init) (EVP_PKEY_CTX *ctx),
-+                               int (*encryptfn) (EVP_PKEY_CTX *ctx,
-+                                                 unsigned char *out,
-+                                                 size_t *outlen,
-+                                                 const unsigned char *in,
-+                                                 size_t inlen));
-+
-+void EVP_PKEY_meth_set_decrypt(EVP_PKEY_METHOD *pmeth,
-+                               int (*decrypt_init) (EVP_PKEY_CTX *ctx),
-+                               int (*decrypt) (EVP_PKEY_CTX *ctx,
-+                                               unsigned char *out,
-+                                               size_t *outlen,
-+                                               const unsigned char *in,
-+                                               size_t inlen));
-+
-+void EVP_PKEY_meth_set_derive(EVP_PKEY_METHOD *pmeth,
-+                              int (*derive_init) (EVP_PKEY_CTX *ctx),
-+                              int (*derive) (EVP_PKEY_CTX *ctx,
-+                                             unsigned char *key,
-+                                             size_t *keylen));
-+
-+void EVP_PKEY_meth_set_ctrl(EVP_PKEY_METHOD *pmeth,
-+                            int (*ctrl) (EVP_PKEY_CTX *ctx, int type, int p1,
-+                                         void *p2),
-+                            int (*ctrl_str) (EVP_PKEY_CTX *ctx,
-+                                             const char *type,
-+                                             const char *value));
-+
-+void EVP_PKEY_meth_get_init(EVP_PKEY_METHOD *pmeth,
-+                            int (**pinit) (EVP_PKEY_CTX *ctx));
-+
-+void EVP_PKEY_meth_get_copy(EVP_PKEY_METHOD *pmeth,
-+                            int (**pcopy) (EVP_PKEY_CTX *dst,
-+                                           EVP_PKEY_CTX *src));
-+
-+void EVP_PKEY_meth_get_cleanup(EVP_PKEY_METHOD *pmeth,
-+                               void (**pcleanup) (EVP_PKEY_CTX *ctx));
-+
-+void EVP_PKEY_meth_get_paramgen(EVP_PKEY_METHOD *pmeth,
-+                                int (**pparamgen_init) (EVP_PKEY_CTX *ctx),
-+                                int (**pparamgen) (EVP_PKEY_CTX *ctx,
-+                                                   EVP_PKEY *pkey));
-+
-+void EVP_PKEY_meth_get_keygen(EVP_PKEY_METHOD *pmeth,
-+                              int (**pkeygen_init) (EVP_PKEY_CTX *ctx),
-+                              int (**pkeygen) (EVP_PKEY_CTX *ctx,
-+                                               EVP_PKEY *pkey));
-+
-+void EVP_PKEY_meth_get_sign(EVP_PKEY_METHOD *pmeth,
-+                            int (**psign_init) (EVP_PKEY_CTX *ctx),
-+                            int (**psign) (EVP_PKEY_CTX *ctx,
-+                                           unsigned char *sig, size_t *siglen,
-+                                           const unsigned char *tbs,
-+                                           size_t tbslen));
-+
-+void EVP_PKEY_meth_get_verify(EVP_PKEY_METHOD *pmeth,
-+                              int (**pverify_init) (EVP_PKEY_CTX *ctx),
-+                              int (**pverify) (EVP_PKEY_CTX *ctx,
-+                                               const unsigned char *sig,
-+                                               size_t siglen,
-+                                               const unsigned char *tbs,
-+                                               size_t tbslen));
-+
-+void EVP_PKEY_meth_get_verify_recover(EVP_PKEY_METHOD *pmeth,
-+                                      int (**pverify_recover_init) (EVP_PKEY_CTX
-+                                                                    *ctx),
-+                                      int (**pverify_recover) (EVP_PKEY_CTX
-+                                                               *ctx,
-+                                                               unsigned char
-+                                                               *sig,
-+                                                               size_t *siglen,
-+                                                               const unsigned
-+                                                               char *tbs,
-+                                                               size_t tbslen));
-+
-+void EVP_PKEY_meth_get_signctx(EVP_PKEY_METHOD *pmeth,
-+                               int (**psignctx_init) (EVP_PKEY_CTX *ctx,
-+                                                      EVP_MD_CTX *mctx),
-+                               int (**psignctx) (EVP_PKEY_CTX *ctx,
-+                                                 unsigned char *sig,
-+                                                 size_t *siglen,
-+                                                 EVP_MD_CTX *mctx));
-+
-+void EVP_PKEY_meth_get_verifyctx(EVP_PKEY_METHOD *pmeth,
-+                                 int (**pverifyctx_init) (EVP_PKEY_CTX *ctx,
-+                                                          EVP_MD_CTX *mctx),
-+                                 int (**pverifyctx) (EVP_PKEY_CTX *ctx,
-+                                                     const unsigned char *sig,
-+                                                     int siglen,
-+                                                     EVP_MD_CTX *mctx));
-+
-+void EVP_PKEY_meth_get_encrypt(EVP_PKEY_METHOD *pmeth,
-+                               int (**pencrypt_init) (EVP_PKEY_CTX *ctx),
-+                               int (**pencryptfn) (EVP_PKEY_CTX *ctx,
-+                                                   unsigned char *out,
-+                                                   size_t *outlen,
-+                                                   const unsigned char *in,
-+                                                   size_t inlen));
-+
-+void EVP_PKEY_meth_get_decrypt(EVP_PKEY_METHOD *pmeth,
-+                               int (**pdecrypt_init) (EVP_PKEY_CTX *ctx),
-+                               int (**pdecrypt) (EVP_PKEY_CTX *ctx,
-+                                                 unsigned char *out,
-+                                                 size_t *outlen,
-+                                                 const unsigned char *in,
-+                                                 size_t inlen));
-+
-+void EVP_PKEY_meth_get_derive(EVP_PKEY_METHOD *pmeth,
-+                              int (**pderive_init) (EVP_PKEY_CTX *ctx),
-+                              int (**pderive) (EVP_PKEY_CTX *ctx,
-+                                               unsigned char *key,
-+                                               size_t *keylen));
-+
-+void EVP_PKEY_meth_get_ctrl(EVP_PKEY_METHOD *pmeth,
-+                            int (**pctrl) (EVP_PKEY_CTX *ctx, int type, int p1,
-+                                           void *p2),
-+                            int (**pctrl_str) (EVP_PKEY_CTX *ctx,
-+                                               const char *type,
-+                                               const char *value));
-+
-+void EVP_add_alg_module(void);
-+
-+/* BEGIN ERROR CODES */
-+/*
-+ * The following lines are auto generated by the script mkerr.pl. Any changes
-+ * made after this point may be overwritten when the script is next run.
-+ */
-+
-+int ERR_load_EVP_strings(void);
-+
-+/* Error codes for the EVP functions. */
-+
-+/* Function codes. */
-+# define EVP_F_AESNI_INIT_KEY                             165
-+# define EVP_F_AES_INIT_KEY                               133
-+# define EVP_F_AES_OCB_CIPHER                             169
-+# define EVP_F_AES_T4_INIT_KEY                            178
-+# define EVP_F_AES_WRAP_CIPHER                            170
-+# define EVP_F_ALG_MODULE_INIT                            177
-+# define EVP_F_ARIA_INIT_KEY                              185
-+# define EVP_F_CAMELLIA_INIT_KEY                          159
-+# define EVP_F_CHACHA20_POLY1305_CTRL                     182
-+# define EVP_F_CMLL_T4_INIT_KEY                           179
-+# define EVP_F_DES_EDE3_WRAP_CIPHER                       171
-+# define EVP_F_DO_SIGVER_INIT                             161
-+# define EVP_F_EVP_CIPHERINIT_EX                          123
-+# define EVP_F_EVP_CIPHER_CTX_COPY                        163
-+# define EVP_F_EVP_CIPHER_CTX_CTRL                        124
-+# define EVP_F_EVP_CIPHER_CTX_SET_KEY_LENGTH              122
-+# define EVP_F_EVP_DECRYPTFINAL_EX                        101
-+# define EVP_F_EVP_DECRYPTUPDATE                          166
-+# define EVP_F_EVP_DIGESTINIT_EX                          128
-+# define EVP_F_EVP_ENCRYPTFINAL_EX                        127
-+# define EVP_F_EVP_ENCRYPTUPDATE                          167
-+# define EVP_F_EVP_MD_CTX_COPY_EX                         110
-+# define EVP_F_EVP_MD_SIZE                                162
-+# define EVP_F_EVP_OPENINIT                               102
-+# define EVP_F_EVP_PBE_ALG_ADD                            115
-+# define EVP_F_EVP_PBE_ALG_ADD_TYPE                       160
-+# define EVP_F_EVP_PBE_CIPHERINIT                         116
-+# define EVP_F_EVP_PBE_SCRYPT                             181
-+# define EVP_F_EVP_PKCS82PKEY                             111
-+# define EVP_F_EVP_PKEY2PKCS8                             113
-+# define EVP_F_EVP_PKEY_COPY_PARAMETERS                   103
-+# define EVP_F_EVP_PKEY_CTX_CTRL                          137
-+# define EVP_F_EVP_PKEY_CTX_CTRL_STR                      150
-+# define EVP_F_EVP_PKEY_CTX_DUP                           156
-+# define EVP_F_EVP_PKEY_CTX_MD                            168
-+# define EVP_F_EVP_PKEY_DECRYPT                           104
-+# define EVP_F_EVP_PKEY_DECRYPT_INIT                      138
-+# define EVP_F_EVP_PKEY_DECRYPT_OLD                       151
-+# define EVP_F_EVP_PKEY_DERIVE                            153
-+# define EVP_F_EVP_PKEY_DERIVE_INIT                       154
-+# define EVP_F_EVP_PKEY_DERIVE_SET_PEER                   155
-+# define EVP_F_EVP_PKEY_ENCRYPT                           105
-+# define EVP_F_EVP_PKEY_ENCRYPT_INIT                      139
-+# define EVP_F_EVP_PKEY_ENCRYPT_OLD                       152
-+# define EVP_F_EVP_PKEY_GET0_DH                           119
-+# define EVP_F_EVP_PKEY_GET0_DSA                          120
-+# define EVP_F_EVP_PKEY_GET0_EC_KEY                       131
-+# define EVP_F_EVP_PKEY_GET0_HMAC                         183
-+# define EVP_F_EVP_PKEY_GET0_POLY1305                     184
-+# define EVP_F_EVP_PKEY_GET0_RSA                          121
-+# define EVP_F_EVP_PKEY_GET0_SIPHASH                      172
-+# define EVP_F_EVP_PKEY_KEYGEN                            146
-+# define EVP_F_EVP_PKEY_KEYGEN_INIT                       147
-+# define EVP_F_EVP_PKEY_NEW                               106
-+# define EVP_F_EVP_PKEY_PARAMGEN                          148
-+# define EVP_F_EVP_PKEY_PARAMGEN_INIT                     149
-+# define EVP_F_EVP_PKEY_SIGN                              140
-+# define EVP_F_EVP_PKEY_SIGN_INIT                         141
-+# define EVP_F_EVP_PKEY_VERIFY                            142
-+# define EVP_F_EVP_PKEY_VERIFY_INIT                       143
-+# define EVP_F_EVP_PKEY_VERIFY_RECOVER                    144
-+# define EVP_F_EVP_PKEY_VERIFY_RECOVER_INIT               145
-+# define EVP_F_EVP_SIGNFINAL                              107
-+# define EVP_F_EVP_VERIFYFINAL                            108
-+# define EVP_F_INT_CTX_NEW                                157
-+# define EVP_F_PKCS5_PBE_KEYIVGEN                         117
-+# define EVP_F_PKCS5_V2_PBE_KEYIVGEN                      118
-+# define EVP_F_PKCS5_V2_PBKDF2_KEYIVGEN                   164
-+# define EVP_F_PKCS5_V2_SCRYPT_KEYIVGEN                   180
-+# define EVP_F_PKEY_SET_TYPE                              158
-+# define EVP_F_RC2_MAGIC_TO_METH                          109
-+# define EVP_F_RC5_CTRL                                   125
-+
-+/* Reason codes. */
-+# define EVP_R_AES_KEY_SETUP_FAILED                       143
-+# define EVP_R_ARIA_KEY_SETUP_FAILED                      176
-+# define EVP_R_BAD_DECRYPT                                100
-+# define EVP_R_BUFFER_TOO_SMALL                           155
-+# define EVP_R_CAMELLIA_KEY_SETUP_FAILED                  157
-+# define EVP_R_CIPHER_PARAMETER_ERROR                     122
-+# define EVP_R_COMMAND_NOT_SUPPORTED                      147
-+# define EVP_R_COPY_ERROR                                 173
-+# define EVP_R_CTRL_NOT_IMPLEMENTED                       132
-+# define EVP_R_CTRL_OPERATION_NOT_IMPLEMENTED             133
-+# define EVP_R_DATA_NOT_MULTIPLE_OF_BLOCK_LENGTH          138
-+# define EVP_R_DECODE_ERROR                               114
-+# define EVP_R_DIFFERENT_KEY_TYPES                        101
-+# define EVP_R_DIFFERENT_PARAMETERS                       153
-+# define EVP_R_ERROR_LOADING_SECTION                      165
-+# define EVP_R_ERROR_SETTING_FIPS_MODE                    166
-+# define EVP_R_EXPECTING_AN_HMAC_KEY                      174
-+# define EVP_R_EXPECTING_AN_RSA_KEY                       127
-+# define EVP_R_EXPECTING_A_DH_KEY                         128
-+# define EVP_R_EXPECTING_A_DSA_KEY                        129
-+# define EVP_R_EXPECTING_A_EC_KEY                         142
-+# define EVP_R_EXPECTING_A_POLY1305_KEY                   164
-+# define EVP_R_EXPECTING_A_SIPHASH_KEY                    175
-+# define EVP_R_FIPS_MODE_NOT_SUPPORTED                    167
-+# define EVP_R_ILLEGAL_SCRYPT_PARAMETERS                  171
-+# define EVP_R_INITIALIZATION_ERROR                       134
-+# define EVP_R_INPUT_NOT_INITIALIZED                      111
-+# define EVP_R_INVALID_DIGEST                             152
-+# define EVP_R_INVALID_FIPS_MODE                          168
-+# define EVP_R_INVALID_KEY                                163
-+# define EVP_R_INVALID_KEY_LENGTH                         130
-+# define EVP_R_INVALID_OPERATION                          148
-+# define EVP_R_KEYGEN_FAILURE                             120
-+# define EVP_R_MEMORY_LIMIT_EXCEEDED                      172
-+# define EVP_R_MESSAGE_DIGEST_IS_NULL                     159
-+# define EVP_R_METHOD_NOT_SUPPORTED                       144
-+# define EVP_R_MISSING_PARAMETERS                         103
-+# define EVP_R_NO_CIPHER_SET                              131
-+# define EVP_R_NO_DEFAULT_DIGEST                          158
-+# define EVP_R_NO_DIGEST_SET                              139
-+# define EVP_R_NO_KEY_SET                                 154
-+# define EVP_R_NO_OPERATION_SET                           149
-+# define EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE   150
-+# define EVP_R_OPERATON_NOT_INITIALIZED                   151
-+# define EVP_R_PARTIALLY_OVERLAPPING                      162
-+# define EVP_R_PRIVATE_KEY_DECODE_ERROR                   145
-+# define EVP_R_PRIVATE_KEY_ENCODE_ERROR                   146
-+# define EVP_R_PUBLIC_KEY_NOT_RSA                         106
-+# define EVP_R_UNKNOWN_CIPHER                             160
-+# define EVP_R_UNKNOWN_DIGEST                             161
-+# define EVP_R_UNKNOWN_OPTION                             169
-+# define EVP_R_UNKNOWN_PBE_ALGORITHM                      121
-+# define EVP_R_UNSUPPORTED_ALGORITHM                      156
-+# define EVP_R_UNSUPPORTED_CIPHER                         107
-+# define EVP_R_UNSUPPORTED_KEYLENGTH                      123
-+# define EVP_R_UNSUPPORTED_KEY_DERIVATION_FUNCTION        124
-+# define EVP_R_UNSUPPORTED_KEY_SIZE                       108
-+# define EVP_R_UNSUPPORTED_NUMBER_OF_ROUNDS               135
-+# define EVP_R_UNSUPPORTED_PRF                            125
-+# define EVP_R_UNSUPPORTED_PRIVATE_KEY_ALGORITHM          118
-+# define EVP_R_UNSUPPORTED_SALT_TYPE                      126
-+# define EVP_R_WRAP_MODE_NOT_ALLOWED                      170
-+# define EVP_R_WRONG_FINAL_BLOCK_LENGTH                   109
-+
-+# ifdef  __cplusplus
-+}
-+# endif
-+#endif
-diff -rupN openssl-master/include/openssl/nightgale.h openssl/include/openssl/nightgale.h
---- openssl-master/include/openssl/nightgale.h	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/include/openssl/nightgale.h	2017-04-30 18:00:43.057917771 -0400
-@@ -0,0 +1,70 @@
+ const EVP_CIPHER *EVP_aes_128_ecb(void);
+ const EVP_CIPHER *EVP_aes_128_cbc(void);
+ const EVP_CIPHER *EVP_aes_128_cfb1(void);
+diff -rupN openssl-1.1.0f/include/openssl/nightgale.h openssl/include/openssl/nightgale.h
+--- openssl-1.1.0f/include/openssl/nightgale.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/include/openssl/nightgale.h	2017-06-05 18:20:07.342682153 -0700
+@@ -0,0 +1,62 @@
 +/*
 + * Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
 + *
@@ -2665,8 +1016,8 @@ diff -rupN openssl-master/include/openssl/nightgale.h openssl/include/openssl/ni
 +        unsigned int value;
 +}indexes;
 +
-+void nightgale_enc_set_key(SUB *s, const unsigned char *key);
-+void nightgale_dec_set_key(SUB *s, const unsigned char *key);
++void nightgale_enc_set_key(SUB *s);
++void nightgale_dec_set_key(SUB *s);
 +
 +void encrypt_night(SUB *s, size_t len, const unsigned char *in,
 +                    unsigned char *out);
@@ -2675,50 +1026,42 @@ diff -rupN openssl-master/include/openssl/nightgale.h openssl/include/openssl/ni
 +void decrypt_night(SUB *s, size_t len, const unsigned char *in,
 +                    unsigned char *out);
 +
-+void encrypt_night_128 (SUB *s, const unsigned char *in,
-+                    unsigned char *out);
-+
-+
-+void decrypt_night_128 (SUB *s, const unsigned char *in,
-+                    unsigned char *out);
-+
-+
 +#endif
 +
 +#ifdef __cplusplus
 +}
 +#endif
 +
-diff -rupN openssl-master/include/openssl/obj_mac.h openssl/include/openssl/obj_mac.h
---- openssl-master/include/openssl/obj_mac.h	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/include/openssl/obj_mac.h	2017-04-30 18:23:19.640644702 -0400
+diff -rupN openssl-1.1.0f/include/openssl/obj_mac.h openssl/include/openssl/obj_mac.h
+--- openssl-1.1.0f/include/openssl/obj_mac.h	2017-05-25 05:46:20.000000000 -0700
++++ openssl/include/openssl/obj_mac.h	2017-06-05 18:40:22.319814692 -0700
 @@ -2603,6 +2603,10 @@
  #define NID_zlib_compression            125
  #define OBJ_zlib_compression            OBJ_id_smime_alg,8L
  
 +#define SN_nightgale            "NIGHTGALE"
 +#define LN_nightgale            "nightgale"
-+#define NID_nightgale           1086
++#define NID_nightgale           1061
 +
  #define OBJ_csor                2L,16L,840L,1L,101L,3L
  
  #define OBJ_nistAlgorithms              OBJ_csor,4L
-diff -rupN openssl-master/include/openssl/ssl.h openssl/include/openssl/ssl.h
---- openssl-master/include/openssl/ssl.h	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/include/openssl/ssl.h	2017-04-30 18:16:10.602517217 -0400
-@@ -157,6 +157,8 @@ extern "C" {
- # define SSL_TXT_CHACHA20        "CHACHA20"
- # define SSL_TXT_GOST            "GOST89"
+diff -rupN openssl-1.1.0f/include/openssl/ssl.h openssl/include/openssl/ssl.h
+--- openssl-1.1.0f/include/openssl/ssl.h	2017-05-25 05:46:20.000000000 -0700
++++ openssl/include/openssl/ssl.h	2017-06-05 18:29:00.029139443 -0700
+@@ -112,6 +112,8 @@ extern "C" {
+ # define SSL_TXT_kGOST           "kGOST"
+ # define SSL_TXT_kSRP            "kSRP"
  
 +# define SSL_TXT_NIGHTGALE       "NIGHTGALE"
 +
- # define SSL_TXT_MD5             "MD5"
- # define SSL_TXT_SHA1            "SHA1"
- # define SSL_TXT_SHA             "SHA"/* same as "SHA1" */
-diff -rupN openssl-master/include/openssl/tls1.h openssl/include/openssl/tls1.h
---- openssl-master/include/openssl/tls1.h	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/include/openssl/tls1.h	2017-04-30 18:23:09.408593964 -0400
-@@ -601,6 +601,9 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
+ # define SSL_TXT_aRSA            "aRSA"
+ # define SSL_TXT_aDSS            "aDSS"
+ # define SSL_TXT_aDH             "aDH"
+diff -rupN openssl-1.1.0f/include/openssl/tls1.h openssl/include/openssl/tls1.h
+--- openssl-1.1.0f/include/openssl/tls1.h	2017-05-25 05:46:20.000000000 -0700
++++ openssl/include/openssl/tls1.h	2017-06-05 18:30:26.113314420 -0700
+@@ -571,6 +571,9 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
  # define TLS1_CK_ECDHE_PSK_WITH_NULL_SHA256              0x0300C03A
  # define TLS1_CK_ECDHE_PSK_WITH_NULL_SHA384              0x0300C03B
  
@@ -2728,21 +1071,20 @@ diff -rupN openssl-master/include/openssl/tls1.h openssl/include/openssl/tls1.h
  /* Camellia-CBC ciphersuites from RFC6367 */
  # define TLS1_CK_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 0x0300C072
  # define TLS1_CK_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384 0x0300C073
-@@ -732,6 +735,9 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
- # define TLS1_TXT_RSA_PSK_WITH_NULL_SHA256               "RSA-PSK-NULL-SHA256"
- # define TLS1_TXT_RSA_PSK_WITH_NULL_SHA384               "RSA-PSK-NULL-SHA384"
+@@ -685,6 +688,9 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
+ # define TLS1_TXT_PSK_WITH_NULL_SHA256                   "PSK-NULL-SHA256"
+ # define TLS1_TXT_PSK_WITH_NULL_SHA384                   "PSK-NULL-SHA384"
  
 +/* Nightgale ciphersuite */
 +# define TLS1_TXT_ECDHE_RSA_WITH_NIGHTGALE_SHA384        "ECDHE-RSA-NIGHTGALE-SHA384"
 +
- /* SRP ciphersuite from RFC 5054 */
- # define TLS1_TXT_SRP_SHA_WITH_3DES_EDE_CBC_SHA          "SRP-3DES-EDE-CBC-SHA"
- # define TLS1_TXT_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA      "SRP-RSA-3DES-EDE-CBC-SHA"
-Binary files openssl-master/night_evp_test and openssl/night_evp_test differ
-diff -rupN openssl-master/night_evp_test.c openssl/night_evp_test.c
---- openssl-master/night_evp_test.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/night_evp_test.c	2017-04-30 18:00:43.061917791 -0400
-@@ -0,0 +1,163 @@
+ # define TLS1_TXT_DHE_PSK_WITH_AES_128_CBC_SHA256        "DHE-PSK-AES128-CBC-SHA256"
+ # define TLS1_TXT_DHE_PSK_WITH_AES_256_CBC_SHA384        "DHE-PSK-AES256-CBC-SHA384"
+ # define TLS1_TXT_DHE_PSK_WITH_NULL_SHA256               "DHE-PSK-NULL-SHA256"
+diff -rupN openssl-1.1.0f/night_evp_test.c openssl/night_evp_test.c
+--- openssl-1.1.0f/night_evp_test.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/night_evp_test.c	2017-06-05 18:33:54.705918503 -0700
+@@ -0,0 +1,162 @@
 +#include <openssl/conf.h>
 +#include <openssl/evp.h>
 +#include <openssl/err.h>
@@ -2858,8 +1200,7 @@ diff -rupN openssl-master/night_evp_test.c openssl/night_evp_test.c
 +  fclose(fp);
 +
 +  /* A 256 bit key */
-+  unsigned char key[256]; //(unsigned char *)"0";
-+  for(int i = 0; i < 256; ++i) key[i] = i;
++  unsigned char *key = (unsigned char *)"0";
 +
 +  /* A 128 bit IV */
 +  unsigned char *iv = (unsigned char *)"0";
@@ -2906,10 +1247,9 @@ diff -rupN openssl-master/night_evp_test.c openssl/night_evp_test.c
 +}
 +
 +
-Binary files openssl-master/night_test and openssl/night_test differ
-diff -rupN openssl-master/night_test.c openssl/night_test.c
---- openssl-master/night_test.c	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/night_test.c	2017-04-30 18:00:43.061917791 -0400
+diff -rupN openssl-1.1.0f/night_test.c openssl/night_test.c
+--- openssl-1.1.0f/night_test.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/night_test.c	2017-06-05 18:33:56.120888788 -0700
 @@ -0,0 +1,70 @@
 +#include <string.h>
 +#include <assert.h>
@@ -2929,10 +1269,6 @@ diff -rupN openssl-master/night_test.c openssl/night_test.c
 +
 +
 +void system_test(){
-+
-+    unsigned char key[256];
-+    for(int i = 0; i < 256; ++i) key[i] = i;
-+
 +    printf("1GB random check\n");
 +    size_t length = 1024 * 1024 * 1024;
 +
@@ -2947,7 +1283,7 @@ diff -rupN openssl-master/night_test.c openssl/night_test.c
 +    fclose(fp);
 +
 +    SUB s_enc;
-+    nightgale_enc_set_key(&s_enc, key);
++    nightgale_enc_set_key(&s_enc);
 +
 +    printf("Encrypting...\n");
 +
@@ -2962,13 +1298,17 @@ diff -rupN openssl-master/night_test.c openssl/night_test.c
 +    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 +
 +    SUB s_dec;
-+    nightgale_dec_set_key(&s_dec, key);
++    nightgale_dec_set_key(&s_dec);
 +
 +    decrypt_night(&s_dec, length, enc, dec);
 +
 +    int check = memcmp( plain, dec, length );       assert(check == 0);
 +
 +    check = memcmp( plain, enc, length );       assert(check != 0);
++
++    FILE *f = fopen("encrypt7.bin", "wb");
++    fwrite(enc, length, 1, f);
++    fclose(f);
 +
 +    free(plain);
 +    free(enc);
@@ -2981,41 +1321,41 @@ diff -rupN openssl-master/night_test.c openssl/night_test.c
 +    return 0;
 +}
 +
-diff -rupN openssl-master/private.pem openssl/private.pem
---- openssl-master/private.pem	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/private.pem	2017-04-30 18:24:14.748917969 -0400
+diff -rupN openssl-1.1.0f/private.pem openssl/private.pem
+--- openssl-1.1.0f/private.pem	1969-12-31 16:00:00.000000000 -0800
++++ openssl/private.pem	2017-06-05 18:43:24.872015654 -0700
 @@ -0,0 +1,27 @@
 +-----BEGIN RSA PRIVATE KEY-----
-+MIIEpAIBAAKCAQEA3m0ZTnoSPrPos6MxH5IpmyycGFywoxGN6uBnIUzrsoBfMemz
-+8Hy5gVjtvxyxmz0mnQ7ZPwOBuQlGQJxxSOtKtsMtskS9UgO+YFedTR10PnzmGrB3
-+V69e/H11pqo0jX73W2KAsI8hdl6IOmDrGtzc2NBY0dXMVMTJSOLk+Kun0/Dje1pv
-+MvA58vLt0E1MQNTNLLaflCXQuR9+4htfphiYbCVbqXB9ECAihzTAm8ZIbc3ImyF5
-+c1HIfHgyH+/hb/UMkEi8ywX82UaUv1OUJG+i6MY1Rt3JvEz5cd7i9fNoVzbhJsb1
-+LRpDgxaX2sIZaVax4bspbLIMB7pA71so721tBQIDAQABAoIBAQC7UBdKvoSU53+l
-+oF3jH30IX/YIki5y9XqVfWt8YMHxLih86ToO4Yp7gn+dPTXY7ROSmombhoF9aXEP
-+QnAon3XpGc9m3HqvEdYGXmJrKc3WPequOUQXxOlyKtmkhJwDORRokjib972PaKbC
-+uxHjKnKV6EeUVr9f9+UnC2UWgcCxOw79OiaaTdSFjTMG7st/rvhCHXLMvQe+NrJk
-+LjO+27RqraAWBBjtjx2irPe54kMdMP1jXFXk8ORdgeid8LbXmWl/a0NE8aqRt43F
-+5FytoFNb4zWeb9VSD/fwpJVXuyfO10RzLyOfQzZUJjENWf0DO+OX1ovsLyTO/JPj
-+AIGHoevhAoGBAO+nDb11/KOxVxr5E5bopHMv5GXdfmZHz2RXYantggHvBuqNeExt
-+iR+5Aze4aV9S00C77SKbMFJjARMsK3Kesux53Mi7n00hQ2Ay2rUngMkTcbL5KY7C
-+hKFSGy4FRWKmPTL7zgjAvAugkkOs80daWlQKJ0AypShXCp74t93PsI0ZAoGBAO2Z
-+Onrc/xiAeFds2lvQ13vk6CIX/Nuz7sglL/GnbbZw8Cys5+jJjXRyuICKJbQyf+pl
-+M279nWrhwtQzKfgjC/PcYc0fyM0G/ZmKEs3hqxL6VmrtbTBu2vxxSYfJw/8kUHkz
-+Dx6NvguxWNjgoiVkRME8XaDmnlPhJFwKerIEjfDNAoGBAN6lHrjD4sDZQwmGGdL7
-+s7xn5BNXIdU4Jc8c91j9lOji/lPutrKamOhl5D1iEFNFCYp8jSS3dL81x4veX0cP
-+dT8JQDslRCxOGOBInrPqTVWBwQH7RcahpMKTGzk4IGwz8WtqUNIE7S8IMJq7FRFX
-+OdAV1r1nz9SYeP+UJo3mJCoRAoGAN7nnkGeC4TFIiGC8eipqT+GpXE25/aGfEIxA
-+SXJWdiLZAfFv1xZmufgqM+Oy4iex/rzLqm2LXUUkF/cEEfHOXNzEh4K76vKHyloq
-+/OS/5gyW9i9Hm8N0Ux8S+ukkshPHWBXUpvrhpwZqazuMbC6vPY81+oX8fnnguEGw
-+803EKMUCgYAR/anUncRl2hiMEe6QDBZyhQHSO2y+kiGO8eN94wucBOvGFDaqaGPa
-+BiByv41xoAxbxDA2v2dZyxx1H82hQPr0AnVTjwyVUPAUipWYgk1JBh1imn+IV7pi
-+ydcsfaJnvHZVRmEZd9RHBvxaiZuPMw1XOqxTGbKJieVnMsMkF8bMxw==
++MIIEpAIBAAKCAQEAuoEavzwVt1QFRTut/9CEmDSr31SwGzaqAw+hAaljhT3xR5iI
++25dHfpb6H20b3UQgHXIF9/Q5fG+Pm3g0VkSe0c7dOsrOVvd3DGmBlutbRv0sYvgP
++sfyMqoeYoKZVyaCbuy/XVhWen3lLXFxYn8o/7sLRj6KZGzdGQYo6hWGzHYrjKSg4
++rkO2mgxhMC2hFC9AEpWYsPLR894BnBvBTsmhp83eAoSlQW7sDb0/MWx0x7YZCrbZ
++kfZyXKN/mP5nBbQY+JOL8JD9jB07AMJ77efkkazMF5gZuugWfWGggQbAJwrqepoN
++wu1F9xcj2iUX35Vr24v7kGi1zDWW5qY87rlcKQIDAQABAoIBAQCvEHLX4QGNZVvR
++IfTxNHzSFlbiuq7XzJcHaos6cRLOxlcOWnrUjQr6I6PDDfri1ojCuv4pQmEXkeye
++BdYyyBTAYko9XpMTBRUFXJ/c1y2F1C3u9GRfMO2lQMSev6O1MIId0glyb7bGgOeh
++WbmCvCkI6GwnRHwtFNRovuSxwQSNi+1tmsVpqWCUGAQrb2N0gl7GRfx4RM4LYL+7
++lv8J/3MJoif1vFdnbjejNbYZXWj6gJPoOll7YVPZ5ZrZur9O83xeyJsEMtkrtCu2
++pXbWDbDHbFiRVfnrcIYm0hpQDWycynRT23pDWK9cEZRM57MAidFLroFToyVZFV6t
++ANYUt+o1AoGBAPREMr2rGy2yDp2zpHxa28HX3yTguGtMG0I/wL+KkywkRwX0FGe8
++ventNne+TYGMo6lr+JNq3wnaFhKzONSrUTZE4Y0VzSMjyS/feCYrZgg2z6RXstkY
++DBRtXxrb+UwWJ7KwXFhvSR9RUOlbgqtvjmxOH3n17ZQE1iL8XRBGSZd7AoGBAMN2
++l5xPevBYb3QQM9acGMpcRHm4ui5kSJ3kmS9HwADQWKhf/CfyQXXXvtMBdyNe66yv
++oAz1dnehumdFFlqHSPd5ixQWS5CbJpLfiNeXO/t8fOakDqub1DC9d2ZncYAO8aMJ
++ohxzzzgTpS09CZpd1qBQx6Ra6bB1FeM9ozg2RXerAoGBAI3EFv7lk7yNntYAMPLL
++eMekFio9EkuTvC5S+fcw4gG4fFAEPOOIM2DU/8u3cxxBF6t4sqg8Wn5JSI5J3i3v
++0A6DI7TSdmByoI1cUUs13N3fkdt72p0My9X/NDdOe/2gziFzIeVhkTrP4vnM1qXQ
++9QP+w13xUZWayP09InYTlRqJAoGAAuDLKLUO5V0X/wiCCuXvg4NKStSKgUZev1xv
++WP/gduKae5g2OUxa5GZR2/+Iho/OPpOzcp1mqipKeVzOEHUvgN1cS+ZsJGv0bHM4
++K5yBeJmDqU2/HY3E2RbhHDPnuu/9ZN4ucebOpU+8vebJLmm1UFUAK45fJIcE1HzC
++24AJE9MCgYBEYNwn/A4NP1dr1VtVfYN0vkUB6rjNjqZUL7opBagKflJYqcHNKxIY
++IZQwk3/6KbHEoO7GdL0ucbFtFd9siB37PtiJyPabmLncl4YA4yXHyHDQFV5QiU3C
++rTtlilEPmBByJbcGSQCGaLt4im1VQNwCn2i63cHXi88oYBH9KCAFyQ==
 +-----END RSA PRIVATE KEY-----
-diff -rupN openssl-master/ssl/s3_lib.c openssl/ssl/s3_lib.c
---- openssl-master/ssl/s3_lib.c	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/ssl/s3_lib.c	2017-04-30 18:15:18.210257417 -0400
-@@ -1229,6 +1229,22 @@ static SSL_CIPHER ssl3_ciphers[] = {
+diff -rupN openssl-1.1.0f/ssl/s3_lib.c openssl/ssl/s3_lib.c
+--- openssl-1.1.0f/ssl/s3_lib.c	2017-05-25 05:46:20.000000000 -0700
++++ openssl/ssl/s3_lib.c	2017-06-05 18:32:06.561193458 -0700
+@@ -1142,6 +1142,21 @@ static SSL_CIPHER ssl3_ciphers[] = {
       256,
       256,
       },
@@ -3034,13 +1374,12 @@ diff -rupN openssl-master/ssl/s3_lib.c openssl/ssl/s3_lib.c
 +     512,
 +     512,
 +     },
-+
  #endif                          /* OPENSSL_NO_EC */
  
  #ifndef OPENSSL_NO_PSK
-diff -rupN openssl-master/ssl/ssl_ciph.c openssl/ssl/ssl_ciph.c
---- openssl-master/ssl/ssl_ciph.c	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/ssl/ssl_ciph.c	2017-04-30 18:19:45.647583568 -0400
+diff -rupN openssl-1.1.0f/ssl/ssl_ciph.c openssl/ssl/ssl_ciph.c
+--- openssl-1.1.0f/ssl/ssl_ciph.c	2017-05-25 05:46:20.000000000 -0700
++++ openssl/ssl/ssl_ciph.c	2017-06-05 18:27:49.007651163 -0700
 @@ -68,7 +68,8 @@
  #define SSL_ENC_AES256CCM8_IDX  17
  #define SSL_ENC_GOST8912_IDX    18
@@ -3058,8 +1397,8 @@ diff -rupN openssl-master/ssl/ssl_ciph.c openssl/ssl/ssl_ciph.c
 +    {SSL_NIGHTGALE, NID_nightgale},
  };
  
- static const EVP_CIPHER *ssl_cipher_methods[SSL_ENC_NUM_IDX];
-@@ -296,6 +298,7 @@ static const SSL_CIPHER cipher_aliases[]
+ static const EVP_CIPHER *ssl_cipher_methods[SSL_ENC_NUM_IDX] = {
+@@ -297,6 +299,7 @@ static const SSL_CIPHER cipher_aliases[]
      {0, SSL_TXT_CAMELLIA256, 0, 0, 0, SSL_CAMELLIA256},
      {0, SSL_TXT_CAMELLIA, 0, 0, 0, SSL_CAMELLIA},
      {0, SSL_TXT_CHACHA20, 0, 0, 0, SSL_CHACHA20},
@@ -3067,19 +1406,19 @@ diff -rupN openssl-master/ssl/ssl_ciph.c openssl/ssl/ssl_ciph.c
  
      /* MAC aliases */
      {0, SSL_TXT_MD5, 0, 0, 0, 0, SSL_MD5},
-@@ -1663,6 +1666,9 @@ char *SSL_CIPHER_description(const SSL_C
+@@ -1667,6 +1670,9 @@ char *SSL_CIPHER_description(const SSL_C
      case SSL_CHACHA20POLY1305:
          enc = "CHACHA20/POLY1305(256)";
          break;
 +    case SSL_NIGHTGALE:
-+        enc = "NIGHTGALE";
-+        break;
++    	enc = "NIGHTGALE";
++    	break;
      default:
          enc = "unknown";
          break;
-diff -rupN openssl-master/ssl/ssl_init.c openssl/ssl/ssl_init.c
---- openssl-master/ssl/ssl_init.c	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/ssl/ssl_init.c	2017-04-30 18:00:43.061917791 -0400
+diff -rupN openssl-1.1.0f/ssl/ssl_init.c openssl/ssl/ssl_init.c
+--- openssl-1.1.0f/ssl/ssl_init.c	2017-05-25 05:46:20.000000000 -0700
++++ openssl/ssl/ssl_init.c	2017-06-05 18:28:19.285005973 -0700
 @@ -28,6 +28,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_bas
      fprintf(stderr, "OPENSSL_INIT: ossl_init_ssl_base: "
              "Adding SSL ciphers and digests\n");
@@ -3090,1724 +1429,39 @@ diff -rupN openssl-master/ssl/ssl_init.c openssl/ssl/ssl_init.c
  #ifndef OPENSSL_NO_DES
      EVP_add_cipher(EVP_des_cbc());
      EVP_add_cipher(EVP_des_ede3_cbc());
-diff -rupN openssl-master/ssl/ssl_locl.h openssl/ssl/ssl_locl.h
---- openssl-master/ssl/ssl_locl.h	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/ssl/ssl_locl.h	2017-04-30 18:20:26.215784734 -0400
-@@ -258,6 +258,7 @@
- # define SSL_AES256CCM8          0x00020000U
+diff -rupN openssl-1.1.0f/ssl/ssl_locl.h openssl/ssl/ssl_locl.h
+--- openssl-1.1.0f/ssl/ssl_locl.h	2017-05-25 05:46:20.000000000 -0700
++++ openssl/ssl/ssl_locl.h	2017-06-05 18:33:12.057814712 -0700
+@@ -268,6 +268,8 @@
  # define SSL_eGOST2814789CNT12   0x00040000U
  # define SSL_CHACHA20POLY1305    0x00080000U
-+# define SSL_NIGHTGALE           0x00100000U
  
++# define SSL_NIGHTGALE           0x00100000U
++
  # define SSL_AESGCM              (SSL_AES128GCM | SSL_AES256GCM)
  # define SSL_AESCCM              (SSL_AES128CCM | SSL_AES256CCM | SSL_AES128CCM8 | SSL_AES256CCM8)
-diff -rupN openssl-master/util/libcrypto.num openssl/util/libcrypto.num
---- openssl-master/util/libcrypto.num	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/util/libcrypto.num	2017-04-30 18:23:21.160652239 -0400
-@@ -4276,3 +4276,10 @@ X509_CRL_print_ex
- X509_SIG_INFO_get                       4219	1_1_1	EXIST::FUNCTION:
- X509_get_signature_info                 4220	1_1_1	EXIST::FUNCTION:
- X509_SIG_INFO_set                       4221	1_1_1	EXIST::FUNCTION:
-+EVP_nightgale                           4222	1_1_1	EXIST::FUNCTION:
-+nightgale_enc_set_key                   4223	1_1_1	EXIST::FUNCTION:
-+decrypt_night_128                       4224	1_1_1	EXIST::FUNCTION:
-+encrypt_night                           4225	1_1_1	EXIST::FUNCTION:
-+decrypt_night                           4226	1_1_1	EXIST::FUNCTION:
-+encrypt_night_128                       4227	1_1_1	EXIST::FUNCTION:
-+nightgale_dec_set_key                   4228	1_1_1	EXIST::FUNCTION:
-diff -rupN openssl-master/util/mkdef.pl openssl/util/mkdef.pl
---- openssl-master/util/mkdef.pl	2017-04-30 09:18:47.000000000 -0400
-+++ openssl/util/mkdef.pl	2017-04-30 18:00:43.061917791 -0400
-@@ -250,6 +250,8 @@ $crypto.=" include/openssl/aes.h" ; # un
- $crypto.=" include/openssl/camellia.h" ; # unless $no_camellia;
- $crypto.=" include/openssl/seed.h"; # unless $no_seed;
+ # define SSL_AES                 (SSL_AES128|SSL_AES256|SSL_AESGCM|SSL_AESCCM)
+diff -rupN openssl-1.1.0f/util/libcrypto.num openssl/util/libcrypto.num
+--- openssl-1.1.0f/util/libcrypto.num	2017-05-25 05:46:21.000000000 -0700
++++ openssl/util/libcrypto.num	2017-06-05 18:40:23.623787526 -0700
+@@ -4230,3 +4230,8 @@ UINT32_it
+ UINT32_it                               4214	1_1_0f	EXIST:EXPORT_VAR_AS_FUNCTION:FUNCTION:
+ ZINT64_it                               4215	1_1_0f	EXIST:!EXPORT_VAR_AS_FUNCTION:VARIABLE:
+ ZINT64_it                               4215	1_1_0f	EXIST:EXPORT_VAR_AS_FUNCTION:FUNCTION:
++EVP_nightgale                           4216	1_1_0f	EXIST::FUNCTION:
++nightgale_enc_set_key                   4217	1_1_0f	EXIST::FUNCTION:
++nightgale_dec_set_key                   4218	1_1_0f	EXIST::FUNCTION:
++encrypt_night                           4219	1_1_0f	EXIST::FUNCTION:
++decrypt_night                           4220	1_1_0f	EXIST::FUNCTION:
+diff -rupN openssl-1.1.0f/util/mkdef.pl openssl/util/mkdef.pl
+--- openssl-1.1.0f/util/mkdef.pl	2017-05-25 05:46:21.000000000 -0700
++++ openssl/util/mkdef.pl	2017-06-05 18:24:33.985837732 -0700
+@@ -274,6 +274,8 @@ $crypto.=" include/openssl/lhash.h" ; #
+ $crypto.=" include/openssl/conf.h";
+ $crypto.=" include/openssl/txt_db.h";
  
 +$crypto.=" include/openssl/nightgale.h";
 +
- $crypto.=" include/openssl/bn.h";
- $crypto.=" include/openssl/rsa.h" ; # unless $no_rsa;
- $crypto.=" include/openssl/dsa.h" ; # unless $no_dsa;
-diff -rupN openssl-master/util/mkdef.pl.orig openssl/util/mkdef.pl.orig
---- openssl-master/util/mkdef.pl.orig	1969-12-31 19:00:00.000000000 -0500
-+++ openssl/util/mkdef.pl.orig	2017-04-30 18:00:43.061917791 -0400
-@@ -0,0 +1,1680 @@
-+#! /usr/bin/env perl
-+# Copyright 1995-2017 The OpenSSL Project Authors. All Rights Reserved.
-+#
-+# Licensed under the OpenSSL license (the "License").  You may not use
-+# this file except in compliance with the License.  You can obtain a copy
-+# in the file LICENSE in the source distribution or at
-+# https://www.openssl.org/source/license.html
-+
-+#
-+# generate a .def file
-+#
-+# It does this by parsing the header files and looking for the
-+# prototyped functions: it then prunes the output.
-+#
-+# Intermediary files are created, call libcrypto.num and libssl.num,
-+# The format of these files is:
-+#
-+#	routine-name	nnnn	vers	info
-+#
-+# The "nnnn" and "vers" fields are the numeric id and version for the symbol
-+# respectively. The "info" part is actually a colon-separated string of fields
-+# with the following meaning:
-+#
-+#	existence:platform:kind:algorithms
-+#
-+# - "existence" can be "EXIST" or "NOEXIST" depending on if the symbol is
-+#   found somewhere in the source,
-+# - "platforms" is empty if it exists on all platforms, otherwise it contains
-+#   comma-separated list of the platform, just as they are if the symbol exists
-+#   for those platforms, or prepended with a "!" if not.  This helps resolve
-+#   symbol name variants for platforms where the names are too long for the
-+#   compiler or linker, or if the systems is case insensitive and there is a
-+#   clash, or the symbol is implemented differently (see
-+#   EXPORT_VAR_AS_FUNCTION).  This script assumes renaming of symbols is found
-+#   in the file crypto/symhacks.h.
-+#   The semantics for the platforms is that every item is checked against the
-+#   environment.  For the negative items ("!FOO"), if any of them is false
-+#   (i.e. "FOO" is true) in the environment, the corresponding symbol can't be
-+#   used.  For the positive itms, if all of them are false in the environment,
-+#   the corresponding symbol can't be used.  Any combination of positive and
-+#   negative items are possible, and of course leave room for some redundancy.
-+# - "kind" is "FUNCTION" or "VARIABLE".  The meaning of that is obvious.
-+# - "algorithms" is a comma-separated list of algorithm names.  This helps
-+#   exclude symbols that are part of an algorithm that some user wants to
-+#   exclude.
-+#
-+
-+use lib ".";
-+use configdata;
-+use File::Spec::Functions;
-+
-+my $debug=0;
-+
-+my $crypto_num= catfile($config{sourcedir},"util","libcrypto.num");
-+my $ssl_num=    catfile($config{sourcedir},"util","libssl.num");
-+my $libname;
-+
-+my $do_update = 0;
-+my $do_rewrite = 1;
-+my $do_crypto = 0;
-+my $do_ssl = 0;
-+my $do_ctest = 0;
-+my $do_ctestall = 0;
-+my $do_checkexist = 0;
-+
-+my $VMS=0;
-+my $W32=0;
-+my $NT=0;
-+my $linux=0;
-+# Set this to make typesafe STACK definitions appear in DEF
-+my $safe_stack_def = 0;
-+
-+my @known_platforms = ( "__FreeBSD__", "PERL5",
-+			"EXPORT_VAR_AS_FUNCTION", "ZLIB", "_WIN32"
-+			);
-+my @known_ossl_platforms = ( "VMS", "WIN32", "WINNT", "OS2" );
-+my @known_algorithms = ( "RC2", "RC4", "RC5", "IDEA", "DES", "BF",
-+			 "CAST", "MD2", "MD4", "MD5", "SHA", "SHA0", "SHA1",
-+			 "SHA256", "SHA512", "RMD160",
-+			 "MDC2", "WHIRLPOOL", "RSA", "DSA", "DH", "EC", "EC2M",
-+			 "HMAC", "AES", "CAMELLIA", "SEED", "GOST", "ARIA",
-+                         "SCRYPT", "CHACHA", "POLY1305", "BLAKE2",
-+			 "SIPHASH",
-+			 # EC_NISTP_64_GCC_128
-+			 "EC_NISTP_64_GCC_128",
-+			 # Envelope "algorithms"
-+			 "EVP", "X509", "ASN1_TYPEDEFS",
-+			 # Helper "algorithms"
-+			 "BIO", "COMP", "BUFFER", "LHASH", "STACK", "ERR",
-+			 "LOCKING",
-+			 # External "algorithms"
-+			 "FP_API", "STDIO", "SOCK", "DGRAM",
-+                         "CRYPTO_MDEBUG",
-+			 # Engines
-+                         "STATIC_ENGINE", "ENGINE", "HW", "GMP",
-+			 # Entropy Gathering
-+			 "EGD",
-+			 # Certificate Transparency
-+			 "CT",
-+			 # RFC3779
-+			 "RFC3779",
-+			 # TLS
-+			 "PSK", "SRP", "HEARTBEATS",
-+			 # CMS
-+			 "CMS",
-+                         "OCSP",
-+			 # CryptoAPI Engine
-+			 "CAPIENG",
-+			 # SSL methods
-+			 "SSL3_METHOD", "TLS1_METHOD", "TLS1_1_METHOD", "TLS1_2_METHOD", "DTLS1_METHOD", "DTLS1_2_METHOD",
-+			 # NEXTPROTONEG
-+			 "NEXTPROTONEG",
-+			 # Deprecated functions
-+			 "DEPRECATEDIN_0_9_8",
-+			 "DEPRECATEDIN_1_0_0",
-+			 "DEPRECATEDIN_1_1_0",
-+			 "DEPRECATEDIN_1_2_0",
-+			 # SCTP
-+		 	 "SCTP",
-+			 # SRTP
-+			 "SRTP",
-+			 # SSL TRACE
-+		 	 "SSL_TRACE",
-+			 # Unit testing
-+		 	 "UNIT_TEST",
-+			 # User Interface
-+			 "UI",
-+			 #
-+			 "TS",
-+			 # OCB mode
-+			 "OCB",
-+			 "CMAC",
-+                         # APPLINK (win build feature?)
-+                         "APPLINK"
-+                     );
-+
-+my %disabled_algorithms;
-+
-+foreach (@known_algorithms) {
-+    $disabled_algorithms{$_} = 0;
-+}
-+# disabled by default
-+$disabled_algorithms{"STATIC_ENGINE"} = 1;
-+
-+my $apiv = sprintf "%x%02x%02x", split(/\./, $config{api});
-+foreach (keys %disabled_algorithms) {
-+	if (/^DEPRECATEDIN_(\d+)_(\d+)_(\d+)$/) {
-+		my $depv = sprintf "%x%02x%02x", $1, $2, $3;
-+		$disabled_algorithms{$_} = 1 if $apiv ge $depv;
-+	}
-+}
-+
-+my $zlib;
-+
-+foreach (@ARGV, split(/ /, $config{options}))
-+	{
-+	$debug=1 if $_ eq "debug";
-+	$W32=1 if $_ eq "32";
-+	die "win16 not supported" if $_ eq "16";
-+	if($_ eq "NT") {
-+		$W32 = 1;
-+		$NT = 1;
-+	}
-+	if ($_ eq "linux") {
-+		$linux=1;
-+	}
-+	$VMS=1 if $_ eq "VMS";
-+	if ($_ eq "zlib" || $_ eq "enable-zlib" || $_ eq "zlib-dynamic"
-+			 || $_ eq "enable-zlib-dynamic") {
-+		$zlib = 1;
-+	}
-+
-+	$do_ssl=1 if $_ eq "libssl";
-+	if ($_ eq "ssl") {
-+		$do_ssl=1;
-+		$libname=$_
-+	}
-+	$do_crypto=1 if $_ eq "libcrypto";
-+	if ($_ eq "crypto") {
-+		$do_crypto=1;
-+		$libname=$_;
-+	}
-+	$do_update=1 if $_ eq "update";
-+	$do_rewrite=1 if $_ eq "rewrite";
-+	$do_ctest=1 if $_ eq "ctest";
-+	$do_ctestall=1 if $_ eq "ctestall";
-+	$do_checkexist=1 if $_ eq "exist";
-+	if (/^(enable|disable|no)-(.*)$/) {
-+		my $alg = uc $2;
-+		$alg =~ tr/-/_/;
-+		if (exists $disabled_algorithms{$alg}) {
-+			$disabled_algorithms{$alg} = $1 eq "enable" ? 0 : 1;
-+		}
-+	}
-+
-+	}
-+
-+if (!$libname) {
-+	if ($do_ssl) {
-+		$libname="LIBSSL";
-+	}
-+	if ($do_crypto) {
-+		$libname="LIBCRYPTO";
-+	}
-+}
-+
-+# If no platform is given, assume WIN32
-+if ($W32 + $VMS + $linux == 0) {
-+	$W32 = 1;
-+}
-+die "Please, only one platform at a time"
-+    if ($W32 + $VMS + $linux > 1);
-+
-+if (!$do_ssl && !$do_crypto)
-+	{
-+	print STDERR "usage: $0 ( ssl | crypto ) [ 16 | 32 | NT | OS2 | linux | VMS ]\n";
-+	exit(1);
-+	}
-+
-+%ssl_list=&load_numbers($ssl_num);
-+$max_ssl = $max_num;
-+%crypto_list=&load_numbers($crypto_num);
-+$max_crypto = $max_num;
-+
-+my $ssl="include/openssl/ssl.h";
-+$ssl.=" include/openssl/tls1.h";
-+$ssl.=" include/openssl/srtp.h";
-+
-+# We use headers found in include/openssl and include/internal only.
-+# The latter is needed so libssl.so/.dll/.exe can link properly.
-+my $crypto ="include/openssl/crypto.h";
-+$crypto.=" include/internal/o_dir.h";
-+$crypto.=" include/internal/o_str.h";
-+$crypto.=" include/internal/err.h";
-+$crypto.=" include/openssl/des.h" ; # unless $no_des;
-+$crypto.=" include/openssl/idea.h" ; # unless $no_idea;
-+$crypto.=" include/openssl/rc4.h" ; # unless $no_rc4;
-+$crypto.=" include/openssl/rc5.h" ; # unless $no_rc5;
-+$crypto.=" include/openssl/rc2.h" ; # unless $no_rc2;
-+$crypto.=" include/openssl/blowfish.h" ; # unless $no_bf;
-+$crypto.=" include/openssl/cast.h" ; # unless $no_cast;
-+$crypto.=" include/openssl/whrlpool.h" ;
-+$crypto.=" include/openssl/md2.h" ; # unless $no_md2;
-+$crypto.=" include/openssl/md4.h" ; # unless $no_md4;
-+$crypto.=" include/openssl/md5.h" ; # unless $no_md5;
-+$crypto.=" include/openssl/mdc2.h" ; # unless $no_mdc2;
-+$crypto.=" include/openssl/sha.h" ; # unless $no_sha;
-+$crypto.=" include/openssl/ripemd.h" ; # unless $no_ripemd;
-+$crypto.=" include/openssl/aes.h" ; # unless $no_aes;
-+$crypto.=" include/openssl/camellia.h" ; # unless $no_camellia;
-+$crypto.=" include/openssl/seed.h"; # unless $no_seed;
-+
-+$crypto.=" include/openssl/bn.h";
-+$crypto.=" include/openssl/rsa.h" ; # unless $no_rsa;
-+$crypto.=" include/openssl/dsa.h" ; # unless $no_dsa;
-+$crypto.=" include/openssl/dh.h" ; # unless $no_dh;
-+$crypto.=" include/openssl/ec.h" ; # unless $no_ec;
-+$crypto.=" include/openssl/hmac.h" ; # unless $no_hmac;
-+$crypto.=" include/openssl/cmac.h" ;
-+
-+$crypto.=" include/openssl/engine.h"; # unless $no_engine;
-+$crypto.=" include/openssl/stack.h" ; # unless $no_stack;
-+$crypto.=" include/openssl/buffer.h" ; # unless $no_buffer;
-+$crypto.=" include/openssl/bio.h" ; # unless $no_bio;
-+$crypto.=" include/internal/dso.h" ; # unless $no_dso;
-+$crypto.=" include/openssl/lhash.h" ; # unless $no_lhash;
-+$crypto.=" include/openssl/conf.h";
-+$crypto.=" include/openssl/txt_db.h";
-+
-+$crypto.=" include/openssl/evp.h" ; # unless $no_evp;
-+$crypto.=" include/openssl/objects.h";
-+$crypto.=" include/openssl/pem.h";
-+#$crypto.=" include/openssl/meth.h";
-+$crypto.=" include/openssl/asn1.h";
-+$crypto.=" include/openssl/asn1t.h";
-+$crypto.=" include/openssl/err.h" ; # unless $no_err;
-+$crypto.=" include/openssl/pkcs7.h";
-+$crypto.=" include/openssl/pkcs12.h";
-+$crypto.=" include/openssl/x509.h";
-+$crypto.=" include/openssl/x509_vfy.h";
-+$crypto.=" include/openssl/x509v3.h";
-+$crypto.=" include/openssl/ts.h";
-+$crypto.=" include/openssl/rand.h";
-+$crypto.=" include/openssl/comp.h" ; # unless $no_comp;
-+$crypto.=" include/openssl/ocsp.h";
-+$crypto.=" include/openssl/ui.h";
-+#$crypto.=" include/openssl/store.h";
-+$crypto.=" include/openssl/cms.h";
-+$crypto.=" include/openssl/srp.h";
-+$crypto.=" include/openssl/modes.h";
-+$crypto.=" include/openssl/async.h";
-+$crypto.=" include/openssl/ct.h";
-+$crypto.=" include/openssl/kdf.h";
-+
-+my $symhacks="include/openssl/symhacks.h";
-+
-+my @ssl_symbols = &do_defs("LIBSSL", $ssl, $symhacks);
-+my @crypto_symbols = &do_defs("LIBCRYPTO", $crypto, $symhacks);
-+
-+if ($do_update) {
-+
-+if ($do_ssl == 1) {
-+
-+	&maybe_add_info("LIBSSL",*ssl_list,@ssl_symbols);
-+	if ($do_rewrite == 1) {
-+		open(OUT, ">$ssl_num");
-+		&rewrite_numbers(*OUT,"LIBSSL",*ssl_list,@ssl_symbols);
-+	} else {
-+		open(OUT, ">>$ssl_num");
-+	}
-+	&update_numbers(*OUT,"LIBSSL",*ssl_list,$max_ssl,@ssl_symbols);
-+	close OUT;
-+}
-+
-+if($do_crypto == 1) {
-+
-+	&maybe_add_info("LIBCRYPTO",*crypto_list,@crypto_symbols);
-+	if ($do_rewrite == 1) {
-+		open(OUT, ">$crypto_num");
-+		&rewrite_numbers(*OUT,"LIBCRYPTO",*crypto_list,@crypto_symbols);
-+	} else {
-+		open(OUT, ">>$crypto_num");
-+	}
-+	&update_numbers(*OUT,"LIBCRYPTO",*crypto_list,$max_crypto,@crypto_symbols);
-+	close OUT;
-+}
-+
-+} elsif ($do_checkexist) {
-+	&check_existing(*ssl_list, @ssl_symbols)
-+		if $do_ssl == 1;
-+	&check_existing(*crypto_list, @crypto_symbols)
-+		if $do_crypto == 1;
-+} elsif ($do_ctest || $do_ctestall) {
-+
-+	print <<"EOF";
-+
-+/* Test file to check all DEF file symbols are present by trying
-+ * to link to all of them. This is *not* intended to be run!
-+ */
-+
-+int main()
-+{
-+EOF
-+	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-+		if $do_ssl == 1;
-+
-+	&print_test_file(*STDOUT,"LIBCRYPTO",*crypto_list,$do_ctestall,@crypto_symbols)
-+		if $do_crypto == 1;
-+
-+	print "}\n";
-+
-+} else {
-+
-+	&print_def_file(*STDOUT,$libname,*ssl_list,@ssl_symbols)
-+		if $do_ssl == 1;
-+
-+	&print_def_file(*STDOUT,$libname,*crypto_list,@crypto_symbols)
-+		if $do_crypto == 1;
-+
-+}
-+
-+
-+sub do_defs
-+{
-+	my($name,$files,$symhacksfile)=@_;
-+	my $file;
-+	my @ret;
-+	my %syms;
-+	my %platform;		# For anything undefined, we assume ""
-+	my %kind;		# For anything undefined, we assume "FUNCTION"
-+	my %algorithm;		# For anything undefined, we assume ""
-+	my %variant;
-+	my %variant_cnt;	# To be able to allocate "name{n}" if "name"
-+				# is the same name as the original.
-+	my $cpp;
-+	my %unknown_algorithms = ();
-+	my $parens = 0;
-+
-+	foreach $file (split(/\s+/,$symhacksfile." ".$files))
-+		{
-+		my $fn = catfile($config{sourcedir},$file);
-+		print STDERR "DEBUG: starting on $fn:\n" if $debug;
-+		open(IN,"<$fn") || die "unable to open $fn:$!\n";
-+		my $line = "", my $def= "";
-+		my %tag = (
-+			(map { $_ => 0 } @known_platforms),
-+			(map { "OPENSSL_SYS_".$_ => 0 } @known_ossl_platforms),
-+			(map { "OPENSSL_NO_".$_ => 0 } @known_algorithms),
-+			(map { "OPENSSL_USE_".$_ => 0 } @known_algorithms),
-+			(grep /^DEPRECATED_/, @known_algorithms),
-+			NOPROTO		=> 0,
-+			PERL5		=> 0,
-+			_WINDLL		=> 0,
-+			CONST_STRICT	=> 0,
-+			TRUE		=> 1,
-+		);
-+		my $symhacking = $file eq $symhacksfile;
-+		my @current_platforms = ();
-+		my @current_algorithms = ();
-+
-+		# params: symbol, alias, platforms, kind
-+		# The reason to put this subroutine in a variable is that
-+		# it will otherwise create it's own, unshared, version of
-+		# %tag and %variant...
-+		my $make_variant = sub
-+		{
-+			my ($s, $a, $p, $k) = @_;
-+			my ($a1, $a2);
-+
-+			print STDERR "DEBUG: make_variant: Entered with ",$s,", ",$a,", ",(defined($p)?$p:""),", ",(defined($k)?$k:""),"\n" if $debug;
-+			if (defined($p))
-+			{
-+				$a1 = join(",",$p,
-+					   grep(!/^$/,
-+						map { $tag{$_} == 1 ? $_ : "" }
-+						@known_platforms));
-+			}
-+			else
-+			{
-+				$a1 = join(",",
-+					   grep(!/^$/,
-+						map { $tag{$_} == 1 ? $_ : "" }
-+						@known_platforms));
-+			}
-+			$a2 = join(",",
-+				   grep(!/^$/,
-+					map { $tag{"OPENSSL_SYS_".$_} == 1 ? $_ : "" }
-+					@known_ossl_platforms));
-+			print STDERR "DEBUG: make_variant: a1 = $a1; a2 = $a2\n" if $debug;
-+			if ($a1 eq "") { $a1 = $a2; }
-+			elsif ($a1 ne "" && $a2 ne "") { $a1 .= ",".$a2; }
-+			if ($a eq $s)
-+			{
-+				if (!defined($variant_cnt{$s}))
-+				{
-+					$variant_cnt{$s} = 0;
-+				}
-+				$variant_cnt{$s}++;
-+				$a .= "{$variant_cnt{$s}}";
-+			}
-+			my $toadd = $a.":".$a1.(defined($k)?":".$k:"");
-+			my $togrep = $s.'(\{[0-9]+\})?:'.$a1.(defined($k)?":".$k:"");
-+			if (!grep(/^$togrep$/,
-+				  split(/;/, defined($variant{$s})?$variant{$s}:""))) {
-+				if (defined($variant{$s})) { $variant{$s} .= ";"; }
-+				$variant{$s} .= $toadd;
-+			}
-+			print STDERR "DEBUG: make_variant: Exit with variant of ",$s," = ",$variant{$s},"\n" if $debug;
-+		};
-+
-+		print STDERR "DEBUG: parsing ----------\n" if $debug;
-+		while(<IN>) {
-+			if($parens > 0) {
-+				#Inside a DEPRECATEDIN
-+				$stored_multiline .= $_;
-+				$stored_multiline =~ s|\R$||; # Better chomp
-+				print STDERR "DEBUG: Continuing multiline DEPRECATEDIN: $stored_multiline\n" if $debug;
-+				$parens = count_parens($stored_multiline);
-+				if ($parens == 0) {
-+					$def .= do_deprecated($stored_multiline,
-+							\@current_platforms,
-+							\@current_algorithms);
-+				}
-+				next;
-+			}
-+			if (/\/\* Error codes for the \w+ functions\. \*\//)
-+				{
-+				undef @tag;
-+				last;
-+				}
-+			if ($line ne '') {
-+				$_ = $line . $_;
-+				$line = '';
-+			}
-+
-+			if (/\\$/) {
-+				$line = $`; # keep what was before the backslash
-+				next;
-+			}
-+
-+			if(/\/\*/) {
-+				if (not /\*\//) {	# multiline comment...
-+					$line = $_;	# ... just accumulate
-+					next;
-+				} else {
-+					s/\/\*.*?\*\///gs;# wipe it
-+				}
-+			}
-+
-+			if ($cpp) {
-+				$cpp++ if /^#\s*if/;
-+				$cpp-- if /^#\s*endif/;
-+				next;
-+			}
-+			if (/^#.*ifdef.*cplusplus/) {
-+				$cpp = 1;
-+				next;
-+			}
-+
-+			s/{[^{}]*}//gs;                      # ignore {} blocks
-+			print STDERR "DEBUG: \$def=\"$def\"\n" if $debug && $def ne "";
-+			print STDERR "DEBUG: \$_=\"$_\"\n" if $debug;
-+			if (/^\#\s*if\s+OPENSSL_API_COMPAT\s*(\S)\s*(0x[0-9a-fA-F]{8})L\s*$/) {
-+				my $op = $1;
-+				my $v = hex($2);
-+				if ($op ne '<' && $op ne '>=') {
-+				    die "$file unacceptable operator $op: $_\n";
-+				}
-+				my ($one, $major, $minor) =
-+				    ( ($v >> 28) & 0xf,
-+				      ($v >> 20) & 0xff,
-+				      ($v >> 12) & 0xff );
-+				my $t = "DEPRECATEDIN_${one}_${major}_${minor}";
-+				push(@tag,"-");
-+				push(@tag,$t);
-+				$tag{$t}=($op eq '<' ? 1 : -1);
-+				print STDERR "DEBUG: $file: found tag $t = $tag{$t}\n" if $debug;
-+			} elsif (/^\#\s*ifndef\s+(.*)/) {
-+				push(@tag,"-");
-+				push(@tag,$1);
-+				$tag{$1}=-1;
-+				print STDERR "DEBUG: $file: found tag $1 = -1\n" if $debug;
-+			} elsif (/^\#\s*if\s+!defined\(([^\)]+)\)/) {
-+				push(@tag,"-");
-+				if (/^\#\s*if\s+(!defined\(([^\)]+)\)(\s+\&\&\s+!defined\(([^\)]+)\))*)$/) {
-+					my $tmp_1 = $1;
-+					my $tmp_;
-+					foreach $tmp_ (split '\&\&',$tmp_1) {
-+						$tmp_ =~ /!defined\(([^\)]+)\)/;
-+						print STDERR "DEBUG: $file: found tag $1 = -1\n" if $debug;
-+						push(@tag,$1);
-+						$tag{$1}=-1;
-+					}
-+				} else {
-+					print STDERR "Warning: $file: complicated expression: $_" if $debug; # because it is O...
-+					print STDERR "DEBUG: $file: found tag $1 = -1\n" if $debug;
-+					push(@tag,$1);
-+					$tag{$1}=-1;
-+				}
-+			} elsif (/^\#\s*ifdef\s+(\S*)/) {
-+				push(@tag,"-");
-+				push(@tag,$1);
-+				$tag{$1}=1;
-+				print STDERR "DEBUG: $file: found tag $1 = 1\n" if $debug;
-+			} elsif (/^\#\s*if\s+defined\(([^\)]+)\)/) {
-+				push(@tag,"-");
-+				if (/^\#\s*if\s+(defined\(([^\)]+)\)(\s+\|\|\s+defined\(([^\)]+)\))*)$/) {
-+					my $tmp_1 = $1;
-+					my $tmp_;
-+					foreach $tmp_ (split '\|\|',$tmp_1) {
-+						$tmp_ =~ /defined\(([^\)]+)\)/;
-+						print STDERR "DEBUG: $file: found tag $1 = 1\n" if $debug;
-+						push(@tag,$1);
-+						$tag{$1}=1;
-+					}
-+				} else {
-+					print STDERR "Warning: $file: complicated expression: $_\n" if $debug; # because it is O...
-+					print STDERR "DEBUG: $file: found tag $1 = 1\n" if $debug;
-+					push(@tag,$1);
-+					$tag{$1}=1;
-+				}
-+			} elsif (/^\#\s*error\s+(\w+) is disabled\./) {
-+				my $tag_i = $#tag;
-+				while($tag[$tag_i] ne "-") {
-+					if ($tag[$tag_i] eq "OPENSSL_NO_".$1) {
-+						$tag{$tag[$tag_i]}=2;
-+						print STDERR "DEBUG: $file: chaged tag $1 = 2\n" if $debug;
-+					}
-+					$tag_i--;
-+				}
-+			} elsif (/^\#\s*endif/) {
-+				my $tag_i = $#tag;
-+				while($tag_i > 0 && $tag[$tag_i] ne "-") {
-+					my $t=$tag[$tag_i];
-+					print STDERR "DEBUG: \$t=\"$t\"\n" if $debug;
-+					if ($tag{$t}==2) {
-+						$tag{$t}=-1;
-+					} else {
-+						$tag{$t}=0;
-+					}
-+					print STDERR "DEBUG: $file: changed tag ",$t," = ",$tag{$t},"\n" if $debug;
-+					pop(@tag);
-+					if ($t =~ /^OPENSSL_NO_([A-Z0-9_]+)$/) {
-+						$t=$1;
-+					} elsif($t =~ /^OPENSSL_USE_([A-Z0-9_]+)$/) {
-+						$t=$1;
-+					} else {
-+						$t="";
-+					}
-+					if ($t ne ""
-+					    && !grep(/^$t$/, @known_algorithms)) {
-+						$unknown_algorithms{$t} = 1;
-+						#print STDERR "DEBUG: Added as unknown algorithm: $t\n" if $debug;
-+					}
-+					$tag_i--;
-+				}
-+				pop(@tag);
-+			} elsif (/^\#\s*else/) {
-+				my $tag_i = $#tag;
-+				die "$file unmatched else\n" if $tag_i < 0;
-+				while($tag[$tag_i] ne "-") {
-+					my $t=$tag[$tag_i];
-+					$tag{$t}= -$tag{$t};
-+					print STDERR "DEBUG: $file: changed tag ",$t," = ",$tag{$t},"\n" if $debug;
-+					$tag_i--;
-+				}
-+			} elsif (/^\#\s*if\s+1/) {
-+				push(@tag,"-");
-+				# Dummy tag
-+				push(@tag,"TRUE");
-+				$tag{"TRUE"}=1;
-+				print STDERR "DEBUG: $file: found 1\n" if $debug;
-+			} elsif (/^\#\s*if\s+0/) {
-+				push(@tag,"-");
-+				# Dummy tag
-+				push(@tag,"TRUE");
-+				$tag{"TRUE"}=-1;
-+				print STDERR "DEBUG: $file: found 0\n" if $debug;
-+			} elsif (/^\#\s*if\s+/) {
-+				#Some other unrecognized "if" style
-+				push(@tag,"-");
-+			} elsif (/^\#\s*define\s+(\w+)\s+(\w+)/
-+				 && $symhacking && $tag{'TRUE'} != -1) {
-+				# This is for aliasing.  When we find an alias,
-+				# we have to invert
-+				&$make_variant($1,$2);
-+				print STDERR "DEBUG: $file: defined $1 = $2\n" if $debug;
-+			}
-+			if (/^\#/) {
-+				@current_platforms =
-+				    grep(!/^$/,
-+					 map { $tag{$_} == 1 ? $_ :
-+						   $tag{$_} == -1 ? "!".$_  : "" }
-+					 @known_platforms);
-+				push @current_platforms
-+				    , grep(!/^$/,
-+					   map { $tag{"OPENSSL_SYS_".$_} == 1 ? $_ :
-+						     $tag{"OPENSSL_SYS_".$_} == -1 ? "!".$_  : "" }
-+					   @known_ossl_platforms);
-+				@current_algorithms = ();
-+				@current_algorithms =
-+				    grep(!/^$/,
-+					 map { $tag{"OPENSSL_NO_".$_} == -1 ? $_ : "" }
-+					 @known_algorithms);
-+				push @current_algorithms
-+				    , grep(!/^$/,
-+					 map { $tag{"OPENSSL_USE_".$_} == 1 ? $_ : "" }
-+					 @known_algorithms);
-+				push @current_algorithms,
-+				    grep { /^DEPRECATEDIN_/ && $tag{$_} == 1 }
-+				    @known_algorithms;
-+				$def .=
-+				    "#INFO:"
-+					.join(',',@current_platforms).":"
-+					    .join(',',@current_algorithms).";";
-+				next;
-+			}
-+			if ($tag{'TRUE'} != -1) {
-+				if (/^\s*DEFINE_STACK_OF\s*\(\s*(\w*)\s*\)/
-+						|| /^\s*DEFINE_STACK_OF_CONST\s*\(\s*(\w*)\s*\)/) {
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_ENCODE_FUNCTIONS\s*\(\s*(\w*)\s*,\s*(\w*)\s*,\s*(\w*)\s*\)/) {
-+					$def .= "int d2i_$3(void);";
-+					$def .= "int i2d_$3(void);";
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int $2_it;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("$2_it","$2_it",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_FUNCTIONS_fname\s*\(\s*(\w*)\s*,\s*(\w*)\s*,\s*(\w*)\s*\)/) {
-+					$def .= "int d2i_$3(void);";
-+					$def .= "int i2d_$3(void);";
-+					$def .= "int $3_free(void);";
-+					$def .= "int $3_new(void);";
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int $2_it;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("$2_it","$2_it",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_FUNCTIONS\s*\(\s*(\w*)\s*\)/ ||
-+					 /^\s*DECLARE_ASN1_FUNCTIONS_const\s*\(\s*(\w*)\s*\)/) {
-+					$def .= "int d2i_$1(void);";
-+					$def .= "int i2d_$1(void);";
-+					$def .= "int $1_free(void);";
-+					$def .= "int $1_new(void);";
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int $1_it;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("$1_it","$1_it",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_ENCODE_FUNCTIONS_const\s*\(\s*(\w*)\s*,\s*(\w*)\s*\)/) {
-+					$def .= "int d2i_$2(void);";
-+					$def .= "int i2d_$2(void);";
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int $2_it;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("$2_it","$2_it",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_ALLOC_FUNCTIONS\s*\(\s*(\w*)\s*\)/) {
-+					$def .= "int $1_free(void);";
-+					$def .= "int $1_new(void);";
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_FUNCTIONS_name\s*\(\s*(\w*)\s*,\s*(\w*)\s*\)/) {
-+					$def .= "int d2i_$2(void);";
-+					$def .= "int i2d_$2(void);";
-+					$def .= "int $2_free(void);";
-+					$def .= "int $2_new(void);";
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int $2_it;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("$2_it","$2_it",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_ITEM\s*\(\s*(\w*)\s*\)/) {
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int $1_it;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("$1_it","$1_it",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_NDEF_FUNCTION\s*\(\s*(\w*)\s*\)/) {
-+					$def .= "int i2d_$1_NDEF(void);";
-+				} elsif (/^\s*DECLARE_ASN1_SET_OF\s*\(\s*(\w*)\s*\)/) {
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_PRINT_FUNCTION\s*\(\s*(\w*)\s*\)/) {
-+					$def .= "int $1_print_ctx(void);";
-+					next;
-+				} elsif (/^\s*DECLARE_ASN1_PRINT_FUNCTION_name\s*\(\s*(\w*)\s*,\s*(\w*)\s*\)/) {
-+					$def .= "int $2_print_ctx(void);";
-+					next;
-+				} elsif (/^\s*DECLARE_PKCS12_STACK_OF\s*\(\s*(\w*)\s*\)/) {
-+					next;
-+				} elsif (/^DECLARE_PEM_rw\s*\(\s*(\w*)\s*,/ ||
-+					 /^DECLARE_PEM_rw_cb\s*\(\s*(\w*)\s*,/ ||
-+					 /^DECLARE_PEM_rw_const\s*\(\s*(\w*)\s*,/ ) {
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',"STDIO",@current_algorithms).";";
-+					$def .= "int PEM_read_$1(void);";
-+					$def .= "int PEM_write_$1(void);";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Things that are everywhere
-+					$def .= "int PEM_read_bio_$1(void);";
-+					$def .= "int PEM_write_bio_$1(void);";
-+					next;
-+				} elsif (/^DECLARE_PEM_write\s*\(\s*(\w*)\s*,/ ||
-+					/^DECLARE_PEM_write_const\s*\(\s*(\w*)\s*,/ ||
-+					 /^DECLARE_PEM_write_cb\s*\(\s*(\w*)\s*,/ ) {
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',"STDIO",@current_algorithms).";";
-+					$def .= "int PEM_write_$1(void);";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Things that are everywhere
-+					$def .= "int PEM_write_bio_$1(void);";
-+					next;
-+				} elsif (/^DECLARE_PEM_read\s*\(\s*(\w*)\s*,/ ||
-+					 /^DECLARE_PEM_read_cb\s*\(\s*(\w*)\s*,/ ) {
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',"STDIO",@current_algorithms).";";
-+					$def .= "int PEM_read_$1(void);";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',"STDIO",@current_algorithms).";";
-+					# Things that are everywhere
-+					$def .= "int PEM_read_bio_$1(void);";
-+					next;
-+				} elsif (/^OPENSSL_DECLARE_GLOBAL\s*\(\s*(\w*)\s*,\s*(\w*)\s*\)/) {
-+					# Variant for platforms that do not
-+					# have to access globale variables
-+					# in shared libraries through functions
-+					$def .=
-+					    "#INFO:"
-+						.join(',',"!EXPORT_VAR_AS_FUNCTION",@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					$def .= "OPENSSL_EXTERN int _shadow_$2;";
-+					$def .=
-+					    "#INFO:"
-+						.join(',',@current_platforms).":"
-+						    .join(',',@current_algorithms).";";
-+					# Variant for platforms that have to
-+					# access globale variables in shared
-+					# libraries through functions
-+					&$make_variant("_shadow_$2","_shadow_$2",
-+						      "EXPORT_VAR_AS_FUNCTION",
-+						      "FUNCTION");
-+				} elsif (/^\s*DEPRECATEDIN/) {
-+					$parens = count_parens($_);
-+					if ($parens == 0) {
-+						$def .= do_deprecated($_,
-+							\@current_platforms,
-+							\@current_algorithms);
-+					} else {
-+						$stored_multiline = $_;
-+						$stored_multiline =~ s|\R$||;
-+						print STDERR "DEBUG: Found multiline DEPRECATEDIN starting with: $stored_multiline\n" if $debug;
-+						next;
-+					}
-+				} elsif ($tag{'CONST_STRICT'} != 1) {
-+					if (/\{|\/\*|\([^\)]*$/) {
-+						$line = $_;
-+					} else {
-+						$def .= $_;
-+					}
-+				}
-+			}
-+		}
-+		close(IN);
-+		die "$file: Unmatched tags\n" if $#tag >= 0;
-+
-+		my $algs;
-+		my $plays;
-+
-+		print STDERR "DEBUG: postprocessing ----------\n" if $debug;
-+		foreach (split /;/, $def) {
-+			my $s; my $k = "FUNCTION"; my $p; my $a;
-+			s/^[\n\s]*//g;
-+			s/[\n\s]*$//g;
-+			next if(/\#undef/);
-+			next if(/typedef\W/);
-+			next if(/\#define/);
-+
-+			# Reduce argument lists to empty ()
-+			# fold round brackets recursively: (t(*v)(t),t) -> (t{}{},t) -> {}
-+			while(/\(.*\)/s) {
-+				s/\([^\(\)]+\)/\{\}/gs;
-+				s/\(\s*\*\s*(\w+)\s*\{\}\s*\)/$1/gs;	#(*f{}) -> f
-+			}
-+			# pretend as we didn't use curly braces: {} -> ()
-+			s/\{\}/\(\)/gs;
-+
-+			s/STACK_OF\(\)/void/gs;
-+			s/LHASH_OF\(\)/void/gs;
-+
-+			print STDERR "DEBUG: \$_ = \"$_\"\n" if $debug;
-+			if (/^\#INFO:([^:]*):(.*)$/) {
-+				$plats = $1;
-+				$algs = $2;
-+				print STDERR "DEBUG: found info on platforms ($plats) and algorithms ($algs)\n" if $debug;
-+				next;
-+			} elsif (/^\s*OPENSSL_EXTERN\s.*?(\w+(\{[0-9]+\})?)(\[[0-9]*\])*\s*$/) {
-+				$s = $1;
-+				$k = "VARIABLE";
-+				print STDERR "DEBUG: found external variable $s\n" if $debug;
-+			} elsif (/TYPEDEF_\w+_OF/s) {
-+				next;
-+			} elsif (/(\w+)\s*\(\).*/s) {	# first token prior [first] () is
-+				$s = $1;		# a function name!
-+				print STDERR "DEBUG: found function $s\n" if $debug;
-+			} elsif (/\(/ and not (/=/)) {
-+				print STDERR "File $file: cannot parse: $_;\n";
-+				next;
-+			} else {
-+				next;
-+			}
-+
-+			$syms{$s} = 1;
-+			$kind{$s} = $k;
-+
-+			$p = $plats;
-+			$a = $algs;
-+
-+			$platform{$s} =
-+			    &reduce_platforms((defined($platform{$s})?$platform{$s}.',':"").$p);
-+			$algorithm{$s} .= ','.$a;
-+
-+			if (defined($variant{$s})) {
-+				foreach $v (split /;/,$variant{$s}) {
-+					(my $r, my $p, my $k) = split(/:/,$v);
-+					my $ip = join ',',map({ /^!(.*)$/ ? $1 : "!".$_ } split /,/, $p);
-+					$syms{$r} = 1;
-+					if (!defined($k)) { $k = $kind{$s}; }
-+					$kind{$r} = $k."(".$s.")";
-+					$algorithm{$r} = $algorithm{$s};
-+					$platform{$r} = &reduce_platforms($platform{$s}.",".$p.",".$p);
-+					$platform{$s} = &reduce_platforms($platform{$s}.','.$ip.','.$ip);
-+					print STDERR "DEBUG: \$variant{\"$s\"} = ",$v,"; \$r = $r; \$p = ",$platform{$r},"; \$a = ",$algorithm{$r},"; \$kind = ",$kind{$r},"\n" if $debug;
-+				}
-+			}
-+			print STDERR "DEBUG: \$s = $s; \$p = ",$platform{$s},"; \$a = ",$algorithm{$s},"; \$kind = ",$kind{$s},"\n" if $debug;
-+		}
-+	}
-+
-+	# Prune the returned symbols
-+
-+        delete $syms{"bn_dump1"};
-+	$platform{"BIO_s_log"} .= ",!WIN32,!macintosh";
-+
-+	$platform{"PEM_read_NS_CERT_SEQ"} = "VMS";
-+	$platform{"PEM_write_NS_CERT_SEQ"} = "VMS";
-+	$platform{"PEM_read_P8_PRIV_KEY_INFO"} = "VMS";
-+	$platform{"PEM_write_P8_PRIV_KEY_INFO"} = "VMS";
-+
-+	# Info we know about
-+
-+	push @ret, map { $_."\\".&info_string($_,"EXIST",
-+					      $platform{$_},
-+					      $kind{$_},
-+					      $algorithm{$_}) } keys %syms;
-+
-+	if (keys %unknown_algorithms) {
-+		print STDERR "WARNING: mkdef.pl doesn't know the following algorithms:\n";
-+		print STDERR "\t",join("\n\t",keys %unknown_algorithms),"\n";
-+	}
-+	return(@ret);
-+}
-+
-+# Param: string of comma-separated platform-specs.
-+sub reduce_platforms
-+{
-+	my ($platforms) = @_;
-+	my $pl = defined($platforms) ? $platforms : "";
-+	my %p = map { $_ => 0 } split /,/, $pl;
-+	my $ret;
-+
-+	print STDERR "DEBUG: Entered reduce_platforms with \"$platforms\"\n"
-+	    if $debug;
-+	# We do this, because if there's code like the following, it really
-+	# means the function exists in all cases and should therefore be
-+	# everywhere.  By increasing and decreasing, we may attain 0:
-+	#
-+	# ifndef WIN16
-+	#    int foo();
-+	# else
-+	#    int _fat foo();
-+	# endif
-+	foreach $platform (split /,/, $pl) {
-+		if ($platform =~ /^!(.*)$/) {
-+			$p{$1}--;
-+		} else {
-+			$p{$platform}++;
-+		}
-+	}
-+	foreach $platform (keys %p) {
-+		if ($p{$platform} == 0) { delete $p{$platform}; }
-+	}
-+
-+	delete $p{""};
-+
-+	$ret = join(',',sort(map { $p{$_} < 0 ? "!".$_ : $_ } keys %p));
-+	print STDERR "DEBUG: Exiting reduce_platforms with \"$ret\"\n"
-+	    if $debug;
-+	return $ret;
-+}
-+
-+sub info_string
-+{
-+	(my $symbol, my $exist, my $platforms, my $kind, my $algorithms) = @_;
-+
-+	my %a = defined($algorithms) ?
-+	    map { $_ => 1 } split /,/, $algorithms : ();
-+	my $k = defined($kind) ? $kind : "FUNCTION";
-+	my $ret;
-+	my $p = &reduce_platforms($platforms);
-+
-+	delete $a{""};
-+
-+	$ret = $exist;
-+	$ret .= ":".$p;
-+	$ret .= ":".$k;
-+	$ret .= ":".join(',',sort keys %a);
-+	return $ret;
-+}
-+
-+sub maybe_add_info
-+{
-+	(my $name, *nums, my @symbols) = @_;
-+	my $sym;
-+	my $new_info = 0;
-+	my %syms=();
-+
-+	foreach $sym (@symbols) {
-+		(my $s, my $i) = split /\\/, $sym;
-+		if (defined($nums{$s})) {
-+			$i =~ s/^(.*?:.*?:\w+)(\(\w+\))?/$1/;
-+			(my $n, my $vers, my $dummy) = split /\\/, $nums{$s};
-+			if (!defined($dummy) || $i ne $dummy) {
-+				$nums{$s} = $n."\\".$vers."\\".$i;
-+				$new_info++;
-+				print STDERR "DEBUG: maybe_add_info for $s: \"$dummy\" => \"$i\"\n" if $debug;
-+			}
-+		}
-+		$syms{$s} = 1;
-+	}
-+
-+	my @s=sort { &parse_number($nums{$a},"n") <=> &parse_number($nums{$b},"n") } keys %nums;
-+	foreach $sym (@s) {
-+		(my $n, my $vers, my $i) = split /\\/, $nums{$sym};
-+		if (!defined($syms{$sym}) && $i !~ /^NOEXIST:/) {
-+			$new_info++;
-+			print STDERR "DEBUG: maybe_add_info for $sym: -> undefined\n" if $debug;
-+		}
-+	}
-+	if ($new_info) {
-+		print STDERR "$name: $new_info old symbols have updated info\n";
-+		if (!$do_rewrite) {
-+			print STDERR "You should do a rewrite to fix this.\n";
-+		}
-+	} else {
-+	}
-+}
-+
-+# Param: string of comma-separated keywords, each possibly prefixed with a "!"
-+sub is_valid
-+{
-+	my ($keywords_txt,$platforms) = @_;
-+	my (@keywords) = split /,/,$keywords_txt;
-+	my ($falsesum, $truesum) = (0, 1);
-+
-+	# Param: one keyword
-+	sub recognise
-+	{
-+		my ($keyword,$platforms) = @_;
-+
-+		if ($platforms) {
-+			# platforms
-+			if ($keyword eq "VMS" && $VMS) { return 1; }
-+			if ($keyword eq "WIN32" && $W32) { return 1; }
-+			if ($keyword eq "_WIN32" && $W32) { return 1; }
-+			if ($keyword eq "WINNT" && $NT) { return 1; }
-+			# Special platforms:
-+			# EXPORT_VAR_AS_FUNCTION means that global variables
-+			# will be represented as functions.
-+			if ($keyword eq "EXPORT_VAR_AS_FUNCTION" && $W32) {
-+				return 1;
-+			}
-+			if ($keyword eq "ZLIB" && $zlib) { return 1; }
-+			return 0;
-+		} else {
-+			# algorithms
-+			if ($disabled_algorithms{$keyword} == 1) { return 0;}
-+
-+			# Nothing recognise as true
-+			return 1;
-+		}
-+	}
-+
-+	foreach $k (@keywords) {
-+		if ($k =~ /^!(.*)$/) {
-+			$falsesum += &recognise($1,$platforms);
-+		} else {
-+			$truesum *= &recognise($k,$platforms);
-+		}
-+	}
-+	print STDERR "DEBUG: [",$#keywords,",",$#keywords < 0,"] is_valid($keywords_txt) => (\!$falsesum) && $truesum = ",(!$falsesum) && $truesum,"\n" if $debug;
-+	return (!$falsesum) && $truesum;
-+}
-+
-+sub print_test_file
-+{
-+	(*OUT,my $name,*nums,my $testall,my @symbols)=@_;
-+	my $n = 1; my @e; my @r;
-+	my $sym; my $prev = ""; my $prefSSLeay;
-+
-+	(@e)=grep(/^SSLeay(\{[0-9]+\})?\\.*?:.*?:.*/,@symbols);
-+	(@r)=grep(/^\w+(\{[0-9]+\})?\\.*?:.*?:.*/ && !/^SSLeay(\{[0-9]+\})?\\.*?:.*?:.*/,@symbols);
-+	@symbols=((sort @e),(sort @r));
-+
-+	foreach $sym (@symbols) {
-+		(my $s, my $i) = $sym =~ /^(.*?)\\(.*)$/;
-+		my $v = 0;
-+		$v = 1 if $i=~ /^.*?:.*?:VARIABLE/;
-+		my $p = ($i =~ /^[^:]*:([^:]*):/,$1);
-+		my $a = ($i =~ /^[^:]*:[^:]*:[^:]*:([^:]*)/,$1);
-+		if (!defined($nums{$s})) {
-+			print STDERR "Warning: $s does not have a number assigned\n"
-+			    if(!$do_update);
-+		} elsif (is_valid($p,1) && is_valid($a,0)) {
-+			my $s2 = ($s =~ /^(.*?)(\{[0-9]+\})?$/, $1);
-+			if ($prev eq $s2) {
-+				print OUT "\t/* The following has already appeared previously */\n";
-+				print STDERR "Warning: Symbol '",$s2,"' redefined. old=",($nums{$prev} =~ /^(.*?)\\/,$1),", new=",($nums{$s2} =~ /^(.*?)\\/,$1),"\n";
-+			}
-+			$prev = $s2;	# To warn about duplicates...
-+
-+			(my $nn, my $vers, my $ni) = split /\\/, $nums{$s2};
-+			if ($v) {
-+				print OUT "\textern int $s2; /* type unknown */ /* $nn $ni */\n";
-+			} else {
-+				print OUT "\textern int $s2(); /* type unknown */ /* $nn $ni */\n";
-+			}
-+		}
-+	}
-+}
-+
-+sub get_version
-+{
-+   return $config{version};
-+}
-+
-+sub print_def_file
-+{
-+	(*OUT,my $name,*nums,my @symbols)=@_;
-+	my $n = 1; my @e; my @r; my @v; my $prev="";
-+	my $liboptions="";
-+	my $libname = $name;
-+	my $http_vendor = 'www.openssl.org/';
-+	my $version = get_version();
-+	my $what = "OpenSSL: implementation of Secure Socket Layer";
-+	my $description = "$what $version, $name - http://$http_vendor";
-+	my $prevsymversion = "", $prevprevsymversion = "";
-+        # For VMS
-+        my $prevnum = 0;
-+        my $symvtextcount = 0;
-+
-+	if ($W32)
-+		{ $libname.="32"; }
-+
-+        if ($W32)
-+                {
-+                print OUT <<"EOF";
-+;
-+; Definition file for the DLL version of the $name library from OpenSSL
-+;
-+
-+LIBRARY         $libname	$liboptions
-+
-+EOF
-+
-+		print "EXPORTS\n";
-+                }
-+        elsif ($VMS)
-+                {
-+                print OUT <<"EOF";
-+CASE_SENSITIVE=YES
-+SYMBOL_VECTOR=(-
-+EOF
-+                $symvtextcount = 16; # length of "SYMBOL_VECTOR=(-"
-+                }
-+
-+	(@r)=grep(/^\w+(\{[0-9]+\})?\\.*?:.*?:FUNCTION/,@symbols);
-+	(@v)=grep(/^\w+(\{[0-9]+\})?\\.*?:.*?:VARIABLE/,@symbols);
-+        if ($VMS) {
-+            # VMS needs to have the symbols on slot number order
-+            @symbols=(map { $_->[1] }
-+                      sort { $a->[0] <=> $b->[0] }
-+                      map { (my $s, my $i) = $_ =~ /^(.*?)\\(.*)$/;
-+                            die "Error: $s doesn't have a number assigned\n"
-+                                if !defined($nums{$s});
-+                            (my $n, my @rest) = split /\\/, $nums{$s};
-+                            [ $n, $_ ] } (@e, @r, @v));
-+        } else {
-+            @symbols=((sort @e),(sort @r), (sort @v));
-+        }
-+
-+	my ($baseversion, $currversion) = get_openssl_version();
-+	my $thisversion;
-+	do {
-+		if (!defined($thisversion)) {
-+			$thisversion = $baseversion;
-+		} else {
-+			$thisversion = get_next_version($thisversion);
-+		}
-+		foreach $sym (@symbols) {
-+			(my $s, my $i) = $sym =~ /^(.*?)\\(.*)$/;
-+			my $v = 0;
-+			$v = 1 if $i =~ /^.*?:.*?:VARIABLE/;
-+			if (!defined($nums{$s})) {
-+				die "Error: $s does not have a number assigned\n"
-+					if(!$do_update);
-+			} else {
-+				(my $n, my $symversion, my $dummy) = split /\\/, $nums{$s};
-+				next if $symversion ne $thisversion;
-+				my %pf = ();
-+				my $p = ($i =~ /^[^:]*:([^:]*):/,$1);
-+				my $a = ($i =~ /^[^:]*:[^:]*:[^:]*:([^:]*)/,$1);
-+				if (is_valid($p,1) && is_valid($a,0)) {
-+					my $s2 = ($s =~ /^(.*?)(\{[0-9]+\})?$/, $1);
-+					if ($prev eq $s2) {
-+						print STDERR "Warning: Symbol '",$s2,
-+							"' redefined. old=",($nums{$prev} =~ /^(.*?)\\/,$1),
-+							", new=",($nums{$s2} =~ /^(.*?)\\/,$1),"\n";
-+					}
-+					$prev = $s2;	# To warn about duplicates...
-+					if($linux) {
-+						if ($symversion ne $prevsymversion) {
-+							if ($prevsymversion ne "") {
-+								if ($prevprevsymversion ne "") {
-+									print OUT "} OPENSSL_"
-+												."$prevprevsymversion;\n\n";
-+								} else {
-+									print OUT "};\n\n";
-+								}
-+							}
-+							print OUT "OPENSSL_$symversion {\n    global:\n";
-+							$prevprevsymversion = $prevsymversion;
-+							$prevsymversion = $symversion;
-+						}
-+						print OUT "        $s2;\n";
-+                                        } elsif ($VMS) {
-+                                            while(++$prevnum < $n) {
-+                                                my $symline=" ,SPARE -\n  ,SPARE -\n";
-+                                                if ($symvtextcount + length($symline) - 2 > 1024) {
-+                                                    print OUT ")\nSYMBOL_VECTOR=(-\n";
-+                                                    $symvtextcount = 16; # length of "SYMBOL_VECTOR=(-"
-+                                                }
-+                                                if ($symvtextcount == 16) {
-+                                                    # Take away first comma
-+                                                    $symline =~ s/,//;
-+                                                }
-+                                                print OUT $symline;
-+                                                $symvtextcount += length($symline) - 2;
-+                                            }
-+                                            (my $s_uc = $s) =~ tr/a-z/A-Z/;
-+                                            my $symtype=
-+                                                $v ? "DATA" : "PROCEDURE";
-+                                            my $symline=
-+                                                ($s_uc ne $s
-+                                                 ? " ,$s_uc/$s=$symtype -\n  ,$s=$symtype -\n"
-+                                                 : " ,$s=$symtype -\n  ,SPARE -\n");
-+                                            if ($symvtextcount + length($symline) - 2 > 1024) {
-+                                                print OUT ")\nSYMBOL_VECTOR=(-\n";
-+                                                $symvtextcount = 16; # length of "SYMBOL_VECTOR=(-"
-+                                            }
-+                                            if ($symvtextcount == 16) {
-+                                                # Take away first comma
-+                                                $symline =~ s/,//;
-+                                            }
-+                                            print OUT $symline;
-+                                            $symvtextcount += length($symline) - 2;
-+					} elsif($v) {
-+						printf OUT "    %s%-39s DATA\n",
-+								($W32)?"":"_",$s2;
-+					} else {
-+						printf OUT "    %s%s\n",
-+								($W32)?"":"_",$s2;
-+					}
-+				}
-+			}
-+		}
-+	} while ($thisversion ne $currversion);
-+	if ($linux) {
-+		if ($prevprevsymversion ne "") {
-+			print OUT "    local: *;\n} OPENSSL_$prevprevsymversion;\n\n";
-+		} else {
-+			print OUT "    local: *;\n};\n\n";
-+		}
-+	} elsif ($VMS) {
-+            print OUT ")\n";
-+            (my $libvmaj, my $libvmin, my $libvedit) =
-+                $currversion =~ /^(\d+)_(\d+)_(\d+)$/;
-+            # The reason to multiply the edit number with 100 is to make space
-+            # for the possibility that we want to encode the patch letters
-+            print OUT "GSMATCH=LEQUAL,",($libvmaj * 100 + $libvmin),",",($libvedit * 100),"\n";
-+        }
-+	printf OUT "\n";
-+}
-+
-+sub load_numbers
-+{
-+	my($name)=@_;
-+	my(@a,%ret);
-+	my $prevversion;
-+
-+	$max_num = 0;
-+	$num_noinfo = 0;
-+	$prev = "";
-+	$prev_cnt = 0;
-+
-+	my ($baseversion, $currversion) = get_openssl_version();
-+
-+	open(IN,"<$name") || die "unable to open $name:$!\n";
-+	while (<IN>) {
-+		s|\R$||;        # Better chomp
-+		s/#.*$//;
-+		next if /^\s*$/;
-+		@a=split;
-+		if (defined $ret{$a[0]}) {
-+			# This is actually perfectly OK
-+			#print STDERR "Warning: Symbol '",$a[0],"' redefined. old=",$ret{$a[0]},", new=",$a[1],"\n";
-+		}
-+		if ($max_num > $a[1]) {
-+			print STDERR "Warning: Number decreased from ",$max_num," to ",$a[1],"\n";
-+		}
-+		elsif ($max_num == $a[1]) {
-+			# This is actually perfectly OK
-+			#print STDERR "Warning: Symbol ",$a[0]," has same number as previous ",$prev,": ",$a[1],"\n";
-+			if ($a[0] eq $prev) {
-+				$prev_cnt++;
-+				$a[0] .= "{$prev_cnt}";
-+			}
-+		}
-+		else {
-+			$prev_cnt = 0;
-+		}
-+		if ($#a < 2) {
-+			# Existence will be proven later, in do_defs
-+			$ret{$a[0]}=$a[1];
-+			$num_noinfo++;
-+		} else {
-+			#Sanity check the version number
-+			if (defined $prevversion) {
-+				check_version_lte($prevversion, $a[2]);
-+			}
-+			check_version_lte($a[2], $currversion);
-+			$prevversion = $a[2];
-+			$ret{$a[0]}=$a[1]."\\".$a[2]."\\".$a[3]; # \\ is a special marker
-+		}
-+		$max_num = $a[1] if $a[1] > $max_num;
-+		$prev=$a[0];
-+	}
-+	if ($num_noinfo) {
-+		print STDERR "Warning: $num_noinfo symbols were without info.";
-+		if ($do_rewrite) {
-+			printf STDERR "  The rewrite will fix this.\n";
-+		} else {
-+			printf STDERR "  You should do a rewrite to fix this.\n";
-+		}
-+	}
-+	close(IN);
-+	return(%ret);
-+}
-+
-+sub parse_number
-+{
-+	(my $str, my $what) = @_;
-+	(my $n, my $v, my $i) = split(/\\/,$str);
-+	if ($what eq "n") {
-+		return $n;
-+	} else {
-+		return $i;
-+	}
-+}
-+
-+sub rewrite_numbers
-+{
-+	(*OUT,$name,*nums,@symbols)=@_;
-+	my $thing;
-+
-+	my @r = grep(/^\w+(\{[0-9]+\})?\\.*?:.*?:\w+\(\w+\)/,@symbols);
-+	my $r; my %r; my %rsyms;
-+	foreach $r (@r) {
-+		(my $s, my $i) = split /\\/, $r;
-+		my $a = $1 if $i =~ /^.*?:.*?:\w+\((\w+)\)/;
-+		$i =~ s/^(.*?:.*?:\w+)\(\w+\)/$1/;
-+		$r{$a} = $s."\\".$i;
-+		$rsyms{$s} = 1;
-+	}
-+
-+	my %syms = ();
-+	foreach $_ (@symbols) {
-+		(my $n, my $i) = split /\\/;
-+		$syms{$n} = 1;
-+	}
-+
-+	my @s=sort {
-+	    &parse_number($nums{$a},"n") <=> &parse_number($nums{$b},"n")
-+	    || $a cmp $b
-+	} keys %nums;
-+	foreach $sym (@s) {
-+		(my $n, my $vers, my $i) = split /\\/, $nums{$sym};
-+		next if defined($i) && $i =~ /^.*?:.*?:\w+\(\w+\)/;
-+		next if defined($rsyms{$sym});
-+		print STDERR "DEBUG: rewrite_numbers for sym = ",$sym,": i = ",$i,", n = ",$n,", rsym{sym} = ",$rsyms{$sym},"syms{sym} = ",$syms{$sym},"\n" if $debug;
-+		$i="NOEXIST::FUNCTION:"
-+			if !defined($i) || $i eq "" || !defined($syms{$sym});
-+		my $s2 = $sym;
-+		$s2 =~ s/\{[0-9]+\}$//;
-+		printf OUT "%s%-39s %d\t%s\t%s\n","",$s2,$n,$vers,$i;
-+		if (exists $r{$sym}) {
-+			(my $s, $i) = split /\\/,$r{$sym};
-+			my $s2 = $s;
-+			$s2 =~ s/\{[0-9]+\}$//;
-+			printf OUT "%s%-39s %d\t%s\t%s\n","",$s2,$n,$vers,$i;
-+		}
-+	}
-+}
-+
-+sub update_numbers
-+{
-+	(*OUT,$name,*nums,my $start_num, my @symbols)=@_;
-+	my $new_syms = 0;
-+	my $basevers;
-+	my $vers;
-+
-+	($basevers, $vers) = get_openssl_version();
-+
-+	my @r = grep(/^\w+(\{[0-9]+\})?\\.*?:.*?:\w+\(\w+\)/,@symbols);
-+	my $r; my %r; my %rsyms;
-+	foreach $r (@r) {
-+		(my $s, my $i) = split /\\/, $r;
-+		my $a = $1 if $i =~ /^.*?:.*?:\w+\((\w+)\)/;
-+		$i =~ s/^(.*?:.*?:\w+)\(\w+\)/$1/;
-+		$r{$a} = $s."\\".$i;
-+		$rsyms{$s} = 1;
-+	}
-+
-+	foreach $sym (@symbols) {
-+		(my $s, my $i) = $sym =~ /^(.*?)\\(.*)$/;
-+		next if $i =~ /^.*?:.*?:\w+\(\w+\)/;
-+		next if defined($rsyms{$sym});
-+		die "ERROR: Symbol $sym had no info attached to it."
-+		    if $i eq "";
-+		if (!exists $nums{$s}) {
-+			$new_syms++;
-+			my $s2 = $s;
-+			$s2 =~ s/\{[0-9]+\}$//;
-+			printf OUT "%s%-39s %d\t%s\t%s\n","",$s2, ++$start_num,$vers,$i;
-+			if (exists $r{$s}) {
-+				($s, $i) = split /\\/,$r{$s};
-+				$s =~ s/\{[0-9]+\}$//;
-+				printf OUT "%s%-39s %d\t%s\t%s\n","",$s, $start_num,$vers,$i;
-+			}
-+		}
-+	}
-+	if($new_syms) {
-+		print STDERR "$name: Added $new_syms new symbols\n";
-+	} else {
-+		print STDERR "$name: No new symbols added\n";
-+	}
-+}
-+
-+sub check_existing
-+{
-+	(*nums, my @symbols)=@_;
-+	my %existing; my @remaining;
-+	@remaining=();
-+	foreach $sym (@symbols) {
-+		(my $s, my $i) = $sym =~ /^(.*?)\\(.*)$/;
-+		$existing{$s}=1;
-+	}
-+	foreach $sym (keys %nums) {
-+		if (!exists $existing{$sym}) {
-+			push @remaining, $sym;
-+		}
-+	}
-+	if(@remaining) {
-+		print STDERR "The following symbols do not seem to exist:\n";
-+		foreach $sym (@remaining) {
-+			print STDERR "\t",$sym,"\n";
-+		}
-+	}
-+}
-+
-+sub count_parens
-+{
-+	my $line = shift(@_);
-+
-+	my $open = $line =~ tr/\(//;
-+	my $close = $line =~ tr/\)//;
-+
-+	return $open - $close;
-+}
-+
-+#Parse opensslv.h to get the current version number. Also work out the base
-+#version, i.e. the lowest version number that is binary compatible with this
-+#version
-+sub get_openssl_version()
-+{
-+	my $fn = catfile($config{sourcedir},"include","openssl","opensslv.h");
-+	open (IN, "$fn") || die "Can't open opensslv.h";
-+
-+	while(<IN>) {
-+		if (/OPENSSL_VERSION_TEXT\s+"OpenSSL (\d\.\d\.)(\d[a-z]*)(-| )/) {
-+			my $suffix = $2;
-+			(my $baseversion = $1) =~ s/\./_/g;
-+			close IN;
-+			return ($baseversion."0", $baseversion.$suffix);
-+		}
-+	}
-+	die "Can't find OpenSSL version number\n";
-+}
-+
-+#Given an OpenSSL version number, calculate the next version number. If the
-+#version number gets to a.b.czz then we go to a.b.(c+1)
-+sub get_next_version()
-+{
-+	my $thisversion = shift;
-+
-+	my ($base, $letter) = $thisversion =~ /^(\d_\d_\d)([a-z]{0,2})$/;
-+
-+	if ($letter eq "zz") {
-+		my $lastnum = substr($base, -1);
-+		return substr($base, 0, length($base)-1).(++$lastnum);
-+	}
-+	return $base.get_next_letter($letter);
-+}
-+
-+#Given the letters off the end of an OpenSSL version string, calculate what
-+#the letters for the next release would be.
-+sub get_next_letter()
-+{
-+	my $thisletter = shift;
-+	my $baseletter = "";
-+	my $endletter;
-+
-+	if ($thisletter eq "") {
-+		return "a";
-+	}
-+	if ((length $thisletter) > 1) {
-+		($baseletter, $endletter) = $thisletter =~ /([a-z]+)([a-z])/;
-+	} else {
-+		$endletter = $thisletter;
-+	}
-+
-+	if ($endletter eq "z") {
-+		return $thisletter."a";
-+	} else {
-+		return $baseletter.(++$endletter);
-+	}
-+}
-+
-+#Check if a version is less than or equal to the current version. Its a fatal
-+#error if not. They must also only differ in letters, or the last number (i.e.
-+#the first two numbers must be the same)
-+sub check_version_lte()
-+{
-+	my ($testversion, $currversion) = @_;
-+	my $lentv;
-+	my $lencv;
-+	my $cvbase;
-+
-+	my ($cvnums) = $currversion =~ /^(\d_\d_\d)[a-z]*$/;
-+	my ($tvnums) = $testversion =~ /^(\d_\d_\d)[a-z]*$/;
-+
-+	#Die if we can't parse the version numbers or they don't look sane
-+	die "Invalid version number: $testversion and $currversion\n"
-+		if (!defined($cvnums) || !defined($tvnums)
-+			|| length($cvnums) != 5
-+			|| length($tvnums) != 5);
-+
-+	#If the base versions (without letters) don't match check they only differ
-+	#in the last number
-+	if ($cvnums ne $tvnums) {
-+		die "Invalid version number: $testversion "
-+			."for current version $currversion\n"
-+			if (substr($cvnums, 0, 4) ne substr($tvnums, 0, 4));
-+		return;
-+	}
-+	#If we get here then the base version (i.e. the numbers) are the same - they
-+	#only differ in the letters
-+
-+	$lentv = length $testversion;
-+	$lencv = length $currversion;
-+
-+	#If the testversion has more letters than the current version then it must
-+	#be later (or malformed)
-+	if ($lentv > $lencv) {
-+		die "Invalid version number: $testversion "
-+			."is greater than $currversion\n";
-+	}
-+
-+	#Get the last letter from the current version
-+	my ($cvletter) = $currversion =~ /([a-z])$/;
-+	if (defined $cvletter) {
-+		($cvbase) = $currversion =~ /(\d_\d_\d[a-z]*)$cvletter$/;
-+	} else {
-+		$cvbase = $currversion;
-+	}
-+	die "Unable to parse version number $currversion" if (!defined $cvbase);
-+	my $tvbase;
-+	my ($tvletter) = $testversion =~ /([a-z])$/;
-+	if (defined $tvletter) {
-+		($tvbase) = $testversion =~ /(\d_\d_\d[a-z]*)$tvletter$/;
-+	} else {
-+		$tvbase = $testversion;
-+	}
-+	die "Unable to parse version number $testversion" if (!defined $tvbase);
-+
-+	if ($lencv > $lentv) {
-+		#If current version has more letters than testversion then testversion
-+		#minus the final letter must be a substring of the current version
-+		die "Invalid version number $testversion "
-+			."is greater than $currversion or is invalid\n"
-+			if (index($cvbase, $tvbase) != 0);
-+	} else {
-+		#If both versions have the same number of letters then they must be
-+		#equal up to the last letter, and the last letter in testversion must
-+		#be less than or equal to the last letter in current version.
-+		die "Invalid version number $testversion "
-+			."is greater than $currversion\n"
-+			if (($cvbase ne $tvbase) && ($tvletter gt $cvletter));
-+	}
-+}
-+
-+sub do_deprecated()
-+{
-+	my ($decl, $plats, $algs) = @_;
-+	$decl =~ /^\s*(DEPRECATEDIN_\d+_\d+_\d+)\s*\((.*)\)\s*$/
-+            or die "Bad DEPRECTEDIN: $decl\n";
-+	my $info1 .= "#INFO:";
-+	$info1 .= join(',', @{$plats}) . ":";
-+	my $info2 = $info1;
-+	$info1 .= join(',',@{$algs}, $1) . ";";
-+	$info2 .= join(',',@{$algs}) . ";";
-+	return $info1 . $2 . ";" . $info2;
-+}
+ $crypto.=" include/openssl/evp.h" ; # unless $no_evp;
+ $crypto.=" include/openssl/objects.h";
+ $crypto.=" include/openssl/pem.h";
