@@ -231,7 +231,7 @@ cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
       ```
     * Make the shell script excutable
       ```
-      chmod +x Nightingale/openssl-migration/compile_night_test.sh
+      chmod +x openssl/compile_night_test.sh
       ```
     * Run Nightingale/openssl-migration/compile\_night\_test.sh
         * The test creates a 1GB random buffer
