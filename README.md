@@ -53,6 +53,7 @@
   
   2. Move some files around...
 ```
+mkdir openssl/crypto/nightgale
 cp -r Nightingale/openssl-migration/nightgale/ openssl/crypto/nightgale
 cp Nightingale/openssl-migration/e_night.c openssl/crypto/evp/e_night.c
 cp Nightingale/openssl-migration/nightgale.h openssl/include/openssl/nightgale.h
