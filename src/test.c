@@ -9,9 +9,9 @@ int main(){
     size_t length = 1024 * 1024 * 1024;
 
     printf("Creating 1GB random buffer...\n");
-    unsigned char *plain = calloc(sizeof(unsigned char), length);
-    unsigned char *enc = calloc(sizeof(unsigned char), length);
-    unsigned char *dec = calloc(sizeof(unsigned char), length);
+    unsigned char *plain = (unsigned char*)calloc(sizeof(unsigned char), length);
+    unsigned char *enc = (unsigned char*)calloc(sizeof(unsigned char), length);
+    unsigned char *dec = (unsigned char*)calloc(sizeof(unsigned char), length);
     
     FILE *fp;
     fp = fopen("/dev/urandom", "r");

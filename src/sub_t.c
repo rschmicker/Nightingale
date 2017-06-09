@@ -124,7 +124,7 @@ void generate_hash(SUB *s, const char* key_file){
     if( !fp ) perror("Error reading private key from RSA."),exit(EXIT_FAILURE);
 
     size_t filesize = get_file_length(fp);
-    unsigned char *buffer = malloc(filesize);
+    unsigned char *buffer = (unsigned char*)malloc(filesize);
     size_t nread = fread(buffer, sizeof(unsigned char), filesize, fp);
 
     if( ferror(fp) || nread != filesize) perror("Error reading private key from RSA."),
