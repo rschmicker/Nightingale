@@ -1,5 +1,7 @@
 #include "nightgale_p.h"
 
+#define THREAD_COUNT 3
+
 //-----------------------------------------------------------------------------
 void encrypt_night_p(SUB *s, size_t len, const unsigned char *in, 
 			unsigned char *out){
@@ -10,7 +12,7 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *plain_text = (uint64_t*)in;
     uint64_t *encrypted_text = (uint64_t*)out;
 
-    size_t num_threads = 2;
+    size_t num_threads = THREAD_COUNT;
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
 
@@ -70,7 +72,7 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *encrypted_text = (uint64_t*)in;
     uint64_t *decrypted_text = (uint64_t*)out;
 
-    size_t num_threads = 2;
+    size_t num_threads = THREAD_COUNT;
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
 
