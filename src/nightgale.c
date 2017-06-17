@@ -1,4 +1,4 @@
-#include "nightgale_c.h"
+#include "nightgale.h"
 
 //-----------------------------------------------------------------------------
 void encrypt_night(SUB *s, size_t len, const unsigned char *in, 

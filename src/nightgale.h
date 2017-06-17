@@ -10,9 +10,7 @@
 #include <stdlib.h>
 #include "sub_t.h"
 #include "mysecond.h"
-#include "sub_t.h"
 
-#define WORD_SIZE 8
 #define MASK 0xfc00000000000000
 
 //-----------------------------------------------------------------------------

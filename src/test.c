@@ -1,5 +1,6 @@
 #include "sub_t.h"
-#include "nightgale_c.h"
+#include "nightgale.h"
+#include "nightgale_p.h"
 #include "mysecond.h"
 #include <assert.h>
 
@@ -22,7 +23,7 @@ int main(){
     SUB s_enc;
     nightgale_enc_set_key(&s_enc);
 
-    printf("Encrypting....\n");
+    printf("Encrypting CBC-Like....\n");
     double t1;
     t1 = mysecond();
     encrypt_night(&s_enc, length, plain, enc);
@@ -30,7 +31,7 @@ int main(){
     double rate = (((double)length)/1000000000.)/t1;
 
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    printf("Encrypt Time:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
+    printf("Encrypt Time CBC-Like:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     SUB s_dec;
@@ -41,7 +42,33 @@ int main(){
     int check = memcmp( plain, dec, length );      assert(check == 0);
     check = memcmp( plain, enc, length );	   assert(check != 0);    
 
-    printf("Pass!\n");
+    printf("CBC-Like Pass!\n");
+    printf("---------------------------------------------------------------\n");
+    //-------------------------------------------------------------------------
+
+    printf("Encrypting Parallel....\n");
+
+    SUB s_enc_p;
+    nightgale_enc_set_key(&s_enc_p);
+    
+    t1 = mysecond();
+    encrypt_night_p(&s_enc, length, plain, enc);
+    t1 = mysecond() - t1;
+    rate = (((double)length)/1000000000.)/t1;
+
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("Encrypt Time Parallel:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+
+    SUB s_dec_p;
+    nightgale_dec_set_key(&s_dec_p);
+
+    decrypt_night_p(&s_dec, length, enc, dec);
+
+    check = memcmp( plain, dec, length );      assert(check == 0);
+    check = memcmp( plain, enc, length );      assert(check != 0);
+
+    printf("Parallel Pass!\n");
 
     free(plain);
     free(enc);

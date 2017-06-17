@@ -20,6 +20,7 @@
 #define SEED_SIZE 16
 #define SUB_SIZE 256
 #define RSA_KEY "private.pem"
+#define WORD_SIZE 8
 
 typedef struct{
     char*           filename;
