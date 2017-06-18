@@ -11,6 +11,7 @@ typedef struct{
     uint64_t *out;
     size_t td_word_count;
     SUB *s;
+    size_t stream_num;
 }thread_data;
 
 //-----------------------------------------------------------------------------
