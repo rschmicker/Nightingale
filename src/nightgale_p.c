@@ -1,6 +1,5 @@
 #include "nightgale_p.h"
 
-#define THREAD_COUNT 64
 
 //-----------------------------------------------------------------------------
 void encrypt_night_p(SUB *s, size_t len, const unsigned char *in, 
@@ -12,7 +11,7 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *plain_text = (uint64_t*)in;
     uint64_t *encrypted_text = (uint64_t*)out;
 
-    size_t num_threads = THREAD_COUNT;
+    size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
     if( (num_threads & (num_threads - 1)) != 0 ) 
 	num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
@@ -33,19 +32,15 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 	contexts[i]->td_word_count = td_word_count;
 	contexts[i]->s = s;
 	contexts[i]->stream_num = offset;
-	pthread_create(&(threads[i]), NULL, encrypt, (void *)contexts[i]);
+	pthread_create(&(threads[i]), NULL, encrypt_threaded, (void *)contexts[i]);
     }
     for(size_t k = 0; k < num_threads; ++k)
 	    pthread_join(threads[k], NULL);
  }
 
 //-----------------------------------------------------------------------------
-void* encrypt(void *t){
+void* encrypt_threaded(void *t){
     thread_data *td = (thread_data*)t;
-   
-
-    // reduce size in test.c to 8 bytes
-    // print out each step of the way
 
     // PNRG initialization
     void *temp;
@@ -78,7 +73,7 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *encrypted_text = (uint64_t*)in;
     uint64_t *decrypted_text = (uint64_t*)out;
 
-    size_t num_threads = THREAD_COUNT;
+    size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
     if( (num_threads & (num_threads - 1)) != 0 ) 
         num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
@@ -99,14 +94,14 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 	contexts[i]->td_word_count = td_word_count;
 	contexts[i]->s = s;
 	contexts[i]->stream_num = offset;
-	pthread_create(&(threads[i]), NULL, decrypt, (void *)contexts[i]);
+	pthread_create(&(threads[i]), NULL, decrypt_threaded, (void *)contexts[i]);
     }
     for(size_t k = 0; k < num_threads; ++k)
 	pthread_join(threads[k], NULL);
 }
 
 //-----------------------------------------------------------------------------
-void* decrypt(void *t){
+void* decrypt_threaded(void *t){
     thread_data *td = (thread_data*)t;
     
     // PNRG initialization

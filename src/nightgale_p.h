@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "sub_t.h"
 #include "mysecond.h"
 
@@ -23,7 +24,7 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 //-----------------------------------------------------------------------------
 // Encrypt thread subroutine
 //-----------------------------------------------------------------------------
-void* encrypt(void *t);
+void* encrypt_threaded(void *t);
 
 //-----------------------------------------------------------------------------
 // Decrypt
@@ -34,7 +35,7 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 //-----------------------------------------------------------------------------
 // Decrypt thread subroutine
 //-----------------------------------------------------------------------------
-void* decrypt(void *t);
+void* decrypt_threaded(void *t);
 
 //-----------------------------------------------------------------------------
 // Round down to the previous power of 2 of any given number
