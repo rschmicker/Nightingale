@@ -36,3 +36,15 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 //-----------------------------------------------------------------------------
 void* decrypt(void *t);
 
+//-----------------------------------------------------------------------------
+// Round down to the previous power of 2 of any given number
+//-----------------------------------------------------------------------------
+inline size_t round_power_down(size_t x)
+{
+    x = x | (x >> 1);
+    x = x | (x >> 2);
+    x = x | (x >> 4);
+    x = x | (x >> 8);
+    x = x | (x >> 16);
+    return x - (x >> 1);
+}
