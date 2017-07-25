@@ -1,8 +1,7 @@
-#include "nightgale_p.h"
-
+#include "nightgale.h"
 
 //-----------------------------------------------------------------------------
-void encrypt_night_p(SUB *s, size_t len, const unsigned char *in, 
+void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 			unsigned char *out){
 
     size_t word_count = len / WORD_SIZE;
@@ -12,7 +11,7 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *encrypted_text = (uint64_t*)out;
 
     size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
-    if( (num_threads & (num_threads - 1)) != 0 ) 
+    if( (num_threads & (num_threads - 1)) != 0 )
 	num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
@@ -58,13 +57,13 @@ void* encrypt_threaded(void *t){
 	pre_sub = (unsigned char *)&decimal_word;
 	for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = td->s->sub[(int)pre_sub[k]];
 	td->out[i] = decimal_word ^ pcg64_random_r(&rng_unique);
-    }   
+    }
 
     return NULL;
 }
 
 //-----------------------------------------------------------------------------
-void decrypt_night_p(SUB *s, size_t len, const unsigned char *in, 
+void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 			unsigned char *out){
 
     size_t word_count = len / WORD_SIZE;
@@ -74,7 +73,7 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *decrypted_text = (uint64_t*)out;
 
     size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
-    if( (num_threads & (num_threads - 1)) != 0 ) 
+    if( (num_threads & (num_threads - 1)) != 0 )
         num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
@@ -103,21 +102,21 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 //-----------------------------------------------------------------------------
 void* decrypt_threaded(void *t){
     thread_data *td = (thread_data*)t;
-    
+
     // PNRG initialization
     void *temp;
     pcg64_random_t rng_unique;
     pcg128_t s1_unique;
     temp = td->s->seed1;
     s1_unique = *(pcg128_t *)temp;
-    
+
     uint64_t decimal_word;
     unsigned char *pre_sub;
-    
+
     for(size_t i = 0; i < td->td_word_count; ++i){
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
     	uint64_t key2 = pcg64_random_r(&rng_unique);
-	uint64_t key1 = pcg64_random_r(&rng_unique);	
+	uint64_t key1 = pcg64_random_r(&rng_unique);
 	decimal_word = td->in[i] ^ key1;
 	pre_sub = (unsigned char *)&decimal_word;
 	for(int k = 0; k < WORD_SIZE; ++k) pre_sub[k] = td->s->reverse_sub[(int)pre_sub[k]];
@@ -126,4 +125,3 @@ void* decrypt_threaded(void *t){
 
     return NULL;
 }
-

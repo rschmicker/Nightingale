@@ -5,8 +5,9 @@ DEBUG=-O3
 
 #CC=gcc-6
 CC=gcc
+#CC=icc
 
-COPTIONS=-std=c11 -Wall -Wextra -I/usr/local/include/openssl/
+COPTIONS=-std=c11 -Wall -Wextra -march=core-avx2 -I/usr/local/include/openssl/
 
 LDOPTIONS=-lcrypto -pthread
 
@@ -14,7 +15,7 @@ CMD=nightgale
 
 ED_FILES=private.pem
 
-OBJECTS=sub_t.o nightgale.o nightgale_p.o test.o mysecond.o
+OBJECTS=sub_t.o nightgale.o nightgale_p.o nightgale_pv.o test.o mysecond.o
 
 .c.o:
 	$(CC) $(COPTIONS) $(DEBUG) -c $<

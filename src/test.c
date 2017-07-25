@@ -1,6 +1,5 @@
 #include "sub_t.h"
 #include "nightgale.h"
-#include "nightgale_p.h"
 #include "mysecond.h"
 #include <assert.h>
 
@@ -13,7 +12,7 @@ int main(){
     unsigned char *plain = (unsigned char*)calloc(sizeof(unsigned char), length);
     unsigned char *enc = (unsigned char*)calloc(sizeof(unsigned char), length);
     unsigned char *dec = (unsigned char*)calloc(sizeof(unsigned char), length);
-    
+
     uint64_t *temp = (uint64_t *)plain;
     pcg64_random_t rng;
     pcg64_srandom_r(&rng, 42u, 54u);
@@ -43,17 +42,17 @@ int main(){
     decrypt_night(&s_dec, length, enc, dec);
 
     check = memcmp( plain, dec, length );      assert(check == 0);
-    check = memcmp( plain, enc, length );	   assert(check != 0);    
+    check = memcmp( plain, enc, length );	   assert(check != 0);
 
     printf("CBC-Like Pass!\n");
     printf("---------------------------------------------------------------\n");
     //-------------------------------------------------------------------------
-    
+
     printf("Encrypting Parallel....\n");
 
     SUB s_enc_p;
     nightgale_enc_set_key(&s_enc_p);
-    
+
     t1 = mysecond();
     encrypt_night_p(&s_enc_p, length, plain, enc);
     t1 = mysecond() - t1;
@@ -72,6 +71,32 @@ int main(){
     check = memcmp( plain, enc, length );      assert(check != 0);
 
     printf("Parallel Pass!\n");
+
+    //-------------------------------------------------------------------------
+
+    printf("Encrypting Vectorised Parallel....\n");
+
+    SUB_V s_enc_pv;
+    nightgale_enc_set_key_v(&s_enc_pv);
+
+    t1 = mysecond();
+    encrypt_night_pv(&s_enc_pv, length, plain, enc);
+    t1 = mysecond() - t1;
+    rate = (((double)length)/1000000000.)/t1;
+
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("Encrypt Time Vec Parallel:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+
+    SUB_V s_dec_pv;
+    nightgale_dec_set_key_v(&s_dec_pv);
+
+    decrypt_night_pv(&s_dec_pv, length, enc, dec);
+
+    check = memcmp( plain, dec, length );      assert(check == 0);
+    check = memcmp( plain, enc, length );      assert(check != 0);
+
+    printf("Vectorised Parallel Pass!\n");
 
     free(plain);
     free(enc);
