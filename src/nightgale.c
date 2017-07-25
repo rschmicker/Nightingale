@@ -1,7 +1,7 @@
 #include "nightgale.h"
 
 //-----------------------------------------------------------------------------
-void encrypt_night(SUB *s, size_t len, const unsigned char *in, 
+void encrypt_night(SUB *s, size_t len, const unsigned char *in,
 			unsigned char *out){
 
     size_t word_count = len / WORD_SIZE;
@@ -14,7 +14,7 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
     void *temp;
     pcg64_random_t rng_unique, rng_anch, rng_ham;
     pcg128_t s1_unique, anchor_seed, ham_seed;
-    
+
     temp = s->seed1;
     s1_unique = *(pcg128_t *)temp;
 
@@ -34,7 +34,7 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
 
     unsigned char *pre_sub;
     uint64_t decimal_word;
-    
+
     // Encrypt buffers
     root = anchor;
     for(size_t i = 0; i < word_count; ++i){
@@ -49,7 +49,7 @@ void encrypt_night(SUB *s, size_t len, const unsigned char *in,
  }
 
 //-----------------------------------------------------------------------------
-void decrypt_night(SUB *s, size_t len, const unsigned char *in, 
+void decrypt_night(SUB *s, size_t len, const unsigned char *in,
 			unsigned char *out){
 
     size_t word_count = len / WORD_SIZE;
@@ -70,7 +70,7 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
     anchor_seed = *(pcg128_t *)temp;
 
     temp = &s->digest[SHA256_DIGEST_LENGTH/2];
-    ham_seed = *(pcg128_t *)temp;    
+    ham_seed = *(pcg128_t *)temp;
 
     pcg64_srandom_r(&rng_unique, s1_unique, 5);
     pcg64_srandom_r(&rng_anch, anchor_seed, 6);
@@ -89,7 +89,7 @@ void decrypt_night(SUB *s, size_t len, const unsigned char *in,
 	uint64_t key = pcg64_random_r(&rng_unique);
         anchor = rotr64(anchor, key&MASK);
         decimal_word = enc_message[i] ^ key ^ anchor;
-	pre_sub_decimal_word = decimal_word;
+		pre_sub_decimal_word = decimal_word;
         pre_sub = (unsigned char *)&decimal_word;
         for(int j = 0; j < WORD_SIZE; ++j) pre_sub[j] = s->reverse_sub[(int)pre_sub[j]];
         dec_message[i] = root ^ decimal_word ^ hamming_mask;

@@ -144,32 +144,6 @@ void shuffle_v(SUB_V *s){
         s->sub_v_low[i] = low_temp_2[i - 16];
         s->sub_v_high[i] = high_temp_2[i - 16];
     }
-
-    // for(int i = 0; i < 16; ++i){
-    //     s->sub_v_low[i] = (unsigned char)knuth_sort_low_1[i].index;
-    //     s->sub_v_high[i] = (unsigned char)knuth_sort_high_1[i].index;
-    // }
-    //
-    // for(int i = 16; i < 32; ++i){
-    //     s->sub_v_low[i] = (unsigned char)knuth_sort_low_2[i - 16].index;
-    //     s->sub_v_high[i] = (unsigned char)knuth_sort_high_2[i - 16].index;
-    // }
-
-    // for(int i = 0; i < 16; i++){
-    //     s->sub_v_low[i] = (unsigned char)knuth_sort_low_1[i].index;
-    //     s->r_sub_v_low[(unsigned char)knuth_sort_low_1[i].index] = i;
-    //
-    //     s->sub_v_high[i] = (unsigned char)knuth_sort_high_1[i].index;
-    //     s->r_sub_v_high[(unsigned char)knuth_sort_high_1[i].index] = i;
-    // }
-    //
-    // for(int i = 16; i < 32; i++){
-    //     s->sub_v_low[i] = (unsigned char)knuth_sort_low_2[i - 16].index;
-    //     s->r_sub_v_low[(unsigned char)knuth_sort_low_2[i - 16].index + 16] = i - 16;
-    //
-    //     s->sub_v_high[i] = (unsigned char)knuth_sort_high_2[i - 16].index;
-    //     s->r_sub_v_high[(unsigned char)knuth_sort_high_2[i - 16].index + 16] = i - 16;
-    // }
 }
 
 //-----------------------------------------------------------------------------
@@ -239,8 +213,17 @@ void generate_rands_v(SUB_V *s){
 
     for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
         s->sub_rands_1[i] = pcg64_random_r(&rng1);
+    }
+
+    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
         s->sub_rands_2[i] = pcg64_random_r(&rng2);
+    }
+
+    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
         s->sub_rands_3[i] = pcg64_random_r(&rng3);
+    }
+
+    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
         s->sub_rands_4[i] = pcg64_random_r(&rng4);
     }
 }
