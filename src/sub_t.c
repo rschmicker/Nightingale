@@ -211,19 +211,19 @@ void generate_rands_v(SUB_V *s){
     pcg64_srandom_r(&rng3, s3, round);
     pcg64_srandom_r(&rng4, s4, round);
 
-    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
+    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_1[i] = pcg64_random_r(&rng1);
     }
 
-    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
+    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_2[i] = pcg64_random_r(&rng2);
     }
 
-    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
+    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_3[i] = pcg64_random_r(&rng3);
     }
 
-    for(int i = 0; i < VECTOR_WORD_SIZE; ++i){
+    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_4[i] = pcg64_random_r(&rng4);
     }
 }
