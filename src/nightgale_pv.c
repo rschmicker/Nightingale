@@ -34,8 +34,7 @@ void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     }
     // Encrypt buffers
     for(size_t i = 0; i < num_threads; ++i){
-    	int division_size = word_count/num_threads;
-    	int offset = i * division_size;
+    	int offset = i * (word_count/num_threads);
     	contexts[i]->in = &plain_text[offset];
     	contexts[i]->out = &encrypted_text[offset];
     	contexts[i]->td_word_count = td_word_count;
@@ -58,18 +57,6 @@ void* encrypt_threaded_v(void *t){
     pcg128_t s1_unique;
     temp = td->s->seed1;
     s1_unique = *(pcg128_t *)temp;
-
-    unsigned char low_bytes[] = {0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-				   0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-				   0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-				   0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0};
-
-	unsigned char high_bytes[] = {0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F,
-				    0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F,
-				    0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F,
-				    0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F};
-
-    int multi_factor_right[] = {4, 4, 4, 4, 4, 4, 4, 4};
 
     uint64_t rand_words[4];
 
@@ -131,8 +118,7 @@ void decrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     }
     // Decrypt here
     for(size_t i = 0; i < num_threads; ++i){
-        int division_size = word_count/num_threads;
-        int offset = i * division_size;
+        int offset = i * (word_count/num_threads);
         contexts[i]->in = &encrypted_text[offset];
         contexts[i]->out = &decrypted_text[offset];
         contexts[i]->td_word_count = td_word_count;
@@ -156,18 +142,6 @@ void* decrypt_threaded_v(void *t){
     temp = td->s->seed1;
     s1_unique = *(pcg128_t *)temp;
 
-    unsigned char low_bytes[] = {0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-				   0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-				   0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-				   0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0};
-
-	unsigned char high_bytes[] = {0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F,
-				    0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F,
-				    0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F,
-				    0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F};
-
-    int multi_factor_right[] = {4, 4, 4, 4, 4, 4, 4, 4};
-
     uint64_t rand_words_1[4];
     uint64_t rand_words_2[4];
 
@@ -178,8 +152,6 @@ void* decrypt_threaded_v(void *t){
     __m256i sub_high = *(__m256i *)&td->s->r_sub_v_high;
     __m256i mask_high = *(__m256i *)high_bytes;
 	__m256i mask_low = *(__m256i *)low_bytes;
-
-    //printf("\n\n");
 
     for(size_t i = 0; i < td->td_word_count; ++i){
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
@@ -192,7 +164,6 @@ void* decrypt_threaded_v(void *t){
         rand_words_1[2] = pcg64_random_r(&rng_unique);
         rand_words_1[3] = pcg64_random_r(&rng_unique);
         msg = td->in[i];
-
         msg_xor = _mm256_xor_si256(msg, *(__m256i *)rand_words_1);
         msg_low = _mm256_and_si256(mask_high, msg_xor);
         msg_high = _mm256_and_si256(mask_low, msg_xor);

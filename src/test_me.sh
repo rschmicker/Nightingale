@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-make
+make -j $(getconf _NPROCESSORS_ONLN)
 ./nightgale
 make clean

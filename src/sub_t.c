@@ -213,17 +213,8 @@ void generate_rands_v(SUB_V *s){
 
     for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_1[i] = pcg64_random_r(&rng1);
-    }
-
-    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_2[i] = pcg64_random_r(&rng2);
-    }
-
-    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_3[i] = pcg64_random_r(&rng3);
-    }
-
-    for(int i = 0; i < VECTOR_RAND_SIZE; ++i){
         s->sub_rands_4[i] = pcg64_random_r(&rng4);
     }
 }

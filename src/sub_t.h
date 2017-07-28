@@ -39,11 +39,6 @@ typedef struct{
     unsigned char   reverse_sub[SUB_SIZE];
 }SUB;
 
-// Fix Sub table for vectorize
-// generate 4 0-15 arrays of values from 0-15 in random order
-// concat to make two pairs
-// use that for sub_v 1 and 2 and inverse for reverse_sub
-
 typedef struct{
     char*           filename;
     char*           outputname;
