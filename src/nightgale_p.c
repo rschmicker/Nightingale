@@ -11,16 +11,19 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     uint64_t *encrypted_text = (uint64_t*)out;
 
     size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
-    if( (num_threads & (num_threads - 1)) != 0 )
-		num_threads = round_power_down(num_threads);
+    // if( (num_threads & (num_threads - 1)) != 0 )
+	// 	num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
+	bool last_thread_extra_word = false;
+	float word_count_checker = (float)word_count / (float)num_threads;
+	if(word_count_checker - (int)word_count_checker != 0)
+		last_thread_extra_word = true;
 
     pthread_t threads[num_threads];
     thread_data *contexts[num_threads];
     for(size_t i = 0; i < num_threads; ++i){
-		thread_data *td = (thread_data *)calloc(1, sizeof(thread_data));
-        contexts[i] = td;
+		contexts[i] = (thread_data *)calloc(1, sizeof(thread_data));
     }
     // Encrypt buffers
     for(size_t i = 0; i < num_threads; ++i){
@@ -29,6 +32,8 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 		contexts[i]->in = &plain_text[offset];
 		contexts[i]->out = &encrypted_text[offset];
 		contexts[i]->td_word_count = td_word_count;
+		if(i == (1 - num_threads) && last_thread_extra_word)
+			contexts[i]->td_word_count++;
 		contexts[i]->s = s;
 		contexts[i]->stream_num = offset;
 		pthread_create(&(threads[i]), NULL, encrypt_threaded, (void *)contexts[i]);
@@ -81,8 +86,7 @@ void decrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     pthread_t threads[num_threads];
     thread_data *contexts[num_threads];
     for(size_t i = 0; i < num_threads; ++i){
-		thread_data *td = (thread_data *)calloc(1, sizeof(thread_data));
-		contexts[i] = td;
+		contexts[i] = (thread_data *)calloc(1, sizeof(thread_data));
     }
     // Decrypt here
     for(size_t i = 0; i < num_threads; ++i){

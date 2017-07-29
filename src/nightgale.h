@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <immintrin.h>
+#include <stdbool.h>
 #include "sub_t.h"
 #include "mysecond.h"
 

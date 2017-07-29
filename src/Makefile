@@ -4,10 +4,11 @@ DEBUG=-O3
 #DEBUG=-O1
 
 #CC=gcc-6
-CC=gcc
-#CC=icc
+#CC=gcc
+CC=icc
+#CC=/usr/local/Cellar/gcc/7.1.0/bin/gcc-7
 
-COPTIONS=-std=c11 -Wall -Wextra -march=core-avx2 -I/usr/local/include/openssl/
+COPTIONS=-std=c11 -Wall -Wextra -march=core-avx2 -ipo -axCORE-AVX2 -parallel -I/usr/local/include/openssl/
 
 LDOPTIONS=-lcrypto -pthread
 
