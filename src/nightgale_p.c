@@ -16,10 +16,12 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
 	bool last_thread_extra_word = false;
+	size_t last_thread_extra_count = 0;
 	float word_count_checker = (float)word_count / (float)num_threads;
-	if(word_count_checker - (int)word_count_checker != 0)
+	if(word_count_checker - (int)word_count_checker != 0){
 		last_thread_extra_word = true;
-
+		last_thread_extra_count = word_count % num_threads;
+	}
     pthread_t threads[num_threads];
     thread_data *contexts[num_threads];
     for(size_t i = 0; i < num_threads; ++i){
@@ -33,8 +35,7 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 		contexts[i]->out = &encrypted_text[offset];
 		contexts[i]->td_word_count = td_word_count;
 		if(i == (1 - num_threads) && last_thread_extra_word){
-			contexts[i]->td_word_count++;
-			contexts[i]->out = &encrypted_text[(offset++)];
+			contexts[i]->td_word_count += last_thread_extra_count;
 		}
 		contexts[i]->s = s;
 		contexts[i]->stream_num = offset;
