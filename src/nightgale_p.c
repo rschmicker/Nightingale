@@ -37,6 +37,7 @@ void encrypt_night_p(SUB *s, size_t len, const unsigned char *in,
 		if(i == (1 - num_threads) && last_thread_extra_word){
 			contexts[i]->td_word_count += last_thread_extra_count;
 		}
+		printf("thread: %lu\t%lu\n", i, contexts[i]->td_word_count);
 		contexts[i]->s = s;
 		contexts[i]->stream_num = offset;
 		pthread_create(&(threads[i]), NULL, encrypt_threaded, (void *)contexts[i]);
