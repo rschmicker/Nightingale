@@ -21,10 +21,13 @@ void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     __m256i *encrypted_text = (__m256i *)out;
 
     size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
-    if( (num_threads & (num_threads - 1)) != 0 )
-	   num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
+    size_t last_thread_extra_count = 0;
+    float word_count_checker = (float)word_count / (float)num_threads;
+    if(word_count_checker - (int)word_count_checker != 0){
+            last_thread_extra_count = word_count % num_threads;
+    }
 
     pthread_t threads[num_threads];
     thread_vec_data *contexts[num_threads];
@@ -38,7 +41,10 @@ void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     	contexts[i]->in = &plain_text[offset];
     	contexts[i]->out = &encrypted_text[offset];
     	contexts[i]->td_word_count = td_word_count;
-    	contexts[i]->s = s;
+    	if(i == (num_threads - 1) && last_thread_extra_count != 0){
+            contexts[i]->td_word_count += last_thread_extra_count;
+        }
+	contexts[i]->s = s;
     	contexts[i]->stream_num = offset;
     	pthread_create(&(threads[i]), NULL, encrypt_threaded_v, (void *)contexts[i]);
     }
@@ -105,10 +111,13 @@ void decrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     __m256i *decrypted_text = (__m256i *)out;
 
     size_t num_threads = sysconf(_SC_NPROCESSORS_ONLN);
-    if( (num_threads & (num_threads - 1)) != 0 )
-        num_threads = round_power_down(num_threads);
     if( word_count < num_threads ) num_threads = 1;
     size_t td_word_count = word_count / num_threads;
+    size_t last_thread_extra_count = 0;
+    float word_count_checker = (float)word_count / (float)num_threads;
+    if(word_count_checker - (int)word_count_checker != 0){
+            last_thread_extra_count = word_count % num_threads;
+    }
 
     pthread_t threads[num_threads];
     thread_vec_data *contexts[num_threads];
@@ -122,7 +131,10 @@ void decrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
         contexts[i]->in = &encrypted_text[offset];
         contexts[i]->out = &decrypted_text[offset];
         contexts[i]->td_word_count = td_word_count;
-        contexts[i]->s = s;
+        if(i == (num_threads - 1) && last_thread_extra_count != 0){
+            contexts[i]->td_word_count += last_thread_extra_count;
+        }
+	contexts[i]->s = s;
         contexts[i]->stream_num = offset;
         pthread_create(&(threads[i]), NULL, decrypt_threaded_v, (void *)contexts[i]);
     }
