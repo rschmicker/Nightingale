@@ -25,9 +25,9 @@ void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     size_t td_word_count = word_count / num_threads;
     size_t last_thread_extra_count = 0;
     float word_count_checker = (float)word_count / (float)num_threads;
-    if(word_count_checker - (int)word_count_checker != 0){
+    if(word_count_checker - (int)word_count_checker != 0)
             last_thread_extra_count = word_count % num_threads;
-    }
+
 
     pthread_t threads[num_threads];
     thread_vec_data *contexts[num_threads];
@@ -41,10 +41,9 @@ void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     	contexts[i]->in = &plain_text[offset];
     	contexts[i]->out = &encrypted_text[offset];
     	contexts[i]->td_word_count = td_word_count;
-    	if(i == (num_threads - 1) && last_thread_extra_count != 0){
+    	if(i == (num_threads - 1) && last_thread_extra_count != 0)
             contexts[i]->td_word_count += last_thread_extra_count;
-        }
-	contexts[i]->s = s;
+		contexts[i]->s = s;
     	contexts[i]->stream_num = offset;
     	pthread_create(&(threads[i]), NULL, encrypt_threaded_v, (void *)contexts[i]);
     }
@@ -69,8 +68,14 @@ void* encrypt_threaded_v(void *t){
     __m256i msg, msg_xor, msg_high, msg_low,
             out_high, out_low, out_msg, out_xor;
 
-    __m256i sub_low = *(__m256i *)&td->s->sub_v_low;
-    __m256i sub_high = *(__m256i *)&td->s->sub_v_high;
+	unsigned char r_sub_temp_low[VECTOR_WORD_SIZE];
+	unsigned char r_sub_temp_high[VECTOR_WORD_SIZE];
+
+	memcpy(r_sub_temp_low, td->s->sub_v_low, VECTOR_WORD_SIZE);
+	memcpy(r_sub_temp_high, td->s->sub_v_high, VECTOR_WORD_SIZE);
+
+    __m256i sub_low = *(__m256i *)r_sub_temp_low;
+    __m256i sub_high = *(__m256i *)r_sub_temp_high;
     __m256i mask_high = *(__m256i *)high_bytes;
 	__m256i mask_low = *(__m256i *)low_bytes;
 
@@ -115,9 +120,9 @@ void decrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     size_t td_word_count = word_count / num_threads;
     size_t last_thread_extra_count = 0;
     float word_count_checker = (float)word_count / (float)num_threads;
-    if(word_count_checker - (int)word_count_checker != 0){
+    if(word_count_checker - (int)word_count_checker != 0)
             last_thread_extra_count = word_count % num_threads;
-    }
+
 
     pthread_t threads[num_threads];
     thread_vec_data *contexts[num_threads];
@@ -125,16 +130,17 @@ void decrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
         thread_vec_data *td = (thread_vec_data *)calloc(1, sizeof(thread_vec_data));
         contexts[i] = td;
     }
+
     // Decrypt here
     for(size_t i = 0; i < num_threads; ++i){
         int offset = i * (word_count/num_threads);
         contexts[i]->in = &encrypted_text[offset];
         contexts[i]->out = &decrypted_text[offset];
         contexts[i]->td_word_count = td_word_count;
-        if(i == (num_threads - 1) && last_thread_extra_count != 0){
+        if(i == (num_threads - 1) && last_thread_extra_count != 0)
             contexts[i]->td_word_count += last_thread_extra_count;
-        }
-	contexts[i]->s = s;
+
+		contexts[i]->s = s;
         contexts[i]->stream_num = offset;
         pthread_create(&(threads[i]), NULL, decrypt_threaded_v, (void *)contexts[i]);
     }
@@ -160,11 +166,16 @@ void* decrypt_threaded_v(void *t){
     __m256i msg, msg_xor, msg_high, msg_low,
             out_high, out_low, out_msg, out_xor;
 
-    __m256i sub_low = *(__m256i *)&td->s->r_sub_v_low;
-    __m256i sub_high = *(__m256i *)&td->s->r_sub_v_high;
+	unsigned char r_sub_temp_low[VECTOR_WORD_SIZE];
+	unsigned char r_sub_temp_high[VECTOR_WORD_SIZE];
+
+	memcpy(r_sub_temp_low, td->s->r_sub_v_low, VECTOR_WORD_SIZE);
+	memcpy(r_sub_temp_high, td->s->r_sub_v_high, VECTOR_WORD_SIZE);
+
+    __m256i sub_low = *(__m256i *)r_sub_temp_low;
+    __m256i sub_high = *(__m256i *)r_sub_temp_high;
     __m256i mask_high = *(__m256i *)high_bytes;
 	__m256i mask_low = *(__m256i *)low_bytes;
-
     for(size_t i = 0; i < td->td_word_count; ++i){
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
         rand_words_2[0] = pcg64_random_r(&rng_unique);
