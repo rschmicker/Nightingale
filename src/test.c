@@ -7,17 +7,24 @@ int main(){
 
     printf("1GB random check\n");
     size_t length = 1024 * 1024 * 1024;
-
+    size_t align = 32;
     printf("Creating 1GB random buffer...\n");
-    unsigned char *plain = (unsigned char*)calloc(sizeof(unsigned char), length);
-    unsigned char *enc = (unsigned char*)calloc(sizeof(unsigned char), length);
-    unsigned char *dec = (unsigned char*)calloc(sizeof(unsigned char), length);
+    void *plain_alloc, *enc_alloc, *dec_alloc;
+    posix_memalign(&plain_alloc, align, length);
+    posix_memalign(&enc_alloc, align, length);
+    posix_memalign(&dec_alloc, align, length);
+    unsigned char *plain = (unsigned char *)plain_alloc;
+    unsigned char *enc = (unsigned char *)enc_alloc;
+    unsigned char *dec = (unsigned char *)dec_alloc;
+    // unsigned char *plain = (unsigned char*)calloc(sizeof(unsigned char), length);
+    // unsigned char *enc = (unsigned char*)calloc(sizeof(unsigned char), length);
+    // unsigned char *dec = (unsigned char*)calloc(sizeof(unsigned char), length);
 
     uint64_t *temp = (uint64_t *)plain;
     pcg64_random_t rng;
     pcg64_srandom_r(&rng, 42u, 54u);
     for(size_t i = 0; i < length/8; ++i)
-	temp[i] = pcg64_random_r(&rng);
+	   temp[i] = pcg64_random_r(&rng);
 
     double t1;
     double rate;
