@@ -16,9 +16,6 @@ int main(){
     unsigned char *plain = (unsigned char *)plain_alloc;
     unsigned char *enc = (unsigned char *)enc_alloc;
     unsigned char *dec = (unsigned char *)dec_alloc;
-    // unsigned char *plain = (unsigned char*)calloc(sizeof(unsigned char), length);
-    // unsigned char *enc = (unsigned char*)calloc(sizeof(unsigned char), length);
-    // unsigned char *dec = (unsigned char*)calloc(sizeof(unsigned char), length);
 
     uint64_t *temp = (uint64_t *)plain;
     pcg64_random_t rng;
