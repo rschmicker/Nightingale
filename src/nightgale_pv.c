@@ -1,15 +1,5 @@
 #include "nightgale.h"
 
-void print256_num(__m256i var, char* name){
-	uint8_t *val = (uint8_t*) &var;
-	printf("%s: ", name);
-	int i;
-	for(i = 0; i < 32; ++i){
-		printf("%d, ", (int)val[i]);
-	}
-	printf("\n");
-}
-
 //-----------------------------------------------------------------------------
 void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
 			unsigned char *out){
@@ -28,13 +18,11 @@ void encrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     if(word_count_checker - (int)word_count_checker != 0)
             last_thread_extra_count = word_count % num_threads;
 
-
     pthread_t threads[num_threads];
     thread_vec_data *contexts[num_threads];
-    for(size_t i = 0; i < num_threads; ++i){
-	    thread_vec_data *td = (thread_vec_data *)calloc(1, sizeof(thread_vec_data));
-        contexts[i] = td;
-    }
+    for(size_t i = 0; i < num_threads; ++i)
+	    contexts[i] = (thread_vec_data *)calloc(1, sizeof(thread_vec_data));
+
     // Encrypt buffers
     for(size_t i = 0; i < num_threads; ++i){
     	int offset = i * (word_count/num_threads);
@@ -63,10 +51,11 @@ void* encrypt_threaded_v(void *t){
     temp = td->s->seed1;
     s1_unique = *(pcg128_t *)temp;
 
-    uint64_t rand_words[4];
-
     __m256i msg, msg_xor, msg_high, msg_low,
-            out_high, out_low, out_msg, out_xor;
+            out_high, out_low, out_msg, out_xor,
+			rand_words, shifter;
+
+	shifter = _mm256_set_epi32(4, 4, 4, 4, 4, 4, 4, 4);
 
 	unsigned char r_sub_temp_low[VECTOR_WORD_SIZE];
 	unsigned char r_sub_temp_high[VECTOR_WORD_SIZE];
@@ -81,24 +70,28 @@ void* encrypt_threaded_v(void *t){
 
     for(size_t i = 0; i < td->td_word_count; ++i){
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
-        rand_words[0] = pcg64_random_r(&rng_unique);
-    	rand_words[1] = pcg64_random_r(&rng_unique);
-        rand_words[2] = pcg64_random_r(&rng_unique);
-        rand_words[3] = pcg64_random_r(&rng_unique);
+		rand_words = _mm256_set_epi64x(
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique)
+		);
         msg = td->in[i];
-        msg_xor = _mm256_xor_si256(msg, *(__m256i *)rand_words);
+        msg_xor = _mm256_xor_si256(msg, rand_words);
         msg_high = _mm256_and_si256(mask_low, msg_xor);
-        msg_high = _mm256_srlv_epi32(msg_high, *(__m256i*)multi_factor_right);
+        msg_high = _mm256_srlv_epi32(msg_high, shifter);
         msg_low = _mm256_and_si256(mask_high, msg_xor);
         out_high = _mm256_shuffle_epi8(sub_high, msg_high);
-        out_high = _mm256_sllv_epi32(out_high, *(__m256i*)multi_factor_right);
+        out_high = _mm256_sllv_epi32(out_high, shifter);
         out_low = _mm256_shuffle_epi8(sub_low, msg_low);
         out_msg = out_high + out_low;
-        rand_words[0] = pcg64_random_r(&rng_unique);
-    	rand_words[1] = pcg64_random_r(&rng_unique);
-        rand_words[2] = pcg64_random_r(&rng_unique);
-        rand_words[3] = pcg64_random_r(&rng_unique);
-        out_xor = _mm256_xor_si256(out_msg, *(__m256i *)rand_words);
+		rand_words = _mm256_set_epi64x(
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique)
+		);
+        out_xor = _mm256_xor_si256(out_msg, rand_words);
         td->out[i] = out_xor;
     }
 
@@ -123,13 +116,10 @@ void decrypt_night_pv(SUB_V *s, size_t len, const unsigned char *in,
     if(word_count_checker - (int)word_count_checker != 0)
             last_thread_extra_count = word_count % num_threads;
 
-
     pthread_t threads[num_threads];
     thread_vec_data *contexts[num_threads];
-    for(size_t i = 0; i < num_threads; ++i){
-        thread_vec_data *td = (thread_vec_data *)calloc(1, sizeof(thread_vec_data));
-        contexts[i] = td;
-    }
+    for(size_t i = 0; i < num_threads; ++i)
+        contexts[i] = (thread_vec_data *)calloc(1, sizeof(thread_vec_data));
 
     // Decrypt here
     for(size_t i = 0; i < num_threads; ++i){
@@ -160,11 +150,11 @@ void* decrypt_threaded_v(void *t){
     temp = td->s->seed1;
     s1_unique = *(pcg128_t *)temp;
 
-    uint64_t rand_words_1[4];
-    uint64_t rand_words_2[4];
-
     __m256i msg, msg_xor, msg_high, msg_low,
-            out_high, out_low, out_msg, out_xor;
+            out_high, out_low, out_msg, out_xor,
+			rand_words_1, rand_words_2, shifter;
+
+	shifter = _mm256_set_epi32(4, 4, 4, 4, 4, 4, 4, 4);
 
 	unsigned char r_sub_temp_low[VECTOR_WORD_SIZE];
 	unsigned char r_sub_temp_high[VECTOR_WORD_SIZE];
@@ -176,26 +166,31 @@ void* decrypt_threaded_v(void *t){
     __m256i sub_high = *(__m256i *)r_sub_temp_high;
     __m256i mask_high = *(__m256i *)high_bytes;
 	__m256i mask_low = *(__m256i *)low_bytes;
+
     for(size_t i = 0; i < td->td_word_count; ++i){
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
-        rand_words_2[0] = pcg64_random_r(&rng_unique);
-    	rand_words_2[1] = pcg64_random_r(&rng_unique);
-        rand_words_2[2] = pcg64_random_r(&rng_unique);
-        rand_words_2[3] = pcg64_random_r(&rng_unique);
-        rand_words_1[0] = pcg64_random_r(&rng_unique);
-    	rand_words_1[1] = pcg64_random_r(&rng_unique);
-        rand_words_1[2] = pcg64_random_r(&rng_unique);
-        rand_words_1[3] = pcg64_random_r(&rng_unique);
+		rand_words_2 = _mm256_set_epi64x(
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique)
+		);
+		rand_words_1 = _mm256_set_epi64x(
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique),
+			pcg64_random_r(&rng_unique)
+		);
         msg = td->in[i];
-        msg_xor = _mm256_xor_si256(msg, *(__m256i *)rand_words_1);
+        msg_xor = _mm256_xor_si256(msg, rand_words_1);
         msg_low = _mm256_and_si256(mask_high, msg_xor);
         msg_high = _mm256_and_si256(mask_low, msg_xor);
-        msg_high = _mm256_srlv_epi32(msg_high, *(__m256i*)multi_factor_right);
+        msg_high = _mm256_srlv_epi32(msg_high, shifter);
         out_high = _mm256_shuffle_epi8(sub_high, msg_high);
-        out_high = _mm256_sllv_epi32(out_high, *(__m256i*)multi_factor_right);
+        out_high = _mm256_sllv_epi32(out_high, shifter);
         out_low = _mm256_shuffle_epi8(sub_low, msg_low);
         out_msg = out_high + out_low;
-        out_xor = _mm256_xor_si256(out_msg, *(__m256i *)rand_words_2);
+        out_xor = _mm256_xor_si256(out_msg, rand_words_2);
         td->out[i] = out_xor;
     }
 

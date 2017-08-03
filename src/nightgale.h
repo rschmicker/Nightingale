@@ -135,3 +135,16 @@ inline uint64_t rotr64 (uint64_t n, unsigned int c){
     c &= mask;
     return (n>>c) | (n<<( (-c)&mask ));
 }
+
+//-----------------------------------------------------------------------------
+// Debug print for __m256i type
+//-----------------------------------------------------------------------------
+inline void print256_num(__m256i var, char* name){
+	uint8_t *val = (uint8_t*) &var;
+	printf("%s: ", name);
+	int i;
+	for(i = 0; i < 32; ++i){
+		printf("%d, ", (int)val[i]);
+	}
+	printf("\n");
+}
