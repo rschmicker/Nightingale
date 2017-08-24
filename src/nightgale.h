@@ -37,6 +37,9 @@ static const unsigned char high_bytes[] =
 
 static const int multi_factor_right[] = {4, 4, 4, 4, 4, 4, 4, 4};
 
+static const uint64_t top_six_mask[] = {58, 58, 58, 58};
+static const uint64_t low_six_mask[] = {0x3F, 0x3F, 0x3F, 0x3F};
+
 typedef struct{
     uint64_t *in;
     uint64_t *out;

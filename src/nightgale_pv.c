@@ -52,7 +52,7 @@ void* encrypt_threaded_v(void *t){
     s1_unique = *(pcg128_t *)temp;
 
     __m256i msg, msg_xor, msg_high, msg_low,
-            out_high, out_low, out_msg, out_xor,
+            out_high, out_low, out_msg,
 			rand_words, shifter;
 
 	shifter = _mm256_set_epi32(4, 4, 4, 4, 4, 4, 4, 4);
@@ -67,6 +67,8 @@ void* encrypt_threaded_v(void *t){
     __m256i sub_high = *(__m256i *)r_sub_temp_high;
     __m256i mask_high = *(__m256i *)high_bytes;
 	__m256i mask_low = *(__m256i *)low_bytes;
+
+	__m256i right_side, left_side, top_six, comp;
 
     for(size_t i = 0; i < td->td_word_count; ++i){
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
@@ -85,14 +87,15 @@ void* encrypt_threaded_v(void *t){
         out_high = _mm256_sllv_epi32(out_high, shifter);
         out_low = _mm256_shuffle_epi8(sub_low, msg_low);
         out_msg = out_high + out_low;
-		rand_words = _mm256_set_epi64x(
-			pcg64_random_r(&rng_unique),
-			pcg64_random_r(&rng_unique),
-			pcg64_random_r(&rng_unique),
-			pcg64_random_r(&rng_unique)
-		);
-        out_xor = _mm256_xor_si256(out_msg, rand_words);
-        td->out[i] = out_xor;
+
+		top_six = _mm256_srlv_epi64(rand_words, *(__m256i*)top_six_mask);
+		right_side = _mm256_srlv_epi64(rand_words, top_six);
+		comp = _mm256_xor_si256(top_six, *(__m256i *)low_six_mask);
+		left_side = _mm256_sllv_epi64(rand_words, comp);
+		rand_words = _mm256_xor_si256(right_side, left_side);
+		out_msg = _mm256_xor_si256(out_msg, rand_words);
+
+		td->out[i] = out_msg;
     }
 
     return NULL;
@@ -150,9 +153,9 @@ void* decrypt_threaded_v(void *t){
     temp = td->s->seed1;
     s1_unique = *(pcg128_t *)temp;
 
-    __m256i msg, msg_xor, msg_high, msg_low,
-            out_high, out_low, out_msg, out_xor,
-			rand_words_1, rand_words_2, shifter;
+    __m256i msg, msg_high, msg_low, out_high,
+			out_low, out_msg, out_xor,
+			rand_words, shifter;
 
 	shifter = _mm256_set_epi32(4, 4, 4, 4, 4, 4, 4, 4);
 
@@ -167,30 +170,33 @@ void* decrypt_threaded_v(void *t){
     __m256i mask_high = *(__m256i *)high_bytes;
 	__m256i mask_low = *(__m256i *)low_bytes;
 
+	__m256i right_side, left_side, top_six, comp, rotr_rand_words;
+
     for(size_t i = 0; i < td->td_word_count; ++i){
+		msg = td->in[i];
         pcg64_srandom_r(&rng_unique, s1_unique, td->stream_num+i);
-		rand_words_2 = _mm256_set_epi64x(
+
+		rand_words = _mm256_set_epi64x(
 			pcg64_random_r(&rng_unique),
 			pcg64_random_r(&rng_unique),
 			pcg64_random_r(&rng_unique),
 			pcg64_random_r(&rng_unique)
 		);
-		rand_words_1 = _mm256_set_epi64x(
-			pcg64_random_r(&rng_unique),
-			pcg64_random_r(&rng_unique),
-			pcg64_random_r(&rng_unique),
-			pcg64_random_r(&rng_unique)
-		);
-        msg = td->in[i];
-        msg_xor = _mm256_xor_si256(msg, rand_words_1);
-        msg_low = _mm256_and_si256(mask_high, msg_xor);
-        msg_high = _mm256_and_si256(mask_low, msg_xor);
+
+		top_six = _mm256_srlv_epi64(rand_words, *(__m256i*)top_six_mask);
+		right_side = _mm256_srlv_epi64(rand_words, top_six);
+		comp = _mm256_xor_si256(top_six, *(__m256i *)low_six_mask);
+		left_side = _mm256_sllv_epi64(rand_words, comp);
+		rotr_rand_words = _mm256_xor_si256(right_side, left_side);
+		msg = _mm256_xor_si256(msg, rotr_rand_words);
+        msg_low = _mm256_and_si256(mask_high, msg);
+        msg_high = _mm256_and_si256(mask_low, msg);
         msg_high = _mm256_srlv_epi32(msg_high, shifter);
         out_high = _mm256_shuffle_epi8(sub_high, msg_high);
         out_high = _mm256_sllv_epi32(out_high, shifter);
         out_low = _mm256_shuffle_epi8(sub_low, msg_low);
         out_msg = out_high + out_low;
-        out_xor = _mm256_xor_si256(out_msg, rand_words_2);
+        out_xor = _mm256_xor_si256(out_msg, rand_words);
         td->out[i] = out_xor;
     }
 
