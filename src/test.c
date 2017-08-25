@@ -1,6 +1,7 @@
 #include "sub_t.h"
 #include "nightgale.h"
 #include "mysecond.h"
+#include "gmac.h"
 #include <assert.h>
 
 int main(){
@@ -71,6 +72,8 @@ int main(){
 
     decrypt_night_p(&s_dec_p, length, enc, dec);
 
+    t1 = mysecond();
+
     check = memcmp( plain, dec, length );      assert(check == 0);
     check = memcmp( plain, enc, length );      assert(check != 0);
 
@@ -82,11 +85,24 @@ int main(){
 
     SUB_V s_enc_pv;
     nightgale_enc_set_key_v(&s_enc_pv);
+    unsigned char tag_before[16], tag_after[16], iv[12];
+    memcpy(iv, s_enc_p.seed4, 12);
 
     t1 = mysecond();
     encrypt_night_pv(&s_enc_pv, length, plain, enc);
+    calc_gmac(plain, tag_before, length, s_enc_p.seed3, iv);
     t1 = mysecond() - t1;
     rate = (((double)length)/1000000000.)/t1;
+
+    printf("GMAC Before:\n  ");
+    for(size_t i = 0; i < sizeof(tag_before); i++)
+    {
+        printf("%02x", tag_before[i]);
+
+        if(i == sizeof(tag_before) - 1) {
+            printf("\n");
+        }
+    }
 
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Encrypt Time Vec Parallel:\t%5.3fms\tRate:\t%5.3fGB/s\n", t1*1000., rate);
@@ -96,9 +112,21 @@ int main(){
     nightgale_dec_set_key_v(&s_dec_pv);
 
     decrypt_night_pv(&s_dec_pv, length, enc, dec);
+    calc_gmac(dec, tag_after, length, s_enc_p.seed3, iv);
+
+    printf("GMAC After:\n  ");
+    for(size_t i = 0; i < sizeof(tag_after); i++)
+    {
+        printf("%02x", tag_after[i]);
+
+        if(i == sizeof(tag_after) - 1) {
+            printf("\n");
+        }
+    }
 
     check = memcmp( plain, dec, length );      assert(check == 0);
     check = memcmp( plain, enc, length );      assert(check != 0);
+    check = memcmp( tag_before, tag_after, 16 );      assert(check == 0);
 
     printf("Vectorised Parallel Pass!\n");
 

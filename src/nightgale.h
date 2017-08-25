@@ -17,6 +17,7 @@
 #include "mysecond.h"
 
 #define VEC_SIZE 32
+#define IV_SIZE 12
 #define MASK 0xfc00000000000000
 
 static const unsigned char low_bytes[] =
